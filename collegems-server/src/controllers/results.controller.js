@@ -4,11 +4,18 @@ import Course from "../models/Course.model.js";
 
 export const getResults = async (req, res) => {
     try {
-        const { id } = req.user;
+        if (!req.user) {
+            return res.status(401).json({
+                message: "User not authenticated",
+            });
+        }
 
-        const results = await Results.find({ studentId: id })
+        const results = await Results.find({
+            studentId: req.user.id,
+            status: "published",
+        })
             .populate("courseId", "name code")
-            .select("grade semester");
+            .select("marks grade status semester");
 
         res.json(results);
     } catch (error) {
