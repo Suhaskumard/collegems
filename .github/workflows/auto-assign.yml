@@ -1,14 +1,10 @@
-name: Auto Assign Author
+name: Auto Assign PR Author
 
 on:
-  issues:
-    types: [opened]
-
   pull_request:
     types: [opened]
 
 permissions:
-  issues: write
   pull-requests: write
 
 jobs:
@@ -16,15 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Auto assign issue author
-        if: github.event_name == 'issues'
-        uses: pozil/auto-assign-issue@v2
-        with:
-          assignees: ${{ github.event.issue.user.login }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Auto assign PR author
-        if: github.event_name == 'pull_request'
         uses: toshimaru/auto-author-assign@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
