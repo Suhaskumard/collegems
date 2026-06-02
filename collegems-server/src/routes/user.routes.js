@@ -48,7 +48,7 @@ router.get(
 );
 
 router.get("/teachers", protect, async (req, res) => {
-  const teachers = await User.find({ role: "teacher" }).select("name email");
+  const teachers = await User.find({ role: "teacher" }).select("name email role teacherId department phone");
 
   res.json(teachers);
 });
