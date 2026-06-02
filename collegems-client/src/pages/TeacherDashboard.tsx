@@ -37,6 +37,7 @@ import OrganizeEvents from "../teacher-components/EventsManage";
 import TeacherResults from "../teacher-components/TeacherResults";
 import StudentAttendance from "../teacher-components/Attendance";
 import TeacherSettings from "../teacher-components/Settings";
+import AcademicCalendar from "../common-components-management/AcademicCalendar";
 
 
 export default function TeacherDashboard() {
@@ -129,6 +130,7 @@ export default function TeacherDashboard() {
     { id: "courses", label: "My Courses", icon: BookMarked },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
+    { id: "academic-calendar", label: "Academic Calendar", icon: Calendar },
     { id: "examschedules", label: "Exam Schedules", icon: Calendar },
     { id: "fees", label: "Fees", icon: BarChart3 },
     { id: "salary", label: "Salary", icon: Coins },
@@ -546,6 +548,7 @@ export default function TeacherDashboard() {
           )}
           {activeTab === "attendance" && <StudentAttendance />}
           {activeTab === "examschedules" && <ExamSchedule />}
+          {activeTab === "academic-calendar" && <AcademicCalendar role="teacher" />}
           {activeTab === "fees" && <TeacherFee />}
           {activeTab === "salary" && <Salary />}
           {activeTab === "classes" && <Classes />}

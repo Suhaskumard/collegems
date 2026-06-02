@@ -26,7 +26,7 @@ import api from "../api/axios";
 import Students from "../common-components-management/Students";
 import HODSalary from "../hod-components/Salary";
 import HODTeacherAttendance from "../hod-components/TeacherAttendance";
-import Teachers from "../hod-components/Teachers";
+import AcademicCalendar from "../common-components-management/AcademicCalendar";
 
 type TabType =
   | "overview"
@@ -39,7 +39,8 @@ type TabType =
   | "fees"
   | "salary"
   | "examSchedule"
-  | "events";
+  | "events"
+  | "academic-calendar";
 
 interface Data {
   cards: Array<{
@@ -171,6 +172,7 @@ export default function HODDashboard() {
       icon: Users,
     },
     { id: "students" as TabType, label: "Students", icon: GraduationCap },
+    { id: "academic-calendar" as TabType, label: "Academic Calendar", icon: Calendar },
     { id: "courses" as TabType, label: "Courses", icon: BookOpen },
     { id: "classes" as TabType, label: "Classes", icon: Building2 },
     { id: "syllabus" as TabType, label: "Syllabus", icon: FileText },
@@ -603,6 +605,7 @@ export default function HODDashboard() {
           {activeTab === "teachers-attendance" && <HODTeacherAttendance />}
           {activeTab === "students" && <Students />}
           {activeTab === "salary" && <HODSalary />}
+          {activeTab === "academic-calendar" && <AcademicCalendar role="hod" />}
         </main>
       </div>
     </div>

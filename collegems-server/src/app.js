@@ -16,9 +16,9 @@ import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
 import eventRoute from "./routes/event.routes.js";
 import resultsRoutes from "./routes/results.routes.js";
 
-// Admin / HOD
 import courseRoutes from "./routes/course.routes.js";
 import salaryRoutes from "./routes/salary.route.js";
+import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
 
 const app = express();
 
@@ -44,6 +44,7 @@ app.use("/api/salary", salaryRoutes);
 
 app.use("/api/users", userRoutes);
 app.use("/api/examschedule", examScheduleRoutes);
+app.use("/api/academic-calendar", academicCalendarRoutes);
 
 // Health check (optional but useful)
 app.get("/", (req, res) => {

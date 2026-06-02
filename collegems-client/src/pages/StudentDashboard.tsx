@@ -29,6 +29,7 @@ import Courses from "../user-components/Courses";
 import ExamSchedule from "../user-components/ExamSchedule";
 import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
+import AcademicCalendar from "../common-components-management/AcademicCalendar";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ export default function StudentDashboard() {
     { id: "fees", label: "Fees", icon: Wallet },
     { id: "courses", label: "Courses", icon: BookOpen },
     { id: "examschedule", label: "Exam Schedule", icon: Calendar },
+    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Events", icon: CalendarDays },
     { id: "results", label: "Results", icon: AwardIcon }
   ];
@@ -535,6 +537,7 @@ export default function StudentDashboard() {
               {activeTab === "fees" && <Fees />}
               {activeTab === "courses" && <Courses />}
               {activeTab === "examschedule" && <ExamSchedule />}
+              {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
               {activeTab === "settings" && (
