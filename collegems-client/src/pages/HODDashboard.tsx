@@ -42,7 +42,7 @@ type TabType =
   | "salary"
   | "examSchedule"
   | "events"
-  | "academic-calendar";
+  | "academic-calendar"
   | "library";
 
 interface Data {
