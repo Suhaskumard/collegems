@@ -15,6 +15,7 @@ import classRoutes from "./routes/class.route.js";
 import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
 import eventRoute from "./routes/event.routes.js";
 import resultsRoutes from "./routes/results.routes.js";
+import libraryRoutes from "./routes/library.routes.js";
 
 import courseRoutes from "./routes/course.routes.js";
 import salaryRoutes from "./routes/salary.route.js";
@@ -35,6 +36,7 @@ app.use("/api/assignment", assignmentRoutes);
 app.use("/api/teacher-attendance", teacherAttendanceRoutes);
 app.use("/api/events", eventRoute);
 app.use("/api/results", resultsRoutes);
+app.use("/api/library", libraryRoutes);
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/classes", classRoutes);
