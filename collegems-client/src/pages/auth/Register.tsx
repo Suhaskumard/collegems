@@ -22,12 +22,13 @@ export default function Register() {
   const [role, setRole] = useState("student");
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
-  const [error, setError] = useState("");
-
+  
   const handleRegister = async () => {
     if (loading) return;
 
@@ -415,7 +416,12 @@ export default function Register() {
                 </div>
               </div>
             )}
-
+              {/* Error Message */}
+              {error && (
+                <p className="text-red-500 text-sm text-center">
+                  {error}
+                </p>
+              )}
             {/* Submit Button */}
             <button
               type="button"
