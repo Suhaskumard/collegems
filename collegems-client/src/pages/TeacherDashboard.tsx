@@ -38,7 +38,7 @@ import TeacherResults from "../teacher-components/TeacherResults";
 import StudentAttendance from "../teacher-components/Attendance";
 import TeacherSettings from "../teacher-components/Settings";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
-
+import Library from "../common-components-management/Library";
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
@@ -139,6 +139,7 @@ export default function TeacherDashboard() {
     { id: "results", label: "Results", icon: Percent },
     { id: "students", label: "Students", icon: Users },
     { id: "events", label: "Organize Events", icon: CalendarDays },
+    { id: "library", label: "Library Catalog", icon: Book },
   ];
 
   const activeTabLabel =
@@ -557,6 +558,7 @@ export default function TeacherDashboard() {
           {activeTab === "students" && <Students />}
           {activeTab === "events" && <OrganizeEvents />}
           {activeTab === "settings" && <TeacherSettings />}
+          {activeTab === "library" && <Library />}
         </main>
       </div>
     </div>

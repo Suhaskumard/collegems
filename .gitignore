@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 **/.DS_Store
+=======
+.DS_Store
+>>>>>>> f055b52 (Remove .DS_Store and ignore macOS metadata files)

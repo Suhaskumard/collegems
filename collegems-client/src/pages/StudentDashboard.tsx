@@ -30,6 +30,8 @@ import ExamSchedule from "../user-components/ExamSchedule";
 import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
+import Library from "../common-components-management/Library";
+
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -83,7 +85,8 @@ export default function StudentDashboard() {
     { id: "examschedule", label: "Exam Schedule", icon: Calendar },
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Events", icon: CalendarDays },
-    { id: "results", label: "Results", icon: AwardIcon }
+    { id: "results", label: "Results", icon: AwardIcon },
+    { id: "library", label: "Library", icon: BookOpen }
   ];
 
   if (loading) {
@@ -545,6 +548,7 @@ export default function StudentDashboard() {
                   Settings are not available yet for student accounts.
                 </div>
               )}
+              {activeTab === "library" && <Library />}
 
             </div>
           )}

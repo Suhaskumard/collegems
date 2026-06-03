@@ -28,6 +28,7 @@ import HODSalary from "../hod-components/Salary";
 import HODTeacherAttendance from "../hod-components/TeacherAttendance";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Teachers from "../hod-components/Teachers";
+import Library from "../common-components-management/Library";
 
 type TabType =
   | "overview"
@@ -41,7 +42,8 @@ type TabType =
   | "salary"
   | "examSchedule"
   | "events"
-  | "academic-calendar";
+  | "academic-calendar"
+  | "library";
 
 interface Data {
   cards: Array<{
@@ -181,6 +183,7 @@ export default function HODDashboard() {
     { id: "salary" as TabType, label: "Salary", icon: DollarSign },
     { id: "examSchedule" as TabType, label: "Exam Schedule", icon: Calendar },
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
+    { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
   ];
 
   const statsCards = data?.cards.map((card, index) => ({
@@ -607,6 +610,7 @@ export default function HODDashboard() {
           {activeTab === "students" && <Students />}
           {activeTab === "salary" && <HODSalary />}
           {activeTab === "academic-calendar" && <AcademicCalendar role="hod" />}
+          {activeTab === "library" && <Library />}
         </main>
       </div>
     </div>

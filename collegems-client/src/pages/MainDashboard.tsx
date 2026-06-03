@@ -78,6 +78,15 @@ export default function MainDashboard() {
       color: "cyan",
       route: "/faculty",
     },
+    {
+      id: 7,
+      title: "Library Catalog",
+      description: "Manage and borrow books from the library",
+      icon: Library,
+      count: "Explore",
+      color: "emerald",
+      route: "/library",
+    },
   ];
 
   // Quick stats
