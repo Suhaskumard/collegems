@@ -26,12 +26,15 @@ export default function Register() {
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const [error, setError] = useState("");
 
   const handleRegister = async () => {
     if (loading) return;
 
+    setError("");
+
     if (!form.name || !form.email || !form.password) {
-      alert("Please fill in all required fields");
+      setError("Please fill in all required fields");
       return;
     }
 
@@ -53,7 +56,7 @@ export default function Register() {
 
       navigate(routes[res.data.user.role] || "/");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
