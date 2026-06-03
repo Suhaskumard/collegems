@@ -169,6 +169,7 @@ export const evaluateAssignment = async (req, res) => {
     }
 
     submission.marks = marks;
+    submission.status = "graded";
     await assignment.save();
 
     res.json({ message: "Assignment evaluated" });

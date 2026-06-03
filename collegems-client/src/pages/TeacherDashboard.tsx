@@ -544,7 +544,7 @@ export default function TeacherDashboard() {
           {activeTab === "courses" && <HodCourses />}
           {activeTab === "assignments" && (
             <TeacherAssignments
-              courseId={courses[0]?._id || "default-course-id"}
+              courseId={courses[0]?._id || ""}
             />
           )}
           {activeTab === "attendance" && <StudentAttendance />}
