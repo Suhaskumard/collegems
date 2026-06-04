@@ -4,7 +4,6 @@ import {
   Filter, ChevronDown, Download, Plus, Building2, GraduationCap,
 } from "lucide-react";
 import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
 
 interface ExamSchedule {
   _id: string;

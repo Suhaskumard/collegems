@@ -5,7 +5,6 @@ import {
   FileText, Building2,
 } from "lucide-react";
 import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
 
 interface ExamSchedule {
   _id: string;

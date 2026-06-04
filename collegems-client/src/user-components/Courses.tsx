@@ -5,7 +5,6 @@ import {
   Grid3x3, List, Download,
 } from "lucide-react";
 import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
 
 interface Course {
   _id: string;

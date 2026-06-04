@@ -4,7 +4,6 @@ import {
   UserCircle, GraduationCap, BookOpen, ChevronRight, Filter,
 } from "lucide-react";
 import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
 
 interface Teacher {
   name: string;

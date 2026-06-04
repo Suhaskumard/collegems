@@ -32,6 +32,7 @@ import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
+import ExaminationForm from "../user-components/ExaminationForm";
 
 
 export default function StudentDashboard() {
@@ -86,7 +87,8 @@ export default function StudentDashboard() {
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Events", icon: CalendarDays },
     { id: "results", label: "Results", icon: AwardIcon },
-    { id: "library", label: "Library", icon: BookOpen }
+    { id: "library", label: "Library", icon: BookOpen },
+    { id: "exam-form", label: "Examination Form", icon: FileText }
   ];
 
   if (loading) {
@@ -549,6 +551,7 @@ export default function StudentDashboard() {
                 </div>
               )}
               {activeTab === "library" && <Library />}
+              {activeTab === "exam-form" && <ExaminationForm />}
 
             </div>
           )}

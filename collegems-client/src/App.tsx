@@ -17,6 +17,7 @@ import EventsStudent from "./user-components/EventsStudent";
 import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
+import ExaminationFormPage from "./pages/ExaminationFormPage";
 
 import DashboardLayout from "./layouts/DashboardLayout"; 
 export default function App() {
@@ -52,9 +53,21 @@ export default function App() {
         <Route path="/student/dashboard"
           element={<RoleRoute role="student"><StudentDashboard /></RoleRoute>}
         />
-
-        <Route path="/teacher/dashboard"
-          element={<RoleRoute role="teacher"><TeacherDashboard /></RoleRoute>}
+        <Route
+          path="/student/exam-form"
+          element={
+            <RoleRoute role="student">
+              <ExaminationFormPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/teacher/dashboard"
+          element={
+            <RoleRoute role="teacher">
+              <TeacherDashboard />
+            </RoleRoute>
+          }
         />
 
         <Route path="/hod/dashboard"
