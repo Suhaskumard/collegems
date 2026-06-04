@@ -16,12 +16,14 @@ import {
 import api from "../api/axios";
 
 interface Student {
+  _id?: string;
   name: string;
   email: string;
   role: string;
   studentId: string;
   course?: string;
   semester?: number;
+  phone?: string;
   joinedAt?: string;
   lastUpdated?: string;
 }
@@ -35,6 +37,9 @@ const Students: React.FC = () => {
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterSemester, setFilterSemester] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [fullProfile, setFullProfile] = useState<Student | null>(null);
+  const [fetchingProfile, setFetchingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
 
   useEffect(() => {
     fetchStudents();
@@ -70,6 +75,21 @@ const Students: React.FC = () => {
       console.error("Error fetching students:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewProfile = async (id: string | undefined) => {
+    if (!id) return;
+    try {
+      setFetchingProfile(true);
+      setProfileError("");
+      const res = await api.get(`/users/students/${id}`);
+      setFullProfile(res.data);
+    } catch (error) {
+      console.error("Error fetching full profile:", error);
+      setProfileError("Could not fetch student profile. Data unavailable.");
+    } finally {
+      setFetchingProfile(false);
     }
   };
 
@@ -362,9 +382,9 @@ const Students: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
-            onClick={() => setSelectedStudent(null)}
+            onClick={() => { setSelectedStudent(null); setFullProfile(null); setProfileError(""); }}
           />
-          <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden">
+          <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="p-6 bg-blue-600">
               <div className="flex items-center justify-between">
@@ -372,7 +392,7 @@ const Students: React.FC = () => {
                   Student Details
                 </h3>
                 <button
-                  onClick={() => setSelectedStudent(null)}
+                  onClick={() => { setSelectedStudent(null); setFullProfile(null); setProfileError(""); }}
                   className="text-white/80 hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -388,73 +408,105 @@ const Students: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-xl font-semibold text-gray-900">
-                    {selectedStudent.name}
+                    {fullProfile?.name || selectedStudent.name}
                   </h4>
                   <p className="text-gray-500 flex items-center gap-1 mt-1">
                     <Mail className="w-4 h-4" />
-                    {selectedStudent.email}
+                    {fullProfile?.email || selectedStudent.email}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Student ID</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {selectedStudent.studentId}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Status</p>
-                    <p className="text-sm font-medium text-green-600 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                      Active
-                    </p>
-                  </div>
+              {profileError ? (
+                <div className="p-4 bg-red-50 text-red-600 rounded-lg mb-4">
+                  {profileError}
                 </div>
+              ) : fetchingProfile ? (
+                <div className="flex justify-center p-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Student ID</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {fullProfile?.studentId || selectedStudent.studentId || "N/A"}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Status</p>
+                      <p className="text-sm font-medium text-green-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                        Active
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Course</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {selectedStudent.course || "Not assigned"}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Course</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {fullProfile?.course || selectedStudent.course || "Not assigned"}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Semester</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {fullProfile?.semester || selectedStudent.semester || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Semester</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {selectedStudent.semester || "N/A"}
-                    </p>
-                  </div>
-                </div>
+                  
+                  {fullProfile && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Phone</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {fullProfile.phone || "N/A"}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Role</p>
+                        <p className="text-sm font-medium text-gray-900 capitalize">
+                          {fullProfile.role}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Joined Date</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDate(selectedStudent.joinedAt)}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDate(selectedStudent.lastUpdated)}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Joined Date</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDate(fullProfile?.joinedAt || selectedStudent.joinedAt)}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Last Updated</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDate(fullProfile?.lastUpdated || selectedStudent.lastUpdated)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="mt-6 flex justify-end gap-3">
                 <button
-                  onClick={() => setSelectedStudent(null)}
+                  onClick={() => { setSelectedStudent(null); setFullProfile(null); setProfileError(""); }}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Close
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  View Full Profile
-                </button>
+                {!fullProfile && !fetchingProfile && (
+                  <button
+                    onClick={() => handleViewProfile(selectedStudent._id)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View Full Profile
+                  </button>
+                )}
               </div>
             </div>
           </div>

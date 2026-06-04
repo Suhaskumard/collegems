@@ -8,6 +8,7 @@ import {
   updatePassword,
   getPreferences,
   updatePreferences,
+  getStudentProfile,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -45,6 +46,13 @@ router.get(
 
     res.json(students);
   },
+);
+
+router.get(
+  "/students/:id",
+  protect,
+  allowRoles("teacher", "hod"),
+  getStudentProfile
 );
 
 router.get("/teachers", protect, async (req, res) => {

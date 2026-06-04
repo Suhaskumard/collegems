@@ -140,3 +140,19 @@ export const updatePreferences = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getStudentProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await User.findOne({ _id: id, role: "student" }).select("-password");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
+  } catch (error) {
+    console.error("Error fetching student profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

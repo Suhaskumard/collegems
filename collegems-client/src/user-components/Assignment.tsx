@@ -23,6 +23,17 @@ export default function Assignment() {
   const [filter, setFilter] = useState("all");
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [activeSubmission, setActiveSubmission] = useState<any | null>(null);
+  const [submissionForm, setSubmissionForm] = useState({
+    textResponse: "",
+    link: "",
+    file: null as File | null,
+  });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const activeSubmissionType = activeSubmission?.submissionType || "file";
+  const requiresTextResponse =
+    activeSubmissionType === "text" || activeSubmissionType === "both";
 
   useEffect(() => {
     fetchAssignments();
@@ -40,32 +51,70 @@ export default function Assignment() {
     }
   };
 
-  const handleSubmit = async (assignmentId: string) => {
+  const openSubmission = (assignment: any) => {
+    setActiveSubmission(assignment);
+    setSubmissionForm({ textResponse: "", link: "", file: null });
+    setSubmitError(null);
+  };
+
+  const closeSubmission = () => {
     if (submitting) return;
+    setActiveSubmission(null);
+    setSubmitError(null);
+  };
 
-    setSubmitting(assignmentId);
+  const submitAssignment = async () => {
+    if (!activeSubmission || submitting) return;
+
+    const submissionType = activeSubmission.submissionType || "file";
+    const textResponse = submissionForm.textResponse.trim();
+    const link = submissionForm.link.trim();
+
+    if (submissionType === "file" && !submissionForm.file) {
+      setSubmitError("Please attach a file.");
+      return;
+    }
+
+    if (submissionType === "text" && !textResponse) {
+      setSubmitError("Please enter your response.");
+      return;
+    }
+
+    if (submissionType === "link" && !link) {
+      setSubmitError("Please provide a link.");
+      return;
+    }
+
+    if (submissionType === "both" && (!submissionForm.file || !textResponse)) {
+      setSubmitError("Please attach a file and enter your response.");
+      return;
+    }
+
+    setSubmitting(activeSubmission._id);
+    setSubmitError(null);
+
     try {
-      await api.post(`/assignment/submit/${assignmentId}`);
+      const formData = new FormData();
+      if (submissionForm.file) {
+        formData.append("file", submissionForm.file);
+      }
+      if (textResponse) {
+        formData.append("textResponse", textResponse);
+      }
+      if (link) {
+        formData.append("link", link);
+      }
 
-      // Update local state
-      setAssignments((prev) =>
-        prev.map((a) =>
-          a._id === assignmentId
-            ? {
-                ...a,
-                submissions: [
-                  ...(a.submissions || []),
-                  {
-                    student: localStorage.getItem("userId"),
-                    submittedAt: new Date().toISOString(),
-                    status: "submitted",
-                  },
-                ],
-              }
-            : a,
-        ),
-      );
+      await api.post(`/assignment/submit/${activeSubmission._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setSubmitSuccess("Assignment submitted successfully.");
+      closeSubmission();
+      await fetchAssignments();
+      setTimeout(() => setSubmitSuccess(null), 3000);
     } catch (err: any) {
+      setSubmitError(err?.response?.data?.message || "Submission failed.");
       console.error("Submission failed:", err);
     } finally {
       setSubmitting(null);
@@ -263,6 +312,12 @@ export default function Assignment() {
         </div>
       </div>
 
+      {submitSuccess && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          {submitSuccess}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-200">
@@ -364,9 +419,10 @@ export default function Assignment() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {sortedAssignments.map((assignment) => {
             const userId = localStorage.getItem("userId");
-            const submitted = assignment.submissions?.some(
+            const studentSubmission = assignment.submissions?.find(
               (s: any) => s.student?.toString() === userId,
             );
+            const submitted = Boolean(studentSubmission);
             const status = getStatusConfig(assignment);
             const StatusIcon = status.icon;
 
@@ -437,9 +493,7 @@ export default function Assignment() {
                       <FileCheck className="w-4 h-4 mr-2" />
                       Submitted on{" "}
                       {new Date(
-                        assignment.submissions.find(
-                          (s: any) => s.student?.toString() === userId,
-                        )?.submittedAt,
+                        studentSubmission?.submittedAt,
                       ).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -447,6 +501,26 @@ export default function Assignment() {
                         minute: "2-digit",
                       })}
                     </div>
+                    {studentSubmission?.file?.url && (
+                      <a
+                        href={studentSubmission.file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center text-xs text-green-700 hover:text-green-800"
+                      >
+                        View submission file
+                      </a>
+                    )}
+                    {studentSubmission?.link && (
+                      <a
+                        href={studentSubmission.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-xs text-green-700 hover:text-green-800"
+                      >
+                        {studentSubmission.link}
+                      </a>
+                    )}
                   </div>
                 )}
 
@@ -466,7 +540,7 @@ export default function Assignment() {
 
                   {!submitted ? (
                     <button
-                      onClick={() => handleSubmit(assignment._id)}
+                      onClick={() => openSubmission(assignment)}
                       disabled={submitting === assignment._id}
                       className={`inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                         submitting === assignment._id
@@ -496,6 +570,134 @@ export default function Assignment() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {activeSubmission && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            onClick={closeSubmission}
+          />
+          <div className="relative w-full max-w-xl bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Submit Assignment
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {activeSubmission.title}
+                  </p>
+                </div>
+                <button
+                  onClick={closeSubmission}
+                  disabled={Boolean(submitting)}
+                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <XCircle className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {submitError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                  {submitError}
+                </div>
+              )}
+
+              <div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {requiresTextResponse ? "Response" : "Notes (optional)"}
+                    {requiresTextResponse && (
+                      <span className="text-red-500"> *</span>
+                    )}
+                  </label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={4}
+                    value={submissionForm.textResponse}
+                    onChange={(e) =>
+                      setSubmissionForm((prev) => ({
+                        ...prev,
+                        textResponse: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              {(activeSubmissionType === "link" ||
+                activeSubmissionType === "both") && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Submission Link
+                    {activeSubmissionType === "link" && (
+                      <span className="text-red-500"> *</span>
+                    )}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={submissionForm.link}
+                    onChange={(e) =>
+                      setSubmissionForm((prev) => ({
+                        ...prev,
+                        link: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              )}
+
+              {(activeSubmissionType === "file" ||
+                activeSubmissionType === "both") && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload File
+                    <span className="text-red-500"> *</span>
+                  </label>
+                  <input
+                    type="file"
+                    className="w-full text-sm text-gray-700"
+                    onChange={(e) =>
+                      setSubmissionForm((prev) => ({
+                        ...prev,
+                        file: e.target.files?.[0] || null,
+                      }))
+                    }
+                  />
+                  {submissionForm.file && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      {submissionForm.file.name}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={closeSubmission}
+                  disabled={Boolean(submitting)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitAssignment}
+                  disabled={Boolean(submitting)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300"
+                >
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

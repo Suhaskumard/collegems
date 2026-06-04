@@ -14,6 +14,8 @@ import HODTeacherAttendance from "../hod-components/TeacherAttendance";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Teachers from "../hod-components/Teachers";
 import Library from "../common-components-management/Library";
+import HODSettings from "../hod-components/Settings";
+import HODCourses from "../hod-components/Courses";
 
 type TabType =
   | "overview"
@@ -28,7 +30,8 @@ type TabType =
   | "examSchedule"
   | "events"
   | "academic-calendar"
-  | "library";
+  | "library"
+  | "settings";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -116,6 +119,13 @@ export default function HODDashboard() {
       setProfileLoading(false);
       setProfileRefreshing(false);
     }
+  };
+  // Sign out handler for HOD
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userData");
+    navigate("/login", { replace: true });
   };
 
   const profileDisplayDepartment = profile?.department || profile?.departmentCode || "Not set";
@@ -417,6 +427,8 @@ export default function HODDashboard() {
           {activeTab === "salary" && <HODSalary />}
           {activeTab === "academic-calendar" && <AcademicCalendar role="hod" />}
           {activeTab === "library" && <Library />}
+          {activeTab === "courses" && <HODCourses />}
+          {activeTab === "settings" && <HODSettings />}
         </main>
       </div>
     </div>
