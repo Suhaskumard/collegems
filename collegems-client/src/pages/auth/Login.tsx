@@ -28,7 +28,7 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       if (rememberMe) localStorage.setItem("rememberEmail", email);

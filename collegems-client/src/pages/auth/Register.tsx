@@ -34,14 +34,18 @@ export default function Register() {
     setLoading(true);
     try {
       const res = await api.post("/auth/register", { ...form, role });
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       setForm({});
       const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard" };
       navigate(routes[res.data.user.role] || "/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+      if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
+        setError(err.response.data.errors[0].msg);
+      } else {
+        setError(err.response?.data?.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
-  Bell, Search, UserCircle, LogOut, Settings, Home, CalendarDays,
+  Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
   Moon, Sun,
 } from "lucide-react";
 import api from "../api/axios";
@@ -31,7 +31,8 @@ type TabType =
   | "events"
   | "academic-calendar"
   | "library"
-  | "settings";
+  | "settings"
+  | "reports";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -281,7 +282,14 @@ export default function HODDashboard() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                    onClick={() => {
+                      if (item.id === "reports") {
+                        navigate("/hod/reports");
+                      } else {
+                        setActiveTab(item.id);
+                        setSidebarOpen(false);
+                      }
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative ${isActive ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`} />
@@ -500,7 +508,7 @@ export default function HODDashboard() {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[
-                    { label: "Add New Teacher", icon: Users, color: "blue", onClick: () => setActiveTab("teachers") },
+                    { label: "Generate Reports", icon: FileText, color: "blue", onClick: () => navigate("/hod/reports") },
                     { label: "View Students", icon: GraduationCap, color: "amber", onClick: () => setActiveTab("students") },
                     { label: "Manage Courses", icon: BookOpen, color: "emerald", onClick: () => setActiveTab("courses") },
                   ].map((action, index) => {
@@ -509,7 +517,7 @@ export default function HODDashboard() {
                       blue: "bg-blue-50 text-blue-700 hover:bg-blue-100",
                       amber: "bg-amber-50 text-amber-700 hover:bg-amber-100",
                       emerald: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                    }[action.color];
+                    }[action.color as "blue" | "amber" | "emerald"];
                     return (
                       <button key={index} onClick={action.onClick} className={`flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors ${colorClasses}`}>
                         <div className="p-2 rounded-lg bg-white dark:bg-gray-700"><Icon className="w-5 h-5" /></div>
@@ -517,24 +525,6 @@ export default function HODDashboard() {
                       </button>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
-                <div className="space-y-4">
-                  {[1, 2, 3].map((_, i) => (
-                    <div key={i} className="flex items-start gap-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <Home className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900 dark:text-white">New teacher application submitted</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
