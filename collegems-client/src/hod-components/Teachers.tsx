@@ -17,10 +17,7 @@ interface Teacher {
 }
 
 const Teachers: React.FC = () => {
-<<<<<<< HEAD
   useTheme();
-=======
->>>>>>> e1cf284 (feat(exams): implement online examination form registration and HOD management system)
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
