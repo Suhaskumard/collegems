@@ -41,6 +41,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const { darkMode, toggleTheme } = useTheme(); 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -502,51 +503,62 @@ export default function StudentDashboard() {
                   <h2 className="text-lg font-semibold text-gray-900">
                     Today's Schedule
                   </h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <button 
+                    onClick={() => setShowScheduleModal(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
                     View all
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {[
-                    {
-                      time: "09:00 AM",
-                      subject: "Data Structures",
-                      room: "Room 401",
-                      type: "Lecture",
-                    },
-                    {
-                      time: "11:00 AM",
-                      subject: "Database Systems",
-                      room: "Room 203",
-                      type: "Lab",
-                    },
-                    {
-                      time: "02:00 PM",
-                      subject: "Web Development",
-                      room: "Room 105",
-                      type: "Lecture",
-                    },
-                  ].map((class_, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div className="w-16 text-sm font-medium text-gray-700">
-                        {class_.time}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {class_.subject}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {class_.room} • {class_.type}
-                        </p>
-                      </div>
-                      <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Join
-                      </button>
+                  {data?.todayClasses && data.todayClasses.length > 0 ? (
+                    data.todayClasses.slice(0, 3).map((class_: any, index: number) => {
+                      const parseTime = (timeStr: string) => {
+                        const [time, modifier] = timeStr.split(' ');
+                        let [hours, minutes] = time.split(':');
+                        if (hours === '12') hours = '00';
+                        if (modifier.toUpperCase() === 'PM') hours = String(parseInt(hours, 10) + 12);
+                        return parseInt(hours, 10) * 60 + parseInt(minutes, 10);
+                      };
+                      
+                      const now = new Date();
+                      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                      
+                      // Highlight if it's the next upcoming class
+                      const isUpcoming = data.todayClasses.findIndex((c: any) => parseTime(c.time) >= currentMinutes) === index;
+
+                      return (
+                        <div
+                          key={class_.id || index}
+                          className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
+                            isUpcoming ? "bg-blue-50 border border-blue-200 shadow-sm" : "bg-gray-50 border border-transparent"
+                          }`}
+                        >
+                          <div className={`w-16 text-sm font-medium ${isUpcoming ? "text-blue-700" : "text-gray-700"}`}>
+                            {class_.time}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`font-medium ${isUpcoming ? "text-blue-900" : "text-gray-900"}`}>
+                              {class_.subject}
+                            </p>
+                            <p className={`text-sm ${isUpcoming ? "text-blue-600" : "text-gray-500"}`}>
+                              {class_.faculty} • {class_.room} • {class_.type}
+                            </p>
+                          </div>
+                          {isUpcoming && (
+                            <span className="px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full animate-pulse">
+                              Next
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-6 text-center text-gray-500">
+                      <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <p>No classes scheduled for today.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -593,6 +605,74 @@ export default function StudentDashboard() {
           </footer>
         </main>
       </div>
+
+      {/* Full Schedule Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                All Scheduled Classes Today
+              </h2>
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4">
+              {data?.todayClasses && data.todayClasses.length > 0 ? (
+                data.todayClasses.map((class_: any, index: number) => {
+                  const parseTime = (timeStr: string) => {
+                    const [time, modifier] = timeStr.split(' ');
+                    let [hours, minutes] = time.split(':');
+                    if (hours === '12') hours = '00';
+                    if (modifier.toUpperCase() === 'PM') hours = String(parseInt(hours, 10) + 12);
+                    return parseInt(hours, 10) * 60 + parseInt(minutes, 10);
+                  };
+                  
+                  const now = new Date();
+                  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                  const isUpcoming = data.todayClasses.findIndex((c: any) => parseTime(c.time) >= currentMinutes) === index;
+
+                  return (
+                    <div
+                      key={class_.id || index}
+                      className={`flex items-center gap-4 p-4 rounded-lg border ${
+                        isUpcoming ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
+                      }`}
+                    >
+                      <div className={`w-20 text-sm font-semibold ${isUpcoming ? "text-blue-700" : "text-gray-900"}`}>
+                        {class_.time}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium text-lg ${isUpcoming ? "text-blue-900" : "text-gray-900"}`}>
+                          {class_.subject}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          <span className="font-medium">{class_.faculty}</span> • {class_.room} • {class_.type}
+                        </p>
+                      </div>
+                      {isUpcoming && (
+                        <span className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                          Next Up
+                        </span>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No classes scheduled for today.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

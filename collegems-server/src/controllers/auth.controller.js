@@ -19,7 +19,7 @@ const verifyPassword = async (plainPassword, storedPassword) => {
 
 const generateAccessToken = (user) =>
   jwt.sign({ id: String(user._id), role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "2h",
   });
 
 const generateRefreshToken = (user) =>

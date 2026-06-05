@@ -40,9 +40,45 @@ export const getDashboardData = async (req, res) => {
       });
     }
 
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const today = days[new Date().getDay()];
+    
+    // Fetch classes for student's semester
+    const classes = await Class.find({ semester: parseInt(user.semester) || user.semester })
+        .populate("courseName", "name")
+        .populate("teacher", "name")
+        .lean();
+
+    // Parse classes or return mock structure if missing day/time specifics
+    let todayClasses = classes
+      .filter((c) => c.schedule.toLowerCase().includes(today.toLowerCase()))
+      .map((c) => {
+        // Simple regex to extract time if present (e.g., "10:00 AM - 11:00 AM")
+        const timeMatch = c.schedule.match(/\d{1,2}:\d{2}\s*(AM|PM)/i);
+        return {
+          id: c._id,
+          time: timeMatch ? timeMatch[0] : "09:00 AM",
+          subject: c.courseName?.name || c.name,
+          room: c.room || "TBD", // Database room or fallback
+          type: "Lecture",
+          faculty: c.teacher?.name || "Unknown",
+        };
+      });
+
+    // Sort by time
+    const parseTime = (timeStr) => {
+      const [time, modifier] = timeStr.split(' ');
+      let [hours, minutes] = time.split(':');
+      if (hours === '12') hours = '00';
+      if (modifier.toUpperCase() === 'PM') hours = parseInt(hours, 10) + 12;
+      return parseInt(hours, 10) * 60 + parseInt(minutes, 10);
+    };
+    todayClasses.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
     return res.json({
       user,
       currentSemester: user?.semester,
+      todayClasses,
       cards: [
         {
           title: "Attendance",

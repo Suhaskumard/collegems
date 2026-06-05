@@ -55,7 +55,7 @@ router.get(
   getStudentProfile
 );
 
-router.get("/teachers", protect, authorize("hod"), async (req, res) => {
+router.get("/teachers", protect, authorize("hod", "teacher"), async (req, res) => {
   const teachers = await User.find({ role: "teacher" }).select("name email role teacherId department phone");
 
   res.json(teachers);

@@ -34,6 +34,7 @@ interface ClassType {
   name: string;
   semester: number;
   schedule: string;
+  room?: string;
   teacher: string | Teacher;
   courseName: string | Course;
 }
@@ -53,6 +54,7 @@ const Classes: React.FC = () => {
     name: "",
     semester: 1,
     schedule: "",
+    room: "",
     teacher: "",
     courseName: "",
   });
@@ -112,6 +114,7 @@ const Classes: React.FC = () => {
       name: "",
       semester: 1,
       schedule: "",
+      room: "",
       teacher: "",
     });
     setEditingClass(null);
@@ -129,6 +132,7 @@ const Classes: React.FC = () => {
       name: classItem.name,
       semester: classItem.semester,
       schedule: classItem.schedule,
+      room: classItem.room || "",
       teacher:
         typeof classItem.teacher === "object"
           ? classItem.teacher._id
@@ -144,6 +148,7 @@ const Classes: React.FC = () => {
       !formData.name ||
       !formData.semester ||
       !formData.schedule ||
+      !formData.room ||
       !formData.teacher
     ) {
       alert("Please fill in all fields");
@@ -587,28 +592,43 @@ const Classes: React.FC = () => {
                 </div>
               </div>
 
-              {/* Teacher Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assign Teacher *
-                </label>
-                <select
-                  name="teacher"
-                  value={
-                    typeof formData.teacher === "object"
-                      ? formData.teacher._id
-                      : formData.teacher
-                  }
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select a teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.name}
-                    </option>
-                  ))}
-                </select>
+              {/* Teacher Selection and Room */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Assign Teacher *
+                  </label>
+                  <select
+                    name="teacher"
+                    value={
+                      typeof formData.teacher === "object"
+                        ? formData.teacher._id
+                        : formData.teacher
+                    }
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a teacher</option>
+                    {teachers.map((teacher) => (
+                      <option key={teacher._id} value={teacher._id}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Room *
+                  </label>
+                  <input
+                    type="text"
+                    name="room"
+                    value={formData.room}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Room 101"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
 

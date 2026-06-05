@@ -12,7 +12,7 @@ router.post(
   allowRoles("hod", "admin", "teacher"),
   async (req, res) => {
     try {
-      const { courseName, name, semester, schedule, teacher } = req.body;
+      const { courseName, name, semester, schedule, teacher, room } = req.body;
 
       if (!courseName || !name || !semester || !schedule || !teacher) {
         return res.status(400).json({
@@ -33,6 +33,7 @@ router.post(
         semester,
         schedule,
         teacher,
+        room,
       });
 
       res.status(201).json(classes);
@@ -52,10 +53,10 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { courseName, name, semester, schedule, teacher } = req.body;
+      const { courseName, name, semester, schedule, teacher, room } = req.body;
       const classes = await Class.findByIdAndUpdate(
         id,
-        { courseName, name, semester, schedule, teacher },
+        { courseName, name, semester, schedule, teacher, room },
         { new: true },
       );
       if (!classes) {
