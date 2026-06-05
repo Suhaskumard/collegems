@@ -12,6 +12,11 @@ const leaveSchema = new mongoose.Schema(
       enum: ["student", "teacher"],
       required: true,
     },
+    subject: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     startDate: {
       type: Date,
       required: true,
@@ -33,6 +38,17 @@ const leaveSchema = new mongoose.Schema(
       type: String,
       enum: ["Sick", "Casual", "Duty", "Other"],
       default: "Casual",
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    adminRemarks: {
+      type: String,
+      default: "",
+    },
+    reviewedAt: {
+      type: Date,
     },
   },
   { timestamps: true }

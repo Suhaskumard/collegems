@@ -24,6 +24,7 @@ import salaryRoutes from "./routes/salary.route.js";
 import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import examFormRoutes from "./routes/examForm.routes.js";
+import leaveRoutes from "./routes/leave.routes.js";
 
 import { authenticate } from "./middlewares/auth.middleware.js";
 
@@ -68,6 +69,7 @@ app.use("/api/fee", authenticate, feeRoutes);
 app.use("/api/salary", authenticate, salaryRoutes);
 
 app.use("/api/users", authenticate, userRoutes);
+app.use("/api/leaves", authenticate, leaveRoutes);
 app.use("/api/examschedule", authenticate, examScheduleRoutes);
 app.use("/api/exam-forms", examFormRoutes);
 app.use("/api/academic-calendar", academicCalendarRoutes);

@@ -21,6 +21,7 @@ import {
   CalendarDays,
   AwardIcon,
   AlertCircle,
+  ClipboardList,
 } from "lucide-react";
 import api from "../api/axios";
 import Attendance from "../user-components/Attendance";
@@ -34,6 +35,7 @@ import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
 import ExaminationForm from "../user-components/ExaminationForm";
 import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
+import LeaveRequest from "../user-components/LeaveRequest";
 
 
 export default function StudentDashboard() {
@@ -89,6 +91,7 @@ export default function StudentDashboard() {
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Events", icon: CalendarDays },
     { id: "results", label: "Results", icon: AwardIcon },
+    { id: "leave", label: "Leave Requests", icon: ClipboardList },
     { id: "library", label: "Library", icon: BookOpen },
     { id: "exam-form", label: "Examination Form", icon: FileText }
   ];
@@ -457,11 +460,11 @@ export default function StudentDashboard() {
                       onClick: () => setActiveTab("fees"),
                     },
                     {
-                      label: "Mark Attendance",
-                      description: "Today's class: 10:30 AM",
-                      icon: CalendarCheck,
+                      label: "Request Leave",
+                      description: "Submit and track leave applications",
+                      icon: ClipboardList,
                       color: "emerald",
-                      onClick: () => setActiveTab("attendance"),
+                      onClick: () => setActiveTab("leave"),
                     },
                   ].map((action, index) => {
                     const Icon = action.icon;
@@ -566,7 +569,7 @@ export default function StudentDashboard() {
             </div>
             
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className={activeTab === "leave" ? "" : "bg-white rounded-xl border border-gray-200 p-6"}>
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "assignments" && <Assignment />}
               {activeTab === "fees" && <Fees />}
@@ -575,6 +578,7 @@ export default function StudentDashboard() {
               {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "leave" && <LeaveRequest />}
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600">
                   Settings are not available yet for student accounts.

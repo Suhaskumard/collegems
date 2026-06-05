@@ -6,7 +6,7 @@ import {
   Users, BarChart3, FileText, Clock, Bell, Search, LayoutDashboard,
   CheckSquare, ClipboardList, BookMarked, Book, Coins, Menu, X,
   ChevronRight, Calendar, LogOut, Settings, GraduationCap, CalendarDays,
-  Percent, Moon, Sun,
+  Percent, Moon, Sun, ClipboardCheck,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -23,6 +23,7 @@ import StudentAttendance from "../teacher-components/Attendance";
 import TeacherSettings from "../teacher-components/Settings";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
+import LeaveApprovals from "../teacher-components/LeaveApprovals";
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ export default function TeacherDashboard() {
     { id: "courses", label: "My Courses", icon: BookMarked },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
+    { id: "leave-approvals", label: "Leave Approvals", icon: ClipboardCheck },
     { id: "academic-calendar", label: "Academic Calendar", icon: Calendar },
     { id: "examschedules", label: "Exam Schedules", icon: Calendar },
     { id: "fees", label: "Fees", icon: BarChart3 },
@@ -235,7 +237,7 @@ export default function TeacherDashboard() {
                   { label: "Total Courses", value: courses.length, icon: BookMarked, color: "blue" },
                   { label: "Total Students", value: "124", icon: Users, color: "amber" },
                   { label: "Classes Today", value: "4", icon: Clock, color: "emerald" },
-                  { label: "Pending Tasks", value: "8", icon: CheckSquare, color: "purple" },
+                  { label: "Pending Reviews", value: "8", icon: ClipboardCheck, color: "purple" },
                 ].map((stat, index) => {
                   const Icon = stat.icon;
                   const colorClasses = {
@@ -339,6 +341,7 @@ export default function TeacherDashboard() {
           {activeTab === "courses" && <HodCourses />}
           {activeTab === "assignments" && <TeacherAssignments courseId={courses[0]?._id || "default-course-id"} />}
           {activeTab === "attendance" && <StudentAttendance />}
+          {activeTab === "leave-approvals" && <LeaveApprovals />}
           {activeTab === "examschedules" && <ExamSchedule />}
           {activeTab === "academic-calendar" && <AcademicCalendar role="teacher" />}
           {activeTab === "fees" && <TeacherFee />}
