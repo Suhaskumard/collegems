@@ -1,4 +1,6 @@
 import Event from "../models/Events.model.js";
+import User from "../models/User.model.js";
+
 
 // CREATE
 export const createEvent = async (req, res) => {
@@ -84,5 +86,151 @@ export const deleteEvent = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+    
+};
+
+export const markEventAsRead = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found",
+            });
+        }
+
+        const userId = req.user.id;
+
+        if (!event.readBy.some(id => id.toString() === userId)) {
+            event.readBy.push(userId);
+            await event.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Event marked as read",
+            data: event,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const markEventAsUnread = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found",
+            });
+        }
+
+        const userId = req.user.id;
+
+        event.readBy = event.readBy.filter(
+            id => id.toString() !== userId
+        );
+
+        await event.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Event marked as unread",
+            data: event,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getReadCount = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            readCount: event.readBy.length,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+export const getReaders = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id)
+            .populate("readBy", "name email studentId");
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            count: event.readBy.length,
+            data: event.readBy,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getUnreadStudents = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found",
+            });
+        }
+
+        const students = await User.find({
+            role: "student",
+        });
+
+        const unreadStudents = students.filter(
+            student =>
+                !event.readBy.some(
+                    id => id.toString() === student._id.toString()
+                )
+        );
+
+        res.status(200).json({
+            success: true,
+            count: unreadStudents.length,
+            data: unreadStudents,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 };

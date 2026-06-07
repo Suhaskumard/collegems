@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 import User from "./models/User.model.js";
+import Course from "./models/Course.model.js";
 
 const seedData = async () => {
   try {
@@ -54,6 +55,22 @@ const seedData = async () => {
     ]);
 
     console.log("Demo users created successfully");
+
+    // Clear old courses
+    await Course.deleteMany({ code: "CS101" });
+
+    // Create a demo course
+    const teacher = await User.findOne({ email: "teacher@example.com" });
+    await Course.create({
+      name: "Introduction to Computer Science",
+      code: "CS101",
+      department: "Computer Science",
+      semester: 6,
+      teacher: teacher._id,
+      credits: 4,
+    });
+
+    console.log("Demo course created successfully");
 
     process.exit();
   } catch (error) {

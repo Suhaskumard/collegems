@@ -29,6 +29,7 @@ import {
   IdCard,
 } from "lucide-react";
 import api from "../api/axios";
+import BusRoutes from "../common-components-management/BusRoutes";
 import Attendance from "../user-components/Attendance";
 import Fees from "../user-components/Fee";
 import Assignment from "../user-components/Assignment";
@@ -102,6 +103,19 @@ export default function StudentDashboard() {
     { id: "library",            label: "Library",           icon: BookOpen },
     { id: "exam-form",          label: "Examination Form",  icon: FileText },      // ← master
     { id: "id-card",            label: "ID Card",           icon: IdCard },
+    { id: "overview", label: "Overview", icon: LayoutGrid },
+    { id: "attendance", label: "Attendance", icon: CalendarCheck },
+    { id: "assignments", label: "Assignments", icon: FileText },
+    { id: "fees", label: "Fees", icon: Wallet },
+    { id: "courses", label: "Courses", icon: BookOpen },
+    { id: "examschedule", label: "Exam Schedule", icon: Calendar },
+    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
+    { id: "events", label: "Events", icon: CalendarDays },
+    { id: "results", label: "Results", icon: AwardIcon },
+    { id: "leave", label: "Leave Requests", icon: ClipboardList },
+    { id: "library", label: "Library", icon: BookOpen },
+    { id: "exam-form", label: "Examination Form", icon: FileText },
+    { id: "bus-routes", label: "Bus Tracking", icon: Bus }
   ];
 
   if (loading) {
@@ -564,6 +578,10 @@ export default function StudentDashboard() {
                   Settings are not available yet for student accounts.
                 </div>
               )}
+              {activeTab === "library" && <Library />}
+              {activeTab === "exam-form" && <ExaminationForm />}
+              {activeTab === "bus-routes" && <BusRoutes />}
+
             </div>
           )}
 

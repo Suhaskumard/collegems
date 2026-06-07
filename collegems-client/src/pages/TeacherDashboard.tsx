@@ -24,6 +24,8 @@ import TeacherSettings from "../teacher-components/Settings";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
 import LeaveApprovals from "../teacher-components/LeaveApprovals";
+import AssessmentSettings from "../teacher-components/AssessmentSettings";
+import InternalMarksEntry from "../teacher-components/InternalMarksEntry";
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
@@ -84,6 +86,8 @@ export default function TeacherDashboard() {
     { id: "classes", label: "Classes", icon: Book },
     { id: "syllabus", label: "Syllabus", icon: FileText },
     { id: "results", label: "Results", icon: Percent },
+    { id: "assessments", label: "Assessment Config", icon: Settings },
+    { id: "internal-marks", label: "Internal Marks", icon: Percent },
     { id: "students", label: "Students", icon: Users },
     { id: "events", label: "Organize Events", icon: CalendarDays },
     { id: "library", label: "Library Catalog", icon: Book },
@@ -347,9 +351,11 @@ export default function TeacherDashboard() {
           {activeTab === "fees" && <TeacherFee />}
           {activeTab === "salary" && <Salary />}
           {activeTab === "classes" && <Classes />}
-          {activeTab === "syllabus" && <Syllabus />}
-          {activeTab === "results" && <TeacherResults />}
-          {activeTab === "students" && <Students />}
+          { activeTab === "syllabus" && <Syllabus /> }
+          { activeTab === "results" && <TeacherResults /> }
+          { activeTab === "assessments" && <AssessmentSettings /> }
+          { activeTab === "internal-marks" && <InternalMarksEntry /> }
+          { activeTab === "students" && <Students /> }
           {activeTab === "events" && <OrganizeEvents />}
           {activeTab === "settings" && <TeacherSettings />}
           {activeTab === "library" && <Library />}

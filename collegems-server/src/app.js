@@ -18,6 +18,7 @@ import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
 import eventRoute from "./routes/event.routes.js";
 import resultsRoutes from "./routes/results.routes.js";
 import libraryRoutes from "./routes/library.routes.js";
+import assessmentRoutes from "./routes/assessment.routes.js";
 
 import courseRoutes from "./routes/course.routes.js";
 import salaryRoutes from "./routes/salary.route.js";
@@ -27,6 +28,7 @@ import examFormRoutes from "./routes/examForm.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
 import idCardRoutes from "./routes/idcard.routes.js";
 import { verifyStudent } from "./controllers/idcard.controller.js";
+import busRouteRoutes from "./routes/busRoute.routes.js";
 
 import { authenticate } from "./middlewares/auth.middleware.js";
 
@@ -63,6 +65,7 @@ app.use("/api/teacher-attendance", teacherAttendanceRoutes);
 app.use("/api/events", eventRoute);
 app.use("/api/results", authenticate, resultsRoutes);
 app.use("/api/library", libraryRoutes);
+app.use("/api/assessments", authenticate, assessmentRoutes);
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/classes", classRoutes);
@@ -78,6 +81,7 @@ app.use("/api/academic-calendar", academicCalendarRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/student/idcard", idCardRoutes);
 app.get("/api/verify/student/:studentId", verifyStudent);
+app.use("/api/bus-routes", authenticate, busRouteRoutes);
 
 // Health check (optional but useful)
 app.get("/", (req, res) => {
