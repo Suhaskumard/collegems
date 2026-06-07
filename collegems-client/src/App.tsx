@@ -4,11 +4,13 @@ import Register from "./pages/auth/Register";
 import RoleRoute from "./routes/RoleRoute";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+import TimeTable from "./user-components/TimeTable";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
 import MainDashboard from "./pages/MainDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
+
 
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";

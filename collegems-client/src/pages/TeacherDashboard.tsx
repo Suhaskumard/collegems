@@ -6,7 +6,7 @@ import {
   Users, BarChart3, FileText, Clock, Bell, Search, LayoutDashboard,
   CheckSquare, ClipboardList, BookMarked, Book, Coins, Menu, X,
   ChevronRight, Calendar, LogOut, Settings, GraduationCap, CalendarDays,
-  Percent, Moon, Sun, ClipboardCheck,
+  Percent, Moon, Sun, ClipboardCheck, Trophy,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -24,6 +24,7 @@ import TeacherSettings from "../teacher-components/Settings";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
 import LeaveApprovals from "../teacher-components/LeaveApprovals";
+import AchievementSubmissionForm from "../teacher-components/AchievementSubmissionForm";
 import AssessmentSettings from "../teacher-components/AssessmentSettings";
 import InternalMarksEntry from "../teacher-components/InternalMarksEntry";
 
@@ -89,6 +90,7 @@ export default function TeacherDashboard() {
     { id: "assessments", label: "Assessment Config", icon: Settings },
     { id: "internal-marks", label: "Internal Marks", icon: Percent },
     { id: "students", label: "Students", icon: Users },
+    { id: "achievements", label: "Add Achievements", icon: Trophy },
     { id: "events", label: "Organize Events", icon: CalendarDays },
     { id: "library", label: "Library Catalog", icon: Book },
   ];
@@ -351,6 +353,10 @@ export default function TeacherDashboard() {
           {activeTab === "fees" && <TeacherFee />}
           {activeTab === "salary" && <Salary />}
           {activeTab === "classes" && <Classes />}
+          {activeTab === "syllabus" && <Syllabus />}
+          {activeTab === "results" && <TeacherResults />}
+          {activeTab === "students" && <Students />}
+          {activeTab === "achievements" && <AchievementSubmissionForm />}
           { activeTab === "syllabus" && <Syllabus /> }
           { activeTab === "results" && <TeacherResults /> }
           { activeTab === "assessments" && <AssessmentSettings /> }
