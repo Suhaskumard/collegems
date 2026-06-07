@@ -7,6 +7,12 @@ const EventsSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        readBy: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+],
 
         shortDescription: {
             type: String,

@@ -19,6 +19,8 @@ import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
+import VerifyStudent from "./pages/VerifyStudent";
+import TimeTable from "./user-components/TimeTable";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 
@@ -32,6 +34,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/verify/student/:studentId" element={<VerifyStudent />} />
 
         {/* DASHBOARD LAYOUT WRAPPER */}
         <Route element={<DashboardLayout />}>
