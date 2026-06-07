@@ -19,8 +19,10 @@ import {
   AlertCircle,
   Calendar,
   Users,
+  Bus,
 } from "lucide-react";
 import api from "../api/axios";
+import BusRoutes from "../common-components-management/BusRoutes";
 import Attendance from "../user-components/Attendance";
 import Fees from "../user-components/Fee";
 import StudentResults from "../user-components/StudentResults";
@@ -75,6 +77,7 @@ export default function ParentDashboard() {
     { id: "results", label: "Child's Results", icon: AwardIcon },
     { id: "fees", label: "Child's Fees", icon: Wallet },
     { id: "events", label: "College Notices", icon: CalendarDays },
+    { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   ];
 
   if (loading) {
@@ -440,6 +443,7 @@ export default function ParentDashboard() {
               {activeTab === "results" && <StudentResults />}
               {activeTab === "fees" && <Fees />}
               {activeTab === "events" && <EventsStudent />}
+              {activeTab === "bus-routes" && <BusRoutes />}
             </div>
           )}
 

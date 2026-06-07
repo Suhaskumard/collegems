@@ -22,8 +22,10 @@ import {
   AwardIcon,
   AlertCircle,
   ClipboardList,
+  Bus,
 } from "lucide-react";
 import api from "../api/axios";
+import BusRoutes from "../common-components-management/BusRoutes";
 import Attendance from "../user-components/Attendance";
 import Fees from "../user-components/Fee";
 import Assignment from "../user-components/Assignment";
@@ -93,7 +95,8 @@ export default function StudentDashboard() {
     { id: "results", label: "Results", icon: AwardIcon },
     { id: "leave", label: "Leave Requests", icon: ClipboardList },
     { id: "library", label: "Library", icon: BookOpen },
-    { id: "exam-form", label: "Examination Form", icon: FileText }
+    { id: "exam-form", label: "Examination Form", icon: FileText },
+    { id: "bus-routes", label: "Bus Tracking", icon: Bus }
   ];
 
   if (loading) {
@@ -586,6 +589,7 @@ export default function StudentDashboard() {
               )}
               {activeTab === "library" && <Library />}
               {activeTab === "exam-form" && <ExaminationForm />}
+              {activeTab === "bus-routes" && <BusRoutes />}
 
             </div>
           )}
