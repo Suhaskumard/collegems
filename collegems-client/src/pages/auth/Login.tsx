@@ -34,7 +34,7 @@ export default function Login() {
       if (rememberMe) localStorage.setItem("rememberEmail", email);
       else localStorage.removeItem("rememberEmail");
       const role = res.data.user.role;
-      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard" };
+      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
       navigate(routes[role] || "/");
     } catch (err: any) {
       const errorMessage =
@@ -52,6 +52,7 @@ export default function Login() {
     { role: "Student", icon: Users, color: "blue" },
     { role: "Teacher", icon: BookOpen, color: "amber" },
     { role: "HOD", icon: Shield, color: "emerald" },
+    { role: "Parent", icon: Users, color: "purple" },
   ];
 
   return (

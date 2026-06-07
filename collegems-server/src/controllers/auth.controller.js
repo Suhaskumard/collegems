@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const COLLEGE_DOMAIN = "@college.edu";
-const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$.{53}$/;
 
 const normalizeEmail = (email) => email?.trim().toLowerCase();
 
@@ -44,6 +43,7 @@ export const register = async (req, res) => {
       departmentCode,
       semester,
       course,
+      childStudentId,
     } = req.body || {};
 
     if (!name || !email || !password || !role) {
@@ -93,8 +93,19 @@ export const register = async (req, res) => {
       userData = { ...userData, departmentCode };
     }
 
+    if (role === "parent") {
+      if (!childStudentId) {
+        return res.status(400).json({ message: "Child's Student ID required" });
+      }
+      const student = await User.findOne({ studentId: childStudentId, role: "student" });
+      if (!student) {
+        return res.status(404).json({ message: "Student with this ID does not exist" });
+      }
+      userData = { ...userData, childId: student._id };
+    }
+
     // Check existing user
-    const exists = await User.findOne({ email });
+    const exists = await User.findOne({ email: normalizeEmail(email) });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
     // Create user
@@ -171,6 +182,7 @@ export const login = async (req, res) => {
         teacherId: user.teacherId,
         department: user.department,
         departmentCode: user.departmentCode,
+        childId: user.childId,
       },
     });
   } catch (err) {

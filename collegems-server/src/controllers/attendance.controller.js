@@ -1,4 +1,5 @@
 import Attendance from "../models/Attendance.model.js";
+import User from "../models/User.model.js";
 
 export const markAttendance = async (req, res) => {
   try {
@@ -24,11 +25,31 @@ export const markAttendance = async (req, res) => {
 };
 
 export const getMyAttendance = async (req, res) => {
-  const data = await Attendance.find({
-    student: req.user.id,
-  }).populate("course", "name");
+  try {
+    let studentId = req.user.id;
+    if (req.user.role === "parent") {
+      const parent = await User.findById(req.user.id);
+      if (!parent || !parent.childId) {
+        return res.status(400).json({ message: "No child linked to parent account" });
+      }
+      studentId = parent.childId;
+    }
 
-  res.json(data);
+    const data = await Attendance.find({
+      student: studentId,
+    }).populate("course", "name");
+
+    // Map to include subject property for frontend compatibility
+    const mappedData = data.map(item => ({
+      ...item.toObject(),
+      subject: item.course?.name || "Unknown"
+    }));
+
+    res.json(mappedData);
+  } catch (err) {
+    console.error("Get attendance error:", err);
+    res.status(500).json({ message: "Failed to fetch attendance" });
+  }
 };
 
 export const getLowAttendance = async (req, res) => {

@@ -4,8 +4,17 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["student", "teacher", "hod"], required: true },
+  role: { type: String, enum: ["student", "teacher", "hod", "parent"], required: true },
   phone: { type: String },
+
+  // Parent-specific fields
+  childId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: function () {
+      return this.role === "parent";
+    },
+  },
 
   // Student-specific fields
   studentId: { type: String },

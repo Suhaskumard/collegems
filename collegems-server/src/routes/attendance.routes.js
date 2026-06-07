@@ -19,7 +19,7 @@ router.post(
 router.get(
   "/me",
   protect,
-  allowRoles("student"),
+  allowRoles("student", "parent"),
   getMyAttendance
 );
 

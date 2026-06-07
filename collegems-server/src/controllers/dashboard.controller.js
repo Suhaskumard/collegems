@@ -9,9 +9,97 @@ export const getDashboardData = async (req, res) => {
   const { role, id } = req.user;
   const user = await User.findById(id)
     .select(
-      "name email role studentId semester course teacherId department departmentCode",
+      "name email role studentId semester course teacherId department departmentCode childId",
     )
     .lean();
+
+  // 👪 PARENT
+  if (role === "parent") {
+    const childId = user.childId;
+    if (!childId) {
+      return res.status(400).json({ message: "No child linked to parent account" });
+    }
+    
+    const childUser = await User.findById(childId)
+      .select("name email role studentId semester course")
+      .lean();
+      
+    if (!childUser) {
+      return res.status(404).json({ message: "Child student record not found" });
+    }
+
+    const total = await Attendance.countDocuments({ student: childId });
+    const present = await Attendance.countDocuments({
+      student: childId,
+      status: "present",
+    });
+
+    const assignments = await Assignment.countDocuments({
+      "submissions.student": { $ne: childId },
+    });
+
+    const fee = await Fee.findOne({ student: childId });
+
+    const attendancePercentage = total ? Math.round((present / total) * 100) : 0;
+    
+    const notifications = [];
+    if (total > 0 && attendancePercentage < 75) {
+      notifications.push({
+        id: "low_attendance",
+        type: "warning",
+        title: "Child's Low Attendance Alert",
+        message: `${childUser.name}'s attendance is critically low (${attendancePercentage}%).`,
+        date: new Date().toISOString()
+      });
+    }
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const today = days[new Date().getDay()];
+    
+    const classes = await Class.find({ semester: parseInt(childUser.semester) || childUser.semester })
+        .populate("courseName", "name")
+        .populate("teacher", "name")
+        .lean();
+
+    let todayClasses = classes
+      .filter((c) => c.schedule.toLowerCase().includes(today.toLowerCase()))
+      .map((c) => {
+        const timeMatch = c.schedule.match(/\d{1,2}:\d{2}\s*(AM|PM)/i);
+        return {
+          id: c._id,
+          time: timeMatch ? timeMatch[0] : "09:00 AM",
+          subject: c.courseName?.name || c.name,
+          room: c.room || "TBD",
+          type: "Lecture",
+          faculty: c.teacher?.name || "Unknown",
+        };
+      });
+
+    const parseTime = (timeStr) => {
+      const [time, modifier] = timeStr.split(' ');
+      let [hours, minutes] = time.split(':');
+      if (hours === '12') hours = '00';
+      if (modifier.toUpperCase() === 'PM') hours = parseInt(hours, 10) + 12;
+      return parseInt(hours, 10) * 60 + parseInt(minutes, 10);
+    };
+    todayClasses.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
+    return res.json({
+      user,
+      child: childUser,
+      currentSemester: childUser?.semester,
+      todayClasses,
+      cards: [
+        {
+          title: "Attendance",
+          value: total ? attendancePercentage + "%" : "0%",
+        },
+        { title: "Pending Assignments", value: assignments },
+        { title: "Fee Due", value: fee ? fee.total - fee.paid : 0 },
+      ],
+      notifications
+    });
+  }
 
   // 🎓 STUDENT
   if (role === "student") {
