@@ -57,6 +57,7 @@ router.get("/:id/attendance", protect, allowRoles('hod', 'teacher'), getEventAtt
 // STUDENT / PARTICIPANT ROUTES
 router.post("/check-in", protect, checkInEvent);
 
+// READ/UNREAD ROUTES
 router.post("/:id/read", protect, markEventAsRead);
 router.post("/:id/unread", protect, markEventAsUnread);
 

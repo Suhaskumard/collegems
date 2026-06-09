@@ -128,6 +128,34 @@ export const getDashboardData = async (req, res) => {
       });
     }
 
+    if (fee && fee.total - fee.paid > 0) {
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const feeDate = new Date(fee.dueDate);
+      feeDate.setHours(0, 0, 0, 0);
+      
+      const timeDiff = feeDate.getTime() - todayDate.getTime();
+      const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      if (daysLeft < 0) {
+        notifications.push({
+          id: "fee_overdue",
+          type: "danger", // or "error" depending on frontend support
+          title: "Fee Payment Overdue",
+          message: `Your fee payment of $${fee.total - fee.paid} is OVERDUE. Please pay immediately.`,
+          date: new Date().toISOString()
+        });
+      } else if (daysLeft <= 7) {
+        notifications.push({
+          id: "fee_upcoming",
+          type: "warning",
+          title: "Upcoming Fee Deadline",
+          message: `You have a fee payment of $${fee.total - fee.paid} due in ${daysLeft} day(s).`,
+          date: new Date().toISOString()
+        });
+      }
+    }
+
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const today = days[new Date().getDay()];
     

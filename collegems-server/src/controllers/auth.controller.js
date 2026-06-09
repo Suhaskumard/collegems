@@ -2,7 +2,7 @@ import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const COLLEGE_DOMAIN = "@college.edu";
+const COLLEGE_DOMAIN = process.env.COLLEGE_DOMAIN || "";
 
 const normalizeEmail = (email) => email?.trim().toLowerCase();
 
@@ -82,7 +82,7 @@ export const register = async (req, res) => {
     }
 
     if (role === "hod") {
-      if (!email.endsWith(COLLEGE_DOMAIN)) {
+      if (COLLEGE_DOMAIN && !email.endsWith(COLLEGE_DOMAIN)) {
         return res.status(403).json({ message: "Use college email only" });
       }
       if (!departmentCode) {

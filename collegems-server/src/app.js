@@ -36,6 +36,8 @@ import { verifyStudent } from "./controllers/idcard.controller.js";
 import busRouteRoutes from "./routes/busRoute.routes.js";
 import syllabusRoutes from "./routes/syllabus.route.js";
 import officeHoursRoutes from "./routes/officeHours.routes.js";
+import examHallRoutes from "./routes/examHall.routes.js";
+import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
 
 import { authenticate } from "./middlewares/auth.middleware.js";
 
@@ -82,6 +84,8 @@ app.use("/api/student/idcard", idCardRoutes);
 app.get("/api/verify/student/:studentId", verifyStudent);
 app.use("/api/bus-routes", authenticate, busRouteRoutes);
 app.use("/api/office-hours", officeHoursRoutes);
+app.use("/api/exam-halls", authenticate, examHallRoutes);
+app.use("/api/hall-allocations", authenticate, hallAllocationRoutes);
 
 // Health check
 app.get("/", (_req, res) => res.send("SCMS Backend Running 🚀"));

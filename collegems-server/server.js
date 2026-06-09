@@ -3,6 +3,7 @@ dotenv.config();
 
 import app from "./src/app.js";
 import { connectDB } from "./src/config/db.js";
+import { startFeeCronJobs } from "./src/utils/cronJobs.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -21,6 +22,8 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
 }
 
 connectDB();
+
+startFeeCronJobs();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

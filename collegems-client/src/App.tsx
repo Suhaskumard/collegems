@@ -10,7 +10,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
 import MainDashboard from "./pages/MainDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
-
+import DashboardLayout from "./layouts/DashboardLayout";
 
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";
@@ -27,22 +27,23 @@ import VerifyStudent from "./pages/VerifyStudent";
 import DashboardLayout from "./layouts/DashboardLayout";
 //import TimeTable from "./user-components/TimeTable";
 
+import DashboardLayout from "./layouts/DashboardLayout";
+import Library from "./common-components-management/Library";
+import ExamHalls from "./hod-components/ExamHalls";
+import HallAllocation from "./hod-components/HallAllocation";
+import StudentSeatView from "./user-components/StudentSeatView";
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* Public routes */}
         <Route path="/" element={<MainDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/verify/student/:studentId" element={<VerifyStudent />} />
 
-        {/* DASHBOARD LAYOUT WRAPPER */}
         <Route element={<DashboardLayout />}>
-
-          {/* student/user pages */}
           <Route path="/examschedule" element={<ExamSchedule />} />
           <Route path="/results" element={<StudentResults />} />
           <Route path="/events" element={<EventsStudent />} />
@@ -56,20 +57,32 @@ export default function App() {
           />
           <Route path="/faculty" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
           <Route path="/quickaccess" element={<QuickAccessAll />} />
-          {/* <Route path="/timetable" element={ <TimeTable /> } /> */}
+          <Route path="/timetable" element={ <TimeTable /> } />
+          <Route path="/library" element={ <Library /> } />
 
         </Route>
 
-        {/* Role-based dashboards */}
         <Route
           path="/student/dashboard"
-          element={<RoleRoute role="student"><StudentDashboard /></RoleRoute>}
+          element={
+            <RoleRoute role="student">
+              <StudentDashboard />
+            </RoleRoute>
+          }
         />
         <Route
           path="/student/exam-form"
           element={
             <RoleRoute role="student">
               <ExaminationFormPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/student/my-seat"
+          element={
+            <RoleRoute role="student">
+              <StudentSeatView />
             </RoleRoute>
           }
         />
@@ -83,17 +96,44 @@ export default function App() {
         />
         <Route
           path="/hod/dashboard"
-          element={<RoleRoute role="hod"><HodDashboard /></RoleRoute>}
+          element={
+            <RoleRoute role="hod">
+              <HodDashboard />
+            </RoleRoute>
+          }
         />
-
-        <Route path="/parent/dashboard"
-          element={<RoleRoute role="parent"><ParentDashboard /></RoleRoute>}
+        <Route
+          path="/parent/dashboard"
+          element={
+            <RoleRoute role="parent">
+              <ParentDashboard />
+            </RoleRoute>
+          }
         />
-
-        <Route path="/hod/reports"
-          element={<RoleRoute role="hod"><ReportGenerator /></RoleRoute>}
+        <Route
+          path="/hod/reports"
+          element={
+            <RoleRoute role="hod">
+              <ReportGenerator />
+            </RoleRoute>
+          }
         />
-
+        <Route
+          path="/hod/exam-halls"
+          element={
+            <RoleRoute role="hod">
+              <ExamHalls />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/hod/hall-allocation"
+          element={
+            <RoleRoute role="hod">
+              <HallAllocation />
+            </RoleRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
