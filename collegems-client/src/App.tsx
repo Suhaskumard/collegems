@@ -22,17 +22,15 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import VerifyStudent from "./pages/VerifyStudent";
-//import TimeTable from "./user-components/TimeTable";
 
-import DashboardLayout from "./layouts/DashboardLayout";
-//import TimeTable from "./user-components/TimeTable";
-
-import DashboardLayout from "./layouts/DashboardLayout";
 import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
 import StudentSeatView from "./user-components/StudentSeatView";
 import AuditLogs from "./hod-components/AuditLogs";
+import ResourceBooking from "./user-components/ResourceBooking";
+import BookingManagement from "./hod-components/BookingManagement";
+import ResourceManagement from "./hod-components/ResourceManagement";
 
 export default function App() {
   return (
@@ -58,7 +56,6 @@ export default function App() {
           />
           <Route path="/faculty" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
           <Route path="/quickaccess" element={<QuickAccessAll />} />
-          <Route path="/timetable" element={ <TimeTable /> } />
           <Route path="/library" element={ <Library /> } />
 
         </Route>
@@ -88,10 +85,26 @@ export default function App() {
           }
         />
         <Route
+          path="/student/book-resources"
+          element={
+            <RoleRoute role="student">
+              <ResourceBooking />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/teacher/dashboard"
           element={
             <RoleRoute role="teacher">
               <TeacherDashboard />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/teacher/book-resources"
+          element={
+            <RoleRoute role="teacher">
+              <ResourceBooking />
             </RoleRoute>
           }
         />
@@ -140,6 +153,22 @@ export default function App() {
           element={
             <RoleRoute role="hod">
               <AuditLogs />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/hod/manage-bookings"
+          element={
+            <RoleRoute role="hod">
+              <BookingManagement />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/hod/manage-resources"
+          element={
+            <RoleRoute role="hod">
+              <ResourceManagement />
             </RoleRoute>
           }
         />

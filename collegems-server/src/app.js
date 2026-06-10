@@ -39,6 +39,8 @@ import officeHoursRoutes from "./routes/officeHours.routes.js";
 import examHallRoutes from "./routes/examHall.routes.js";
 import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
 import auditLogRoutes from "./routes/auditLog.routes.js";
+import resourceRoutes from "./routes/resource.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
 import { authenticate } from "./middlewares/auth.middleware.js";
 
 const app = express();
@@ -64,6 +66,9 @@ app.use("/api/events",            eventRoute);
 app.use("/api/results",           authenticate, resultsRoutes);
 app.use("/api/library",           libraryRoutes);
 app.use("/api/assessments", authenticate, assessmentRoutes);
+
+app.use("/api/resources", authenticate, resourceRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
 
 app.use("/api/courses",  courseRoutes);
 app.use("/api/classes",  classRoutes);

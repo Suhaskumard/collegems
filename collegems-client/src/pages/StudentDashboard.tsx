@@ -17,8 +17,7 @@ import {
   MessageSquare,
   Moon,
   Search,
-  LogOut,
-  Users,
+
   Settings,
   Sun,
   Ticket,
@@ -26,6 +25,7 @@ import {
   Wallet,
   X,
   AlertCircle,
+  TrendingUp,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -48,10 +48,10 @@ import IDCard from "../user-components/IDCard";
 import Teachers from "../hod-components/Teachers";
 
 
-import IDCard from "../user-components/IDCard";
 import StudentResults from "../user-components/StudentResults";
 import StudentSeatView from "../user-components/StudentSeatView";
 import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
+import ResourceBooking from "../user-components/ResourceBooking";
 
 type TabType =
   | "overview"
@@ -70,6 +70,7 @@ type TabType =
   | "my-seat"
   | "feedback"
   | "bus-routes"
+  | "book-resources"
   | "settings";
 
 const navigationItems = [
@@ -89,6 +90,7 @@ const navigationItems = [
   { id: "exam-form" as TabType, label: "Examination Form", icon: FileText },
   { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
   { id: "bus-routes" as TabType, label: "Bus Tracking", icon: Bus },
+  { id: "book-resources" as TabType, label: "Book Resources", icon: CalendarDays },
 ];
 
 export default function StudentDashboard() {
@@ -134,58 +136,7 @@ export default function StudentDashboard() {
     return "Good evening";
   };
 
-  const navigationItems = [
-    { id: "overview",          label: "Overview",          icon: LayoutGrid },
-    { id: "attendance",        label: "Attendance",        icon: CalendarCheck },
-    { id: "assignments",       label: "Assignments",       icon: FileText },
-    { id: "fees",              label: "Fees",              icon: Wallet },
-    { id: "courses",           label: "Courses",           icon: BookOpen },
-    { id: "examschedule",      label: "Exam Schedule",     icon: Calendar },
-    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
-    { id: "events",            label: "Events",            icon: CalendarDays },
-    { id: "faculty",           label: "Faculty",           icon: Users },
-    { id: "results",           label: "Results",           icon: AwardIcon },
-    { id: "achievements",      label: "Achievements",      icon: Trophy },
-    { id: "leave",             label: "Leave Requests",    icon: ClipboardList },
-    { id: "library",           label: "Library",           icon: BookOpen },
-    { id: "exam-form",         label: "Examination Form",  icon: FileText },
-    { id: "feedback",          label: "Feedback",          icon: MessageSquare },
-    { id: "scholarships",      label: "Scholarships",      icon: AwardIcon },
-    { id: "id-card",           label: "ID Card",           icon: IdCard },
-    { id: "bus-routes",        label: "Bus Tracking",      icon: Bus },
-    { id: "feedback",          label: "Feedback",          icon: MessageSquare }, // ← NEW
-    { id: "overview",           label: "Overview",          icon: LayoutGrid },
-    { id: "attendance",         label: "Attendance",        icon: CalendarCheck },
-    { id: "assignments",        label: "Assignments",       icon: FileText },
-    { id: "fees",               label: "Fees",              icon: Wallet },
-    { id: "courses",            label: "Courses",           icon: BookOpen },
-    { id: "examschedule",       label: "Exam Schedule",     icon: Calendar },
-    { id: "academic-calendar",  label: "Academic Calendar", icon: CalendarDays },
-    { id: "events",             label: "Events",            icon: CalendarDays },
-    { id: "results",            label: "Results",           icon: AwardIcon },
-    { id: "leave",              label: "Leave Requests",    icon: ClipboardList }, // ← master
-    { id: "library",            label: "Library",           icon: BookOpen },
-    { id: "exam-form",          label: "Examination Form",  icon: FileText },      // ← master
-    { id: "scholarships",       label: "Scholarships",      icon: AwardIcon },
-    { id: "id-card",            label: "ID Card",           icon: IdCard },
-    { id: "overview", label: "Overview", icon: LayoutGrid },
-    { id: "attendance", label: "Attendance", icon: CalendarCheck },
-    { id: "assignments", label: "Assignments", icon: FileText },
-    { id: "fees", label: "Fees", icon: Wallet },
-    { id: "courses", label: "Courses", icon: BookOpen },
-    { id: "examschedule", label: "Exam Schedule", icon: Calendar },
-    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
-    { id: "events", label: "Events", icon: CalendarDays },
-    { id: "results", label: "Results", icon: AwardIcon },
-    { id: "achievements", label: "Achievements", icon: Trophy },
-    { id: "leave", label: "Leave Requests", icon: ClipboardList },
-    { id: "library", label: "Library", icon: BookOpen },
-    { id: "exam-form", label: "Examination Form", icon: FileText },
-    { id: "leave", label: "Leave Requests", icon: ClipboardList },
-    { id: "library", label: "Library", icon: BookOpen },
-    { id: "exam-form", label: "Examination Form", icon: FileText },
-    { id: "bus-routes", label: "Bus Tracking", icon: Bus }
-  ];
+
   const renderTab = () => {
     if (activeTab === "overview") {
       return (
@@ -250,6 +201,7 @@ export default function StudentDashboard() {
         {activeTab === "exam-form" && <ExaminationForm />}
         {activeTab === "feedback" && <StudentFeedback />}
         {activeTab === "bus-routes" && <BusRoutes />}
+        {activeTab === "book-resources" && <ResourceBooking />}
         {activeTab === "settings" && <div className="text-sm text-gray-600">Settings are not available yet for student accounts.</div>}
       </div>
     );
@@ -525,7 +477,7 @@ export default function StudentDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">Today's Schedule</h2>
                   <button
-                    onClick={() => setShowScheduleModal(true)}
+                    onClick={() => {}}
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                   >
                     View all
@@ -598,31 +550,24 @@ export default function StudentDashboard() {
               {activeTab === "examschedule" && <ExamSchedule />}
               {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
               {activeTab === "events" && <EventsStudent />}
-              {activeTab === "faculty" && <Teachers />}
+              
               {activeTab === "results" && <StudentResults />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "leave" && <LeaveRequest />}
               {activeTab === "library" && <Library />}
               {activeTab === "exam-form" && <ExaminationForm />}
-              {activeTab === "scholarships" && <Scholarships />}
+              
               {activeTab === "feedback" && <StudentFeedback />}
-              {activeTab === "id-card" && <IDCard student={student} />}
-              {activeTab === "settings" && (
-              {activeTab === "settings" && <EventsStudent />}
-              {activeTab === "results"           && <StudentResults />}
-              {activeTab === "leave"             && <LeaveRequest />}
-              {activeTab === "library"           && <Library />}
-              {activeTab === "exam-form"         && <ExaminationForm />}
-              {activeTab === "scholarships"      && <Scholarships />}
+              
               {activeTab === "feedback"          && <StudentFeedback />}
-              {activeTab === "id-card"           && <IDCard student={student} />}
+
+              {activeTab === "bus-routes" && <BusRoutes />}
+              {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "settings"          && (
                 <div className="text-sm text-gray-600">
                   Settings are not available yet for student accounts.
                 </div>
               )}
-              {activeTab === "bus-routes" && <BusRoutes />}
-
             </div>
           )}
 
