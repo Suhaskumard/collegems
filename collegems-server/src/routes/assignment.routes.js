@@ -9,11 +9,13 @@ import path from "path";
 import multer from "multer";
 import { protect } from "../middlewares/auth.middleware.js";
 import { allowRoles } from "../middlewares/role.middleware.js";
+import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
+import log from "../utils/logger.js";
 import {
   createAssignment,
   submitAssignment,
   evaluateAssignment,
-  getUpcomingAssignments,   // ← NEW IMPORT
+  getUpcomingAssignments,
 } from "../controllers/assignment.controller.js";
 import Assignment from "../models/Assignment.model.js";
 
@@ -34,68 +36,69 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ── Existing routes (unchanged) ───────────────────────────────────────────────
-router.post("/create", protect, allowRoles("teacher"), createAssignment);
+// ── Existing routes with error handling ───────────────────────────────────────
+router.post("/create", protect, allowRoles("teacher"), asyncHandler(createAssignment));
 
 router.post(
   "/submit/:id",
   protect,
   allowRoles("student"),
   upload.single("file"),
-  submitAssignment
+  asyncHandler(submitAssignment)
 );
 
 router.post(
   "/evaluate/:id",
   protect,
   allowRoles("teacher"),
-  evaluateAssignment
+  asyncHandler(evaluateAssignment)
 );
 
-router.get("/student", protect, allowRoles("student", "teacher"), async (req, res) => {
-  try {
+router.get(
+  "/student",
+  protect,
+  allowRoles("student", "teacher"),
+  asyncHandler(async (req, res) => {
+    log.request("GET", "/api/assignment/student", req.user?.id);
     const assignments = await Assignment.find()
       .populate("course", "name code")
       .populate("teacher", "name");
-    res.json(assignments);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch assignments" });
-  }
-});
+    res.json({ success: true, data: assignments });
+  })
+);
 
 router.get(
   "/teacher/submissions/:assignmentId",
   protect,
   allowRoles("teacher", "hod"),
-  async (req, res) => {
-    try {
-      const assignment = await Assignment.findById(req.params.assignmentId)
-        .populate(
-          "submissions.student",
-          "name email avatarUrl photo profilePicture department rollNumber"
-        )
-        .populate("course", "name code");
+  asyncHandler(async (req, res) => {
+    const { assignmentId } = req.params;
+    log.request("GET", `/api/assignment/teacher/submissions/${assignmentId}`, req.user?.id);
 
-      if (!assignment) {
-        return res.status(404).json({ message: "Assignment not found" });
-      }
-      res.json(assignment);
-    } catch (err) {
-      res.status(500).json({ message: "Failed to fetch assignment submissions" });
+    if (!assignmentId) {
+      throw new AppError("Assignment ID is required", 400, "MISSING_ID");
     }
-  }
+
+    const assignment = await Assignment.findById(assignmentId)
+      .populate(
+        "submissions.student",
+        "name email avatarUrl photo profilePicture department rollNumber"
+      )
+      .populate("course", "name code");
+
+    if (!assignment) {
+      throw new AppError("Assignment not found", 404, "NOT_FOUND");
+    }
+    
+    res.json({ success: true, data: assignment });
+  })
 );
 
-// ── NEW ROUTE ─────────────────────────────────────────────────────────────────
-// GET /api/assignment/reminders
-// Returns overdue / due-today / upcoming / recently-submitted assignments
-// for the currently logged-in student.
 router.get(
   "/reminders",
   protect,
   allowRoles("student"),
-  getUpcomingAssignments
+  asyncHandler(getUpcomingAssignments)
 );
-// ─────────────────────────────────────────────────────────────────────────────
 
 export default router;
