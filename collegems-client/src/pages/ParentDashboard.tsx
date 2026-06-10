@@ -29,6 +29,17 @@ import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AnnouncementsView from "../user-components/AnnouncementsView";
 
+
+type TabType =
+  | "overview"
+  | "attendance"
+  | "results"
+  | "fees"
+  | "events"
+  | "bus-routes"
+  | "announcements";   
+
+
 export default function ParentDashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
@@ -74,7 +85,7 @@ export default function ParentDashboard() {
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
-    { id: "announcements" as TabType, label: "Announcements", icon: Bell },
+    { id: "announcements", label: "Announcements", icon: Bell },
     { id: "attendance", label: "Child's Attendance", icon: CalendarCheck },
     { id: "results", label: "Child's Results", icon: AwardIcon },
     { id: "fees", label: "Child's Fees", icon: Wallet },

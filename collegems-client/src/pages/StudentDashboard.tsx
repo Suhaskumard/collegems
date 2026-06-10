@@ -47,6 +47,7 @@ import Scholarships from "../common-components-management/Scholarships";
 import IDCard from "../user-components/IDCard";
 import Teachers from "../hod-components/Teachers";
 
+import ProfileCompletionCard from "../user-components/ProfileCompletionCard";
 import StudentResults from "../user-components/StudentResults";
 import StudentSeatView from "../user-components/StudentSeatView";
 import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
@@ -356,12 +357,12 @@ export default function StudentDashboard() {
           {activeTab === "overview" ? (
             <div className="space-y-8">
               {/* Profile Completion */}
-{profileData?.profileCompletion && (
-  <ProfileCompletionCard
-    percentage={profileData.profileCompletion.percentage}
-    missingFields={profileData.profileCompletion.missingFields}
-  />
-)}
+              {profileData?.profileCompletion && (
+                <ProfileCompletionCard
+                  percentage={profileData.profileCompletion.percentage}
+                  missingFields={profileData.profileCompletion.missingFields}
+                />
+              )}
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
