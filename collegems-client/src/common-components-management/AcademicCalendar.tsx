@@ -145,47 +145,59 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
       setShowDetails(false);
     } catch (err) {
       console.error(err);
+      alert("Failed to delete event. Please try again.");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormErr(null);
-    if (!formTitle.trim() || !formDesc.trim() || !formDate) {
-      return setFormErr("Required fields are missing.");
-    }
-
-    setIsSubmitting(true);
-    const payload = {
-      title: formTitle,
-      description: formDesc,
-      category: formCat,
-      date: formDate,
-      startTime: formStart,
-      endTime: formEnd,
-      location: formLoc
-    };
-
-    try {
-      if (isEditing && selectedEvent?._id) {
-        const res = await api.put(`/academic-calendar/${selectedEvent._id}`, payload);
-        if (res.data.success) {
-          setEvents((prev) => prev.map((item) => (item._id === selectedEvent._id ? res.data.data : item)));
-          setShowForm(false);
-        }
-      } else {
-        const res = await api.post("/academic-calendar", payload);
-        if (res.data.success) {
-          setEvents((prev) => [...prev, res.data.data]);
-          setShowForm(false);
-        }
+      e.preventDefault()
+      setFormErr(null)
+      if (!formTitle.trim() || !formDesc.trim() || !formDate) {
+          return setFormErr("Required fields are missing.")
       }
-    } catch (err: any) {
-      setFormErr(err.response?.data?.message || "Failed to save event.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
+      setIsSubmitting(true)
+      const payload = {
+          title: formTitle,
+          description: formDesc,
+          category: formCat,
+          date: formDate,
+          startTime: formStart,
+          endTime: formEnd,
+          location: formLoc,
+      }
+
+      try {
+          if (isEditing && selectedEvent?._id) {
+              const res = await api.put(
+                  `/academic-calendar/${selectedEvent._id}`,
+                  payload
+              )
+              if (res.data.success) {
+                  setEvents(prev =>
+                      prev.map(item =>
+                          item._id === selectedEvent._id ? res.data.data : item
+                      )
+                  )
+                  setShowForm(false)
+              }
+          } else {
+              const res = await api.post("/academic-calendar", payload)
+              if (res.data.success) {
+                  setEvents(prev => [...prev, res.data.data])
+                  setShowForm(false)
+              }
+          }
+      } catch (err) {
+          if (err instanceof Error) {
+              setFormErr(err.message || "Failed to save event.")
+          } else {
+              setFormErr("Failed to save event.")
+          }
+      } finally {
+          setIsSubmitting(false)
+      }
+  }
 
   if (loading) {
     return (
@@ -411,11 +423,11 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-600 uppercase">Start Time</label>
-                  <input type="text" placeholder="e.g. 09:00 AM" value={formStart} onChange={(e) => setFormStart(e.target.value)} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-50/30" />
+                  <input type="time"  value={formStart} onChange={(e) => setFormStart(e.target.value)} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-50/30" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-600 uppercase">End Time</label>
-                  <input type="text" placeholder="e.g. 11:30 AM" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-50/30" />
+                  <input type="time"  value={formEnd} onChange={(e) => setFormEnd(e.target.value)} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-50/30" />
                 </div>
               </div>
 
