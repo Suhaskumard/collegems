@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSocket } from "../context/SocketContext";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 export interface Notification {
   _id: string;
@@ -20,7 +21,7 @@ export const useNotifications = () => {
 
     try {
       const res = await api.get("/notifications");
-      setNotifications(res.data);
+      setNotifications(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }

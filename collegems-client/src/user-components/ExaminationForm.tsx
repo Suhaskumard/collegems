@@ -5,6 +5,7 @@ import {
   RefreshCw, Check, ArrowRight
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Course {
   _id: string;
@@ -69,7 +70,7 @@ const ExaminationForm: React.FC = () => {
     try {
       setLoadingCourses(true);
       const res = await api.get("/courses/all");
-      setCourses(res.data || []);
+      setCourses(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching courses for subjects:", err);
     } finally {
@@ -81,7 +82,7 @@ const ExaminationForm: React.FC = () => {
     try {
       setLoadingSubmissions(true);
       const res = await api.get("/exam-forms");
-      setSubmissions(res.data || []);
+      setSubmissions(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching past submissions:", err);
     } finally {

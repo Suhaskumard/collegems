@@ -16,6 +16,7 @@ import {
   FileCheck,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 export default function Assignment() {
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -43,7 +44,7 @@ export default function Assignment() {
     try {
       setLoading(true);
       const res = await api.get("/assignment/student");
-      setAssignments(res.data);
+      setAssignments(extractArray(res.data));
     } catch (err: any) {
       console.error("Assignment fetch error:", err);
     } finally {

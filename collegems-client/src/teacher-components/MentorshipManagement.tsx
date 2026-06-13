@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { Users, Calendar, AlertTriangle, TrendingUp, History, X } from "lucide-react";
 
 export default function MentorshipManagement() {
@@ -23,7 +24,7 @@ export default function MentorshipManagement() {
   const fetchMentees = async () => {
     try {
       const res = await api.get("/mentorships/my-mentees");
-      setMentees(res.data);
+      setMentees(extractArray(res.data));
       setLoading(false);
     } catch (error) {
       console.error("Failed to fetch mentees", error);
@@ -34,7 +35,7 @@ export default function MentorshipManagement() {
   const fetchHistory = async (id: string) => {
     try {
       const res = await api.get(`/mentorships/${id}/history`);
-      setHistory(res.data);
+      setHistory(extractArray(res.data));
     } catch (error) {
       console.error("Failed to fetch history", error);
     }

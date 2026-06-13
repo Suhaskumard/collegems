@@ -14,6 +14,7 @@ import {
   Printer,
 } from "lucide-react";
 import axios from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 
 interface Course {
@@ -90,7 +91,7 @@ export default function StudentResults() {
     try {
       setLoading(true);
       const res = await axios.get("/results/my");
-      setResults(res.data);
+      setResults(extractArray(res.data));
     } catch (err) {
       console.error("Failed to fetch results:", err);
     } finally {

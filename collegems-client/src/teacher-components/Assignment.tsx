@@ -17,6 +17,7 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -115,7 +116,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
     setViewingSubmissions({ _id: assignmentId, loading: true });
     try {
       const res = await api.get(`/assignment/teacher/submissions/${assignmentId}`);
-      setViewingSubmissions(res.data);
+      setViewingSubmissions(extractArray(res.data));
       // Initialize edited marks
       const marksObj: Record<string, string> = {};
       res.data.submissions.forEach((sub: any) => {

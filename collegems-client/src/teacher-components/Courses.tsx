@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { useTheme } from "../context/ThemeContext";
 
 import {
@@ -63,7 +64,7 @@ export default function Courses() {
     try {
       setLoading(true);
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
       alert("Failed to load courses");

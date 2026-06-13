@@ -17,7 +17,11 @@ import Library from "../common-components-management/Library";
 import HODSettings from "../hod-components/Settings";
 import HODCourses from "../hod-components/Courses";
 import ExamForms from "../hod-components/ExamForms";
+import AnnouncementForm from "../common-components-management/AnnouncementForm";
+import AnnouncementManage from "../common-components-management/AnnouncementManage";
 import FeedbackManagement from "../hod-components/FeedbackManagement";
+import Scholarships from "../common-components-management/Scholarships";
+import BusRoutes from "../common-components-management/BusRoutes";
 import ExamHalls from "../hod-components/ExamHalls";
 import HallAllocation from "../hod-components/HallAllocation";
 import AuditLogs from "../hod-components/AuditLogs";
@@ -101,101 +105,79 @@ const navigationItems = [
   { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
 ];
 
-export default function HODDashboard() {
-  const navigate = useNavigate();
-  const { darkMode, toggleTheme } = useTheme();
-  const [data, setData] = useState<Data | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchData, setSearchData] = useState<{ students: any[]; teachers: any[]; courses: any[] }>({ students: [], teachers: [], courses: [] });
+  export default function HODDashboard() {
+    const navigate = useNavigate();
+    const { darkMode, toggleTheme } = useTheme();
+    const [data, setData] = useState<Data | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<TabType>("overview");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [profile, setProfile] = useState<ProfileData | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchData, setSearchData] = useState({ students: [], teachers: [], courses: [] });
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchProfileData();
-    fetchSearchData();
-  }, []);
+    useEffect(() => {
+      fetchDashboardData();
+      fetchProfileData();
+      fetchSearchData();
+    }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/dashboard");
-      setData(res.data);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProfileData = async () => {
-    try {
-      const res = await api.get("/users/me");
-      const user = res.data;
-      if (user?.role !== "hod") {
-        handleSignOut();
-        return;
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/dashboard");
+        setData(res.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
       }
-      setProfile({
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        department: user.department || "",
-        departmentCode: user.departmentCode || "",
-        role: user.role || "hod",
-        avatarUrl: user.avatarUrl || user.profilePicture || user.photo,
-      });
-    } catch (error) {
-      console.error("Unable to load HOD profile:", error);
-    }
-  };
+    };
 
-  const fetchSearchData = async () => {
-    try {
-      const [studentsRes, teachersRes, coursesRes] = await Promise.all([
-        api.get("/users/students"),
-        api.get("/users/teachers"),
-        api.get("/courses/all"),
-      ]);
-      setSearchData({
-        students: studentsRes.data || [],
-        teachers: teachersRes.data || [],
-        courses: coursesRes.data || [],
-      });
-    } catch (error) {
-      console.error("Error loading search data:", error);
-    }
-  };
+    const fetchProfileData = async () => {
+      try {
+        const res = await api.get("/users/me");
+        const user = res.data;
+        if (user?.role !== "hod") {
+          handleSignOut();
+          return;
+        }
+        setProfile({
+          name: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          department: user.department || "",
+          departmentCode: user.departmentCode || "",
+          role: user.role || "hod",
+          avatarUrl: user.avatarUrl || user.profilePicture || user.photo,
+        });
+      } catch (error) {
+        console.error("Unable to load HOD profile:", error);
+      }
+    };
 
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userData");
-    navigate("/login", { replace: true });
-  };
+    const fetchSearchData = async () => {
+      try {
+        const [studentsRes, teachersRes, coursesRes] = await Promise.all([
+          api.get("/users/students"),
+          api.get("/users/teachers"),
+          api.get("/courses/all"),
+        ]);
+        setSearchData({
+          students: studentsRes.data || [],
+          teachers: teachersRes.data || [],
+          courses: coursesRes.data || [],
+        });
+      } catch (error) {
+        console.error("Error loading search data:", error);
+      }
+    };
 
-  const searchResults = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return { students: [], teachers: [], courses: [] };
-    return {
-      students: searchData.students.filter(
-        (student: any) =>
-          student.name?.toLowerCase().includes(query) ||
-          student.email?.toLowerCase().includes(query)
-      ),
-      teachers: searchData.teachers.filter(
-        (teacher: any) =>
-          teacher.name?.toLowerCase().includes(query) ||
-          teacher.email?.toLowerCase().includes(query)
-      ),
-      courses: searchData.courses.filter(
-        (course: any) =>
-          course.name?.toLowerCase().includes(query) ||
-          course.code?.toLowerCase().includes(query) ||
-          course.department?.toLowerCase().includes(query)
-      ),
+    const handleSignOut = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userData");
+      navigate("/login", { replace: true });
     };
   }, [searchData, searchTerm]);
 
@@ -299,19 +281,29 @@ export default function HODDashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">HOD Portal</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{profileDepartment}</p>
+            <nav className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-1">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id as TabType);
+                        setSidebarOpen(false);
+                        if (item.id === ("reports" as TabType)) {
+                          navigate("/hod/reports");
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`} />
+                      <span>{item.label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto text-blue-600" />}
+                    </button>
+                  );
+                })}
               </div>
               <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />

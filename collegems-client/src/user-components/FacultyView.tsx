@@ -4,6 +4,7 @@ import {
   RefreshCw, User, Building, Hash, X,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface FacultyAssignment {
   _id: string;
@@ -42,7 +43,7 @@ const FacultyView: React.FC = () => {
     setError("");
     try {
       const res = await api.get("/faculty-assignments/for-student");
-      setAssignments(res.data);
+      setAssignments(extractArray(res.data));
     } catch {
       setError("Failed to load faculty information. Please try again.");
     } finally {

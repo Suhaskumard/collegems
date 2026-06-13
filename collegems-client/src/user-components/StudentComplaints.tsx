@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { Plus, MessageSquare, AlertCircle, CheckCircle, Clock } from "lucide-react";
 
 export default function StudentComplaints() {
@@ -26,7 +27,7 @@ export default function StudentComplaints() {
     try {
       setLoading(true);
       const res = await api.get("/complaints/my-complaints");
-      setComplaints(res.data);
+      setComplaints(extractArray(res.data));
     } catch (error) {
       console.error("Failed to fetch complaints", error);
     } finally {

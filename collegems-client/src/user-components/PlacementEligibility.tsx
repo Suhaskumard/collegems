@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { Briefcase, CheckCircle, XCircle } from "lucide-react";
 
 interface Drive {
@@ -31,7 +32,7 @@ const PlacementEligibility = () => {
     const fetch = async () => {
       try {
         const res = await api.get("/placement/my-eligibility");
-        setResults(res.data);
+        setResults(extractArray(res.data));
       } catch (err) {
         console.error("Error fetching eligibility:", err);
       } finally {

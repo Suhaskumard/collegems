@@ -14,6 +14,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Student {
   _id?: string;

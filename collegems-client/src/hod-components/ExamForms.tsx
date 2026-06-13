@@ -4,6 +4,7 @@ import {
   AlertCircle, Check, X, GraduationCap, ArrowUpDown
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface SubmittedForm {
   _id: string;
@@ -38,7 +39,7 @@ const HODExamForms: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get("/exam-forms");
-      setForms(res.data || []);
+      setForms(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching exam forms for HOD:", err);
       setErrorMsg("Failed to load examination forms. Please try again.");

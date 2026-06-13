@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { MessageSquare, CheckCircle, Clock, Edit } from "lucide-react";
 
 export default function ComplaintManagement() {
@@ -31,7 +32,7 @@ export default function ComplaintManagement() {
       if (params.toString()) url += `?${params.toString()}`;
       
       const res = await api.get(url);
-      setComplaints(res.data);
+      setComplaints(extractArray(res.data));
       if (selectedComplaint) {
         const updated = res.data.find((c: any) => c._id === selectedComplaint._id);
         if (updated) setSelectedComplaint(updated);

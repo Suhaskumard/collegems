@@ -4,6 +4,7 @@ import {
   Briefcase, Hash, Building, ChevronRight, Info, X,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Assignment {
   _id: string;
@@ -37,7 +38,7 @@ const MyAssignments: React.FC = () => {
     setError("");
     try {
       const res = await api.get("/faculty-assignments/my");
-      setAssignments(res.data);
+      setAssignments(extractArray(res.data));
     } catch {
       setError("Failed to load your assignments. Please try again.");
     } finally {

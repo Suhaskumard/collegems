@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { CheckCircle2, XCircle, IdCard, Loader2, ArrowLeft, Mail, GraduationCap, Calendar, Hash } from "lucide-react";
 import { isAxiosError } from "axios";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface VerifiedStudent {
   name?: string;

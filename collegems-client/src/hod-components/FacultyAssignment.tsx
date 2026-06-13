@@ -5,6 +5,7 @@ import {
   ChevronDown, Filter, UserCheck, Briefcase,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Teacher {
@@ -99,7 +100,7 @@ const FacultyAssignment: React.FC = () => {
       const params: Record<string, string> = { academicYear: filterYear };
       if (filterSemester) params.semester = filterSemester;
       const res = await api.get("/faculty-assignments/all", { params });
-      setAssignments(res.data);
+      setAssignments(extractArray(res.data));
     } catch {
       showToast("error", "Failed to load assignments");
     } finally {
@@ -125,7 +126,7 @@ const FacultyAssignment: React.FC = () => {
         api.get("/courses/all"),
       ]);
       setTeachers(tRes.data);
-      setCourses(cRes.data);
+      setCourses(extractArray(cRes.data));
     } catch {
       showToast("error", "Failed to load form data");
     }

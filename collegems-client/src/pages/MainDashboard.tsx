@@ -120,8 +120,8 @@ export default function MainDashboard() {
   return (
     <div>
       <>
-      {/*input box */}
-      {/* <input
+        {/*input box */}
+        {/* <input
         value={searchTerm}
         onChange={(e)=> {
           setSearchTerm(e.target.value);
@@ -136,274 +136,315 @@ export default function MainDashboard() {
           }
         }}
       /> */}
-      {showSuggestions && searchTerm && (
-  <div className="absolute bg-white dark:bg-gray-800 border rounded-lg mt-2 w-full shadow-lg z-50">
-    {dashboardCards
-      .filter((c) =>
-        c.title.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .slice(0, 5)
-      .map((c) => (
-        <div
-          key={c.id}
-          onClick={() => navigate(c.route)}
-          className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-        >
-          {c.title}
-        </div>
-      ))}
-  </div>
-)}
+        {showSuggestions && searchTerm && (
+          <div className="absolute bg-white dark:bg-gray-800 border rounded-lg mt-2 w-full shadow-lg z-50">
+            {dashboardCards
+              .filter((c) =>
+                c.title.toLowerCase().includes(searchTerm.toLowerCase()),
+              )
+              .slice(0, 5)
+              .map((c) => (
+                <div
+                  key={c.id}
+                  onClick={() => navigate(c.route)}
+                  className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                >
+                  {c.title}
+                </div>
+              ))}
+          </div>
+        )}
       </>
 
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Top Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-18">
-            {/* Logo */}
-            <div className="flex items-center">
-              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <School className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-semibold text-gray-900 dark:text-white">
-                College<span className="text-blue-600">Portal</span>
-              </span>
-            </div>
-
-            {/* Right side buttons */}
-            <div className="flex items-center space-x-3">
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                {darkMode ? (
-                  <Sun className="w-5 h-5 text-gray-300" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="px-4 py-2 text-xl font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <LogIn size={16} />
-                Sign In
-              </button>
-              <button
-                onClick={() => navigate("/register")}
-                className="px-4 py-2 text-md font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <UserPlus size={16} />
-                Register
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, Student!
-            Here's your academic overview
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Here's your academic overview and upcoming activities
-          </p>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {quickStats.map((stat, index) => {
-            const Icon = stat.icon;
-            const colors = colorClasses[stat.color as keyof typeof colorClasses];
-            return (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-2">
-                  <div className={`p-2 rounded-lg ${colors.light}`}>
-                    <Icon className={`w-4 h-4 ${colors.icon}`} />
-                  </div>
-                  <span className={`text-sm font-medium ${colors.text}`}>{stat.value}</span>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        {/* Top Navigation Bar */}
+        <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 min-w-0">
+              {/* Logo */}
+              <div className="flex items-center min-w-0">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2 shrink-0">
+                  <School className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
+                <span className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white truncate">
+                  College<span className="text-blue-600">Portal</span>
+                </span>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Quick Access Cards */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Home className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              Quick Access
-            </h2>
-            <button
-              onClick={() => navigate("/quickaccess")}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-            >
-              View All <ChevronRight className="w-4 h-4" />
-            </button>
+              {/* Right side buttons */}
+              <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+                {/* Theme Toggle */}
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  {darkMode ? (
+                    <Sun className="w-4 h-4 text-gray-300" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-gray-600" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-2 sm:px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <LogIn size={14} />
+                  <span className="hidden xs:inline">Sign In</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/register")}
+                  className="px-2 sm:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                >
+                  <UserPlus size={14} />
+                  <span className="hidden xs:inline">Register</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome back, Student! Here's your academic overview
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              Here's your academic overview and upcoming activities
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCards.map((card) => {
-              const Icon = card.icon;
-              const colors = colorClasses[card.color as keyof typeof colorClasses];
-              const isHovered = hoveredCard === card.id;
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            {quickStats.map((stat, index) => {
+              const Icon = stat.icon;
+              const colors =
+                colorClasses[stat.color as keyof typeof colorClasses];
               return (
-                <button
-                  key={card.id}
-                  onClick={() => navigate(card.route)}
-                  onMouseEnter={() => setHoveredCard(card.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  className={`bg-white dark:bg-gray-800 rounded-xl border-2 p-5 text-left transition-all duration-200 ${colors.border} ${colors.hover} ${isHovered ? "shadow-lg scale-[1.02]" : "shadow-sm"}`}
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-lg ${colors.bg}`}>
-                      <Icon className={`w-6 h-6 ${colors.icon}`} />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`p-2 rounded-lg ${colors.light}`}>
+                      <Icon className={`w-4 h-4 ${colors.icon}`} />
                     </div>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}>
-                      {card.count}
+                    <span className={`text-sm font-medium ${colors.text}`}>
+                      {stat.value}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{card.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{card.description}</p>
-                </button>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {stat.label}
+                  </p>
+                </div>
               );
             })}
           </div>
-        </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Notifications */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  Important Notifications
-                </h3>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</button>
-              </div>
-              <div className="space-y-4">
-                {notifications.length > 0 ? notifications.map((notif) => {
-                  const isDanger = notif.type === 'danger';
-                  return (
-                    <div 
-                      key={notif._id} 
-                      onClick={() => !notif.isRead && markAsRead(notif._id)}
-                      className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${isDanger ? 'border-red-200 bg-red-50 dark:bg-red-900/20' : 'border-blue-200 bg-blue-50 dark:bg-blue-900/20'} ${!notif.isRead ? 'shadow-sm' : 'opacity-70'}`}
-                    >
-                      <div className={`p-2 rounded-lg ${isDanger ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-                        <AlertCircle className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className={`font-medium ${isDanger ? 'text-red-800' : 'text-blue-800'}`}>{notif.message}</h4>
-                          </div>
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${isDanger ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <div className="text-center py-6 text-gray-500">
-                    No new notifications right now.
-                  </div>
-                )}
-              </div>
+          {/* Quick Access Cards */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Home className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                Quick Access
+              </h2>
+              <button
+                onClick={() => navigate("/quickaccess")}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              >
+                View All <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-          </div>
 
-          {/* Upcoming Events */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-                <CalendarDays className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                Upcoming Events
-              </h3>
-              <div className="space-y-3">
-                {[
-                  { title: "Tech Symposium", date: "Dec 15", color: "blue" },
-                  { title: "Sports Meet", date: "Dec 18", color: "amber" },
-                  { title: "Cultural Fest", date: "Dec 22", color: "purple" },
-                ].map((event, index) => {
-                  const colors = colorClasses[event.color as keyof typeof colorClasses];
-                  return (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{event.title}</span>
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}>
-                        {event.date}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCards.map((card) => {
+                const Icon = card.icon;
+                const colors =
+                  colorClasses[card.color as keyof typeof colorClasses];
+                const isHovered = hoveredCard === card.id;
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => navigate(card.route)}
+                    onMouseEnter={() => setHoveredCard(card.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    className={`bg-white dark:bg-gray-800 rounded-xl border-2 p-5 text-left transition-all duration-200 ${colors.border} ${colors.hover} ${isHovered ? "shadow-lg scale-[1.02]" : "shadow-sm"}`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-3 rounded-lg ${colors.bg}`}>
+                        <Icon className={`w-6 h-6 ${colors.icon}`} />
+                      </div>
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}
+                      >
+                        {card.count}
                       </span>
                     </div>
-                  );
-                })}
-              </div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {card.description}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <footer className="mt-12 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
-                  <School className="w-4 h-4 text-white" />
+          {/* Bottom Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Notifications */}
+            <div className="lg:col-span-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                    Important Notifications
+                  </h3>
+                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    View All
+                  </button>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">CollegePortal</span>
+                <div className="space-y-4">
+                  {notifications.length > 0 ? (
+                    notifications.map((notif) => {
+                      const isDanger = notif.type === "danger";
+                      return (
+                        <div
+                          key={notif._id}
+                          onClick={() => !notif.isRead && markAsRead(notif._id)}
+                          className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${isDanger ? "border-red-200 bg-red-50 dark:bg-red-900/20" : "border-blue-200 bg-blue-50 dark:bg-blue-900/20"} ${!notif.isRead ? "shadow-sm" : "opacity-70"}`}
+                        >
+                          <div
+                            className={`p-2 rounded-lg ${isDanger ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}
+                          >
+                            <AlertCircle className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h4
+                                  className={`font-medium ${isDanger ? "text-red-800" : "text-blue-800"}`}
+                                >
+                                  {notif.message}
+                                </h4>
+                              </div>
+                              <span
+                                className={`text-xs font-medium px-2 py-1 rounded-full ${isDanger ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
+                              >
+                                {formatDistanceToNow(
+                                  new Date(notif.createdAt),
+                                  { addSuffix: true },
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-6 text-gray-500">
+                      No new notifications right now.
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                © 2026 College Management System. All rights reserved.
-              </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-6">
-              <Link
-                to="/privacy"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Privacy
-              </Link>
-              <a
-                href="#"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Terms
-              </a>
-              <a
-                href="#"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Contact
-              </a>
-              <a
-                href="#"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Help
-              </a>
-              <a
-                href="#"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                FAQ
-              </a>
+
+            {/* Upcoming Events */}
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                  <CalendarDays className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  Upcoming Events
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { title: "Tech Symposium", date: "Dec 15", color: "blue" },
+                    { title: "Sports Meet", date: "Dec 18", color: "amber" },
+                    { title: "Cultural Fest", date: "Dec 22", color: "purple" },
+                  ].map((event, index) => {
+                    const colors =
+                      colorClasses[event.color as keyof typeof colorClasses];
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-700"
+                      >
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {event.title}
+                        </span>
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}
+                        >
+                          {event.date}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </footer>
+
+        {/* Footer */}
+        <footer className="mt-12 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-4 md:mb-0">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
+                    <School className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    CollegePortal
+                  </span>
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                  © 2026 College Management System. All rights reserved.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-6">
+                <Link
+                  to="/privacy"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Privacy
+                </Link>
+                <a
+                  href="#"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Terms
+                </a>
+                <a
+                  href="#"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Contact
+                </a>
+                <a
+                  href="#"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Help
+                </a>
+                <a
+                  href="#"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  FAQ
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
-  </div>
   );
 }

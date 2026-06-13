@@ -6,6 +6,7 @@ import {
   Grid3x3, List, Download,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Course {
   _id: string;
@@ -35,7 +36,7 @@ const Courses: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get("/courses/all");
-        setCourses(response.data);
+        setCourses(extractArray(response.data));
       } catch (error) {
         console.error("Error fetching courses:", error);
       } finally {

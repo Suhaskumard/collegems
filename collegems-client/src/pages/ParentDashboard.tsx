@@ -28,7 +28,9 @@ import Fees from "../user-components/Fee";
 import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AnnouncementsView from "../user-components/AnnouncementsView";
-import { useNotifications } from "../hooks/useNotifications"; // ✅ ADD THIS
+import { extractArray } from "../utils/apiHelpers";
+import NotificationBell from "../common-components-management/NotificationBell";
+import { useNotifications } from "../hooks/useNotifications"; 
 import { formatDistanceToNow } from "date-fns";
 
 type TabType =
@@ -225,10 +227,9 @@ export default function ParentDashboard() {
                     className={`
                       w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
                       transition-colors relative
-                      ${
-                        isActive
-                          ? "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 font-semibold"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ${isActive
+                        ? "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 font-semibold"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       }
                     `}
                   >

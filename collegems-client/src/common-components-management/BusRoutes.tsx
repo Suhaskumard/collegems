@@ -15,6 +15,7 @@ import {
   Calendar,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Stop {
   stopName: string;
@@ -64,7 +65,7 @@ export default function BusRoutes() {
     try {
       setLoading(true);
       const res = await api.get("/bus-routes");
-      setRoutes(res.data);
+      setRoutes(extractArray(res.data));
       setError(null);
     } catch (err: any) {
       console.error("Error fetching bus routes:", err);

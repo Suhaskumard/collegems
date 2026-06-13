@@ -105,7 +105,7 @@ router.get(
   asyncHandler(async (req, res) => {
     log.request("GET", "/api/courses/all", req.user?.id);
     const courses = await Course.find().populate("teacher", "name email");
-    res.json({ success: true, data: courses });
+    res.json(courses);
   })
 );
 

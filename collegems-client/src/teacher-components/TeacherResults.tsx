@@ -18,6 +18,7 @@ import {
   PenSquare,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Student {
   _id: string;
@@ -112,8 +113,8 @@ export default function TeacherResult() {
     try {
       setLoading(true);
       const response = await api.get("/users/students");
-      setStudents(response.data);
-      setFilteredStudents(response.data);
+      setStudents(extractArray(response.data));
+      setFilteredStudents(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching students:", error);
       setError("Failed to load students");
@@ -125,7 +126,7 @@ export default function TeacherResult() {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
       setError("Failed to load courses");

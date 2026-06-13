@@ -5,6 +5,7 @@ import {
   UserCircle, GraduationCap, BookOpen, ChevronRight, Filter, Clock, MapPin, Wifi,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Teacher {
   _id?: string;
@@ -75,8 +76,8 @@ const Teachers: React.FC = () => {
       setLoading(true);
       setError("");
       const response = await api.get("/users/teachers");
-      setTeachers(response.data);
-      setFilteredTeachers(response.data);
+      setTeachers(extractArray(response.data));
+      setFilteredTeachers(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching teachers:", error);
       setError("Failed to load teachers data");

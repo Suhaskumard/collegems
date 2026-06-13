@@ -14,6 +14,7 @@ import {
   MapPin,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface ExamHall {
   _id: string;
@@ -79,7 +80,7 @@ const ExamHalls: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get("/exam-halls");
-      setHalls(res.data || []);
+      setHalls(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching exam halls:", err);
       setErrorMsg("Failed to load examination halls. Please try again.");

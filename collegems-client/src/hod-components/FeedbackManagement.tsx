@@ -7,6 +7,7 @@ import {
   BarChart2, Trash2, Send, RefreshCw, AlertCircle, Filter,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -268,7 +269,7 @@ export default function FeedbackManagement() {
       if (filterCat) params.append("category", filterCat);
       if (filterSt)  params.append("status",   filterSt);
       const res = await api.get(`/feedback/all?${params.toString()}`);
-      setItems(res.data);
+      setItems(extractArray(res.data));
     } catch {}
     finally { setLoading(false); }
   };

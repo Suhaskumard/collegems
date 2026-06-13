@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 type LeaveStatus = "Pending" | "Approved" | "Rejected";
 
@@ -64,7 +65,7 @@ export default function LeaveApprovals() {
       setLoading(true);
       setError("");
       const res = await api.get("/leaves/all");
-      setApplications(res.data || []);
+      setApplications(extractArray(res.data));
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to fetch leave applications");
     } finally {

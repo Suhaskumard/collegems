@@ -101,30 +101,30 @@ const CATEGORY_CONFIG: Record<
   Coding: {
     icon: Code,
     iconClass: "text-blue-600",
-    bgClass: "bg-blue-50",
-    tagBg: "bg-blue-50",
-    tagText: "text-blue-700",
+    bgClass: "bg-blue-50 dark:bg-blue-900/30",
+    tagBg: "bg-blue-50 dark:bg-blue-900/30",
+    tagText: "text-blue-700 dark:text-blue-400",
   },
   Innovation: {
     icon: BookOpen,
     iconClass: "text-emerald-600",
-    bgClass: "bg-emerald-50",
-    tagBg: "bg-emerald-50",
-    tagText: "text-emerald-700",
+    bgClass: "bg-emerald-50 dark:bg-emerald-900/30",
+    tagBg: "bg-emerald-50 dark:bg-emerald-900/30",
+    tagText: "text-emerald-700 dark:text-emerald-400",
   },
   Research: {
     icon: Globe,
     iconClass: "text-purple-600",
-    bgClass: "bg-purple-50",
-    tagBg: "bg-purple-50",
-    tagText: "text-purple-700",
+    bgClass: "bg-purple-50 dark:bg-purple-900/30",
+    tagBg: "bg-purple-50 dark:bg-purple-900/30",
+    tagText: "text-purple-700 dark:text-purple-400",
   },
   Debate: {
     icon: Sparkles,
     iconClass: "text-amber-600",
-    bgClass: "bg-amber-50",
-    tagBg: "bg-amber-50",
-    tagText: "text-amber-700",
+    bgClass: "bg-amber-50 dark:bg-amber-900/30",
+    tagBg: "bg-amber-50 dark:bg-amber-900/30",
+    tagText: "text-amber-700 dark:text-amber-400",
   },
   Sports: {
     icon: Dumbbell,
@@ -151,10 +151,10 @@ const CATEGORY_CONFIG: Record<
 
 const DEFAULT_CATEGORY = {
   icon: Star,
-  iconClass: "text-gray-500",
-  bgClass: "bg-gray-50",
-  tagBg: "bg-gray-50",
-  tagText: "text-gray-700",
+  iconClass: "text-gray-500 dark:text-gray-400 dark:text-gray-500",
+  bgClass: "bg-gray-50 dark:bg-gray-900",
+  tagBg: "bg-gray-50 dark:bg-gray-900",
+  tagText: "text-gray-700 dark:text-gray-200",
 };
 
 //  Rank Config 
@@ -162,7 +162,7 @@ const DEFAULT_CATEGORY = {
 const RANK_CONFIG = {
   gold: {
     label: "1st Place",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200",
     icon: Trophy,
     iconClass: "text-amber-500",
   },
@@ -180,7 +180,7 @@ const RANK_CONFIG = {
   },
   special: {
     label: "Special",
-    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    badgeClass: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
     icon: Award,
     iconClass: "text-blue-500",
   },
@@ -208,7 +208,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
   const Icon = cat.icon;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-shadow flex flex-col gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-shadow flex flex-col gap-3">
       {/* Top row: category icon + rank badge */}
       <div className="flex items-start justify-between gap-2">
         <div className={`p-2.5 rounded-lg ${cat.bgClass} flex-shrink-0`}>
@@ -219,10 +219,10 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
 
       {/* Title + description */}
       <div className="flex-1">
-        <h3 className="font-semibold text-gray-900 leading-snug">
+        <h3 className="font-semibold text-gray-900 dark:text-white leading-snug">
           {achievement.title}
         </h3>
-        <p className="mt-1.5 text-sm text-gray-500 line-clamp-2">
+        <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 line-clamp-2">
           {achievement.description}
         </p>
       </div>
@@ -233,7 +233,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
           <p className="text-sm font-medium text-gray-800 truncate">
             {achievement.student}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">{achievement.year}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{achievement.year}</p>
         </div>
         <span
           className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${cat.tagBg} ${cat.tagText}`}
@@ -250,11 +250,11 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
 function EmptyState({ category }: { category: string }) {
   return (
     <div className="py-14 text-center">
-      <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+      <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
         <Trophy className="w-7 h-7 text-gray-300" />
       </div>
-      <p className="text-gray-500 font-medium">No achievements found</p>
-      <p className="text-sm text-gray-400 mt-1">
+      <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">No achievements found</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
         {category === "All"
           ? "No achievements have been added yet."
           : `No achievements in the "${category}" category.`}
@@ -291,24 +291,24 @@ export default function StudentAchievements() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                 <Trophy className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Student Achievements
                 </h1>
-                <p className="text-gray-500 mt-0.5">
+                <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
                   Celebrating our community's excellence
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
               <Star className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
                 {MOCK_ACHIEVEMENTS.length} Total Achievements
               </span>
             </div>
@@ -316,7 +316,7 @@ export default function StudentAchievements() {
         </div>
 
         {/* Filter + Cards Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           {/* Category filter pills */}
           <div className="flex flex-wrap gap-2 mb-6">
             {ALL_CATEGORIES.map((cat) => (
@@ -326,7 +326,7 @@ export default function StudentAchievements() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   activeCategory === cat
                     ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:text-blue-600"
                 }`}
               >
                 {cat}
@@ -350,7 +350,7 @@ export default function StudentAchievements() {
                 <div className="mt-6 text-center">
                   <button
                     onClick={() => setShowAll((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium text-blue-600 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:bg-blue-900/30 transition-colors"
                   >
                     {showAll ? "Show Less" : `View All (${filtered.length})`}
                     <ChevronRight

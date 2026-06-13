@@ -33,6 +33,7 @@ import OfficeHours from "../teacher-components/OfficeHours";
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
+import { useNotifications } from "../hooks/useNotifications";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -46,6 +47,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(initialTab ?? "overview");
+  const { notifications } = useNotifications();
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
 
   const handleSignOut = () => {
@@ -65,7 +67,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
         api.get("/courses/all"),
       ]);
       setData(dashboardRes.data);
-      setCourses(coursesRes.data);
+      setCourses(Array.isArray(coursesRes.data) ? coursesRes.data : (coursesRes.data?.courses || []));
       setUpcomingClasses([
         { id: 1, course: "Mathematics 101", time: "10:00 AM", room: "Room 301", status: "upcoming", students: 28 },
         { id: 2, course: "Physics 201", time: "2:00 PM", room: "Lab 204", status: "upcoming", students: 24 },
@@ -286,7 +288,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                       </button>
                     </div>
                     <div className="space-y-3">
-                      {courses.slice(0, 3).map((course, index) => (
+                      {(Array.isArray(courses) ? courses : []).slice(0, 3).map((course, index) => (
                         <div key={course._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-100 rounded-lg">
@@ -334,7 +336,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                       <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">3 new</span>
                     </div>
                     <div className="space-y-3">
-                      {notifications.map((notification) => (
+                      {notifications.map((notification: any) => (
                         <div key={notification.id} onClick={() => notification.type === "announcement" && navigate("/teacher/announcements")} className="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-2xl cursor-pointer transition-colors">
                           <div className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}>
                             {getNotificationIcon(notification.type)}

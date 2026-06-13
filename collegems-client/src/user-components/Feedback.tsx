@@ -10,6 +10,7 @@ import {
   AlertCircle, ChevronDown, RefreshCw, Eye, EyeOff,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ function FeedbackHistory() {
     try {
       const res = await api.get("/feedback/my");
       console.log("My feedback response:", res.data); // ← helpful for debugging
-      setItems(res.data);
+      setItems(extractArray(res.data));
     } catch (err: any) {
       console.error("Load feedback error:", err?.response?.data || err);
       setError(err?.response?.data?.message || "Failed to load your submissions.");

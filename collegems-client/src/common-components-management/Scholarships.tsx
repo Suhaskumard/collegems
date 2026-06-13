@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface ScholarshipApp {
   _id: string;
@@ -78,7 +79,7 @@ export default function Scholarships() {
       const cachedRole = localStorage.getItem("role") || "";
       const endpoint = cachedRole === "hod" ? "/scholarships/all" : "/scholarships/me";
       const res = await api.get(endpoint);
-      setApplications(res.data);
+      setApplications(extractArray(res.data));
     } catch (err: any) {
       console.error("Fetch scholarships error:", err);
       setError(err.response?.data?.message || "Failed to load scholarship applications.");
