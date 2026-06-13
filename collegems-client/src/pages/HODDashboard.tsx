@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, MessageSquare, Award, Bus,
+  Moon, Sun, MessageSquare, Award, Bus, Activity
 } from "lucide-react";
 import api from "../api/axios";
 import Students from "../common-components-management/Students";
@@ -25,9 +25,11 @@ import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
+import HODAnalytics from "../hod-components/Analytics";
 
 type TabType =
   | "overview"
+  | "analytics"
   | "announcements"
   | "teachers"
   | "teachers-attendance"
@@ -73,6 +75,7 @@ interface ProfileData {
 
 const navigationItems = [
   { id: "overview" as TabType, label: "Overview", icon: LayoutGrid },
+  { id: "analytics" as TabType, label: "AI Analytics", icon: Activity },
   { id: "announcements" as TabType, label: "Announcements", icon: Bell },
   { id: "teachers" as TabType, label: "Teachers", icon: Users },
   { id: "teachers-attendance" as TabType, label: "Teachers Attendance", icon: Users },
@@ -265,6 +268,7 @@ export default function HODDashboard() {
             <AnnouncementManage />
           </div>
         )}
+        {activeTab === "analytics" && <HODAnalytics />}
         {activeTab === "teachers" && <Teachers />}
         {activeTab === "teachers-attendance" && <HODTeacherAttendance />}
         {activeTab === "students" && <Students />}

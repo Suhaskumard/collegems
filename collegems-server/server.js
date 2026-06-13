@@ -3,7 +3,7 @@ dotenv.config();
 
 import app from "./src/app.js";
 import { connectDB } from "./src/config/db.js";
-import { startFeeCronJobs } from "./src/utils/cronJobs.js";
+import { startFeeCronJobs, startAnalyticsCronJobs } from "./src/utils/cronJobs.js";
 
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -29,6 +29,7 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
 connectDB();
 
 startFeeCronJobs();
+startAnalyticsCronJobs();
 
 const httpServer = createServer(app);
 

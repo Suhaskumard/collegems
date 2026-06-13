@@ -2,6 +2,7 @@ import cron from "node-cron";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
 import { sendFeeReminderEmail, sendOverdueEmail } from "./email.js";
+import { batchGenerateAnalytics } from "../services/analytics.service.js";
 
 /**
  * Normalizes a date to midnight for accurate day-difference calculations.
@@ -68,5 +69,15 @@ export const startFeeCronJobs = () => {
     } catch (error) {
       console.error("❌ Error in fee cron job:", error);
     }
+  });
+};
+
+export const startAnalyticsCronJobs = () => {
+  console.log("🕒 Initializing Analytics Cron Jobs...");
+  
+  // Run every Sunday at 2:00 AM
+  cron.schedule("0 2 * * 0", async () => {
+    console.log("🔄 Running weekly analytics generation job...");
+    await batchGenerateAnalytics();
   });
 };
