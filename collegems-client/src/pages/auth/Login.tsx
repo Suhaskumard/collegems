@@ -6,22 +6,22 @@ import {
   Shield, School, Users, BookOpen, Moon, Sun,
 } from "lucide-react";
 import api from "../../api/axios";
+import { useToast } from "../../hooks/useToast";
 
 export default function Login() {
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
 
   const handleLogin = async () => {
-    setError("");
     if (!email || !password) {
-    setError("Please enter both email and password");
-    return;
+      toast.warning("Please enter both email and password");
+      return;
     }
 
     if (loading) return;
@@ -33,6 +33,9 @@ export default function Login() {
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       if (rememberMe) localStorage.setItem("rememberEmail", email);
       else localStorage.removeItem("rememberEmail");
+      
+      toast.success(`Welcome back, ${res.data.user.name || 'User'}!`);
+      
       const role = res.data.user.role;
       const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
       navigate(routes[role] || "/");
@@ -40,7 +43,7 @@ export default function Login() {
       const errorMessage =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -173,16 +176,10 @@ export default function Login() {
                   Remember me
                 </label>
               </div>
-              <button type="button" onClick={() => alert("Password reset feature coming soon")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
+              <button type="button" onClick={() => toast.info("Password reset feature coming soon")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
                 Forgot password?
               </button>
             </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
 
             {/* Login Button */}
             <button
