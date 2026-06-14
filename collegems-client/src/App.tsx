@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import RoleRoute from "./routes/RoleRoute";
@@ -37,6 +37,8 @@ import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
 import StudyGroupList from "./pages/StudyGroups/StudyGroupList";
 import StudyRoom from "./pages/StudyGroups/StudyRoom";
+import { TimetableGenerator } from "./common-components-management/timetable/TimetableGenerator";
+import { TimetableGrid } from "./common-components-management/timetable/TimetableGrid";
 
 export default function App() {
   return (
@@ -237,6 +239,24 @@ export default function App() {
           element={
             <RoleRoute role="hod">
               <ResourceManagement />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/hod/timetable-generator"
+          element={
+            <RoleRoute role="hod">
+              <TimetableGenerator />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/admin/timetable/:id"
+          element={
+            <RoleRoute role="hod">
+              <TimetableGrid />
             </RoleRoute>
           }
         />

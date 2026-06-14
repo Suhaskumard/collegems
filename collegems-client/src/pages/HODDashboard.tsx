@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, MessageSquare, Award, Bus
+  Moon, Sun, MessageSquare, Award, Bus,
 } from "lucide-react";
 import api from "../api/axios";
 import Students from "../common-components-management/Students";
@@ -16,18 +16,17 @@ import Teachers from "../hod-components/Teachers";
 import Library from "../common-components-management/Library";
 import HODSettings from "../hod-components/Settings";
 import HODCourses from "../hod-components/Courses";
-import ExamForms from "../hod-components/ExamForms";
-
-const AnnouncementForm = () => <div>AnnouncementForm</div>;
-const AnnouncementManage = () => <div>AnnouncementManage</div>;
-const FeedbackManagement = () => <div>FeedbackManagement</div>;
-const Scholarships = () => <div>Scholarships</div>;
-const BusRoutes = () => <div>BusRoutes</div>;
-const ExamHalls = () => <div>ExamHalls</div>;
-const HallAllocation = () => <div>HallAllocation</div>;
-const AuditLogs = () => <div>AuditLogs</div>;
-const BookingManagement = () => <div>BookingManagement</div>;
-const ResourceManagement = () => <div>ResourceManagement</div>;
+import HODExamForms from "../hod-components/ExamForms";
+import AnnouncementForm from "../common-components-management/AnnouncementForm";
+import AnnouncementManage from "../common-components-management/AnnouncementManage";
+import FeedbackManagement from "../hod-components/FeedbackManagement";
+import Scholarships from "../common-components-management/Scholarships";
+import BusRoutes from "../common-components-management/BusRoutes";
+import ExamHalls from "../hod-components/ExamHalls";
+import HallAllocation from "../hod-components/HallAllocation";
+import AuditLogs from "../hod-components/AuditLogs";
+import BookingManagement from "../hod-components/BookingManagement";
+import ResourceManagement from "../hod-components/ResourceManagement";
 
 type TabType =
   | "overview"
@@ -48,7 +47,6 @@ type TabType =
   | "settings"
   | "reports"
   | "exam-forms"
-  | "announcements"
   | "feedback"
   | "scholarships"
   | "bus-routes"
@@ -327,7 +325,7 @@ export default function HODDashboard() {
         {activeTab === "courses" && <HODCourses />}
         {activeTab === "settings" && <HODSettings />}
         {activeTab === "feedback" && <FeedbackManagement />}
-        {activeTab === "exam-forms" && <ExamForms />}
+        {activeTab === "exam-forms" && <HODExamForms />}
         {activeTab === "scholarships" && <Scholarships />}
         {activeTab === "bus-routes" && <BusRoutes />}
         {activeTab === "exam-halls" && <ExamHalls />}

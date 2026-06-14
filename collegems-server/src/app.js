@@ -50,6 +50,7 @@ import alumniRoutes from "./routes/alumni.routes.js";
 import facultyAssignmentRoutes from "./routes/facultyAssignment.routes.js";
 import studyGroupRoutes from "./routes/studyGroup.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import timetableRoutes from "./routes/timetable.routes.js";
 import { authenticate } from "./middlewares/auth.middleware.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import log from "./utils/logger.js";
@@ -108,6 +109,7 @@ app.use("/api/complaints", complaintRoutes);
 app.use("/api/announcements", announcementRoutes);  // aannouncements
 app.use("/api/study-groups", studyGroupRoutes);
 app.use("/api/analytics", authenticate, analyticsRoutes);
+app.use("/api/timetable", authenticate, timetableRoutes);
 
 // Health check
 app.get("/", (_req, res) => {

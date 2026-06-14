@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
       return this.role === "teacher";
     },
   },
+  unavailableTimeSlots: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TimeSlot"
+  }],
 
 
   // HOD-specific

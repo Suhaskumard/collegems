@@ -35,6 +35,14 @@ const courseSchema = new mongoose.Schema(
       type: Number,
       default: 60,
     },
+    isLab: {
+      type: Boolean,
+      default: false,
+    },
+    targetBatch: {
+      type: String,
+      default: "General",
+    },
   },
   { timestamps: true },
 );
