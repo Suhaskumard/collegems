@@ -24,7 +24,7 @@ import ExaminationFormPage from "./pages/ExaminationFormPage";
 
 import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
-
+import HODLeaveDashboard from './hod-components/HODLeaveDashboard';
 import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
@@ -183,6 +183,15 @@ export default function App() {
           element={
             <RoleRoute role="hod">
               <HodDashboard />
+            </RoleRoute>
+          }
+        />
+        
+        <Route
+          path="/hod/leaves"
+          element={
+            <RoleRoute role="hod">
+              <HODLeaveDashboard />
             </RoleRoute>
           }
         />

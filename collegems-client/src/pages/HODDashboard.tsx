@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { Link } from 'react-router-dom';
 import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, MessageSquare, Award, Bus
+  Moon, Sun, MessageSquare, Award, Bus,ShieldAlert
 } from "lucide-react";
 import api from "../api/axios";
 import Students from "../common-components-management/Students";
@@ -29,7 +30,7 @@ import FeedbackManagement from "../hod-components/FeedbackManagement";
 import HallAllocation from "../hod-components/HallAllocation";
 import FacultyAssignment from "../hod-components/FacultyAssignment";
 import Clubs from "../common-components-management/Clubs";
-
+import HODLeaveDashboard from "../hod-components/HODLeaveDashboard";
 type TabType =
   | "overview"
   | "analytics"
@@ -58,7 +59,8 @@ type TabType =
   | "manage-bookings"
   | "manage-resources" 
   | "faculty-assignment"
-  | "clubs";
+  | "clubs"
+  | "leave-oversight";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -130,6 +132,7 @@ export default function HODDashboard() {
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
     { id: "faculty-assignment" as TabType, label: "Faculty Assignments", icon: Users },
     { id: "clubs" as TabType, label: "Clubs & Organizations", icon: Users },
+    { id: "leave-oversight" as TabType, label: "Leave Oversight", icon: ShieldAlert },
   ];
 
   useEffect(() => {
@@ -327,6 +330,7 @@ export default function HODDashboard() {
         {activeTab === "manage-resources" && <ResourceManagement />}
         {activeTab === "faculty-assignment" && <FacultyAssignment />}
         {activeTab === "clubs" && <Clubs />}
+        {activeTab === "leave-oversight" && <HODLeaveDashboard />}
       </>
     );
   };
