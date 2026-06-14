@@ -48,4 +48,6 @@ const assignmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+assignmentSchema.index({ title: "text", description: "text" });
+
 export default mongoose.model("Assignment", assignmentSchema);

@@ -5,10 +5,14 @@ import App from './App.tsx'
 import { ThemeProvider } from "./context/ThemeContext";
 import { SocketProvider } from "./context/SocketContext";
 
+import { ToastProvider } from "./context/ToastContext";
+
 createRoot(document.getElementById('root')!).render(
   <ThemeProvider>
-    <SocketProvider>
-      <App />
-    </SocketProvider>
+    <ToastProvider>
+      <SocketProvider>
+        <App />
+      </SocketProvider>
+    </ToastProvider>
   </ThemeProvider>,
 )

@@ -50,6 +50,8 @@ import alumniRoutes from "./routes/alumni.routes.js";
 import facultyAssignmentRoutes from "./routes/facultyAssignment.routes.js";
 import studyGroupRoutes from "./routes/studyGroup.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import timetableRoutes from "./routes/timetable.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 import { authenticate } from "./middlewares/auth.middleware.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import log from "./utils/logger.js";
@@ -68,6 +70,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
 app.use("/api/auth",      authRoutes);
+app.use("/api/search",    searchRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/faculty-assignments", facultyAssignmentRoutes);
 app.use("/api/attendance",        authenticate, attendanceRoutes);
@@ -108,6 +111,7 @@ app.use("/api/complaints", complaintRoutes);
 app.use("/api/announcements", announcementRoutes);  // aannouncements
 app.use("/api/study-groups", studyGroupRoutes);
 app.use("/api/analytics", authenticate, analyticsRoutes);
+app.use("/api/timetable", authenticate, timetableRoutes);
 
 // Health check
 app.get("/", (_req, res) => {

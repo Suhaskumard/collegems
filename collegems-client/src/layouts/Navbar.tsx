@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-
+import GlobalSearch from "./GlobalSearch";
 
 export default function Navbar(){
     const navigate = useNavigate();
@@ -26,6 +26,11 @@ export default function Navbar(){
                     <span className="text-2xl font-semibold text-gray-900 dark:text-white cursor-pointer" onClick={() => navigate('/')}>
                         College<span className="text-blue-600">Portal</span>
                     </span>
+                    </div>
+
+                    {/* Global Search */}
+                    <div className="flex-1 max-w-xl mx-8 hidden md:block">
+                        <GlobalSearch />
                     </div>
 
                     {/* Right side buttons */}

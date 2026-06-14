@@ -68,6 +68,7 @@ const AnnouncementSchema = new mongoose.Schema(
 
 // Index for fast audience queries
 AnnouncementSchema.index({ targetRole: 1, targetCourse: 1, targetSemester: 1 });
+AnnouncementSchema.index({ title: "text", message: "text" });
 
 const Announcement = mongoose.model("Announcement", AnnouncementSchema);
 

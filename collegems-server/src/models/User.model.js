@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
       return this.role === "teacher";
     },
   },
+  unavailableTimeSlots: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TimeSlot"
+  }],
 
 
   // HOD-specific
@@ -60,5 +64,7 @@ const userSchema = new mongoose.Schema({
     },
   },
 });
+
+userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "text" });
 
 export default mongoose.model("User", userSchema);
