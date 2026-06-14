@@ -65,4 +65,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "text" });
+
 export default mongoose.model("User", userSchema);
