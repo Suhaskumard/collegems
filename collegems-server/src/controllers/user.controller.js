@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
 import { logAction } from "../utils/auditService.js";
 import { getPaginatedData } from "../utils/pagination.util.js";
-// import calculateProfileCompletion from "../utils/profileCompletion.js";
+import calculateProfileCompletion from "../utils/profileCompletion.js";
 
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
@@ -31,7 +31,7 @@ export const getMe = async (req, res) => {
 
     let profileCompletion = null;
     if (user.role === "student") {
-      // profileCompletion = calculateProfileCompletion(user);
+      profileCompletion = calculateProfileCompletion(user);
     }
 
     res.json({
