@@ -7,6 +7,7 @@ import {
   Moon, Sun,
 } from "lucide-react";
 import api from "../../api/axios";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; 
 
 export default function Register() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function Register() {
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -163,10 +165,17 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="password" className={labelClass}>Password *</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
-                <input id="password" name="password" type="password" value={form.password || ""} onChange={handleChange} className={inputClass} placeholder="••••••••" />
+            <label htmlFor="password" className={labelClass}>Password *</label>
+             <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
+                <input id="password" name="password" type={showPassword ? "text" : "password"} value={form.password || ""} onChange={handleChange} className={inputClass} placeholder="••••••••" />
+                <button
+                 type="button"
+                 onClick={() => setShowPassword(!showPassword)}
+                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                 >
+                 {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                </button>
               </div>
             </div>
 
