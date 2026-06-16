@@ -64,6 +64,42 @@ export default function Assignment() {
     setSubmitError(null);
   };
 
+  // NEW: Pre-upload validation handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    
+    if (!selectedFile) {
+      setSubmissionForm((prev) => ({ ...prev, file: null }));
+      return;
+    }
+
+    // Size Validation (5MB = 5 * 1024 * 1024 bytes)
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setSubmitError("File is too large! Maximum allowed size is 5MB.");
+      e.target.value = ""; // Clear the invalid file from input
+      setSubmissionForm((prev) => ({ ...prev, file: null }));
+      return;
+    }
+
+    // Type Validation (Fallback for browsers ignoring the 'accept' attribute)
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setSubmitError("Invalid file type! Please upload a .pdf, .doc, or .docx file.");
+      e.target.value = ""; // Clear the invalid file from input
+      setSubmissionForm((prev) => ({ ...prev, file: null }));
+      return;
+    }
+
+    // Clear any previous errors and set the valid file
+    setSubmitError(null);
+    setSubmissionForm((prev) => ({ ...prev, file: selectedFile }));
+  };
+
   const submitAssignment = async () => {
     if (!activeSubmission || submitting) return;
 
@@ -658,22 +694,18 @@ export default function Assignment() {
                 activeSubmissionType === "both") && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upload File
+                    Upload File (Max 5MB, PDF/DOCX)
                     <span className="text-red-500"> *</span>
                   </label>
                   <input
                     type="file"
-                    className="w-full text-sm text-gray-700"
-                    onChange={(e) =>
-                      setSubmissionForm((prev) => ({
-                        ...prev,
-                        file: e.target.files?.[0] || null,
-                      }))
-                    }
+                    accept=".pdf,.doc,.docx"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    onChange={handleFileChange}
                   />
                   {submissionForm.file && (
-                    <p className="mt-2 text-xs text-gray-500">
-                      {submissionForm.file.name}
+                    <p className="mt-2 text-xs text-gray-500 font-medium">
+                      Selected: {submissionForm.file.name}
                     </p>
                   )}
                 </div>

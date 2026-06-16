@@ -19,14 +19,14 @@ import HODCourses from "../hod-components/Courses";
 import HODExamForms from "../hod-components/ExamForms";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
-import FeedbackManagement from "../common-components-management/FeedbackManagement";
+import FeedbackManagement from "../hod-components/FeedbackManagement";
 import Scholarships from "../common-components-management/Scholarships";
 import BusRoutes from "../common-components-management/BusRoutes";
-import ExamHalls from "../common-components-management/ExamHalls";
-import HallAllocation from "../common-components-management/HallAllocation";
-import AuditLogs from "../common-components-management/AuditLogs";
-import BookingManagement from "../common-components-management/BookingManagement";
-import ResourceManagement from "../common-components-management/ResourceManagement";
+import ExamHalls from "../hod-components/ExamHalls";
+import HallAllocation from "../hod-components/HallAllocation";
+import AuditLogs from "../hod-components/AuditLogs";
+import BookingManagement from "../hod-components/BookingManagement";
+import ResourceManagement from "../hod-components/ResourceManagement";
 
 
 type TabType =

@@ -11,6 +11,7 @@ import { allowRoles } from "../middlewares/role.middleware.js";
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
 import { getTeacherAssignments } from '../controllers/assignment.controller.js';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
+import { uploadAssignment } from '../middlewares/upload.middleware.js';
 import { getAssignmentSubmissions } from '../controllers/assignment.controller.js';
 import log from "../utils/logger.js";
 import {
@@ -48,6 +49,7 @@ router.post(
   upload.single("file"),
   asyncHandler(submitAssignment)
 );
+router.post("/submit/:id", protect, restrictTo("student"), uploadAssignment.single("file"), submitAssignment);
 
 router.post(
   "/evaluate/:id",
