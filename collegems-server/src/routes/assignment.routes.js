@@ -17,26 +17,97 @@ import {
   createAssignment,
   submitAssignment,
   evaluateAssignment,
-  getUpcomingAssignments,
+  downloadAssignmentFile,
 } from "../controllers/assignment.controller.js";
 import Assignment from "../models/Assignment.model.js";
+import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
 
 const router = express.Router();
 
-const uploadsDir = path.join(process.cwd(), "uploads", "assignments");
+// Store files outside the web root (web root is served from 'uploads')
+const uploadsDir = path.join(process.cwd(), "secure-uploads", "assignments");
 fs.mkdirSync(uploadsDir, { recursive: true });
 
-const sanitizeFilename = (name) => name.replace(/[^a-zA-Z0-9._-]/g, "_");
+// Whitelist of allowed MIME types and their corresponding extensions
+const ALLOWED_MIME_TYPES = {
+  "application/pdf": [".pdf"],
+  "application/msword": [".doc"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "text/plain": [".txt"],
+  "application/rtf": [".rtf"],
+  "application/vnd.ms-excel": [".xls"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.ms-powerpoint": [".ppt"],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+  "application/zip": [".zip"],
+  "application/x-zip-compressed": [".zip"],
+  "image/png": [".png"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/gif": [".gif"]
+};
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
-    const safeName = sanitizeFilename(file.originalname || "file");
+    // Generate secure server-side filename without using user-supplied names
+    const ext = path.extname(file.originalname).toLowerCase();
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}-${safeName}`);
+    cb(null, `${uniqueSuffix}${ext}`);
   },
 });
-const upload = multer({ storage });
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // Enforce 10MB limit
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = ALLOWED_MIME_TYPES[file.mimetype];
+    
+    if (allowedExtensions && allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("File type not allowed. Please upload approved formats (.pdf, .doc, .docx, .txt, .zip, .png, .jpg, etc.)"), false);
+    }
+  }
+});
+
+// Middleware to validate signature (magic bytes) and scan file for malware
+const validateUploadedFile = async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  const filePath = req.file.path;
+  const ext = path.extname(req.file.originalname).toLowerCase();
+
+  try {
+    // 1. Verify file signature (magic bytes)
+    const isValidSignature = await verifyFileSignature(filePath, ext);
+    if (!isValidSignature) {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      return res.status(400).json({ message: "File contents do not match the declared extension." });
+    }
+
+    // 2. Scan file content for malware
+    const scanResult = await scanFileForMalware(filePath);
+    if (!scanResult.safe) {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      return res.status(400).json({ message: `Security threat detected: ${scanResult.reason}` });
+    }
+
+    next();
+  } catch (error) {
+    console.error("File upload validation failed:", error);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    return res.status(500).json({ message: "Failed to validate the uploaded file." });
+  }
+};
 
 // ── Existing routes with error handling ───────────────────────────────────────
 router.post("/create", protect, allowRoles("teacher"), asyncHandler(createAssignment));
@@ -45,9 +116,20 @@ router.post(
   "/submit/:id",
   protect,
   allowRoles("student"),
-  upload.single("file"),
-  asyncHandler(submitAssignment)
+  // Wrapper middleware to gracefully handle multer validation errors (like file size)
+  (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      next();
+    });
+  },
+  validateUploadedFile,
+  submitAssignment,
 );
+
+router.get("/download/:filename", protect, downloadAssignmentFile);
 
 router.post(
   "/evaluate/:id",

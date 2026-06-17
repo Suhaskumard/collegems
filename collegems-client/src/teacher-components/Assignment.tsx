@@ -666,7 +666,16 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                 <p className="text-sm font-medium text-gray-900 truncate" title={sub.file.originalName}>{sub.file.originalName || "Attachment"}</p>
                                 <p className="text-xs text-gray-500">{(sub.file.size / 1024).toFixed(1)} KB</p>
                               </div>
-                              <a href={`http://localhost:5000${sub.file.url}`} target="_blank" rel="noreferrer" className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <a 
+                                href={
+                                  sub.file.url.startsWith("http") 
+                                    ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+                                    : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`
+                                } 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
                                 <Download className="w-4 h-4" />
                               </a>
                             </div>
