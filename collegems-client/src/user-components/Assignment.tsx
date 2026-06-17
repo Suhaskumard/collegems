@@ -503,7 +503,7 @@ export default function Assignment() {
                     </div>
                     {studentSubmission?.file?.url && (
                       <a
-                        href={studentSubmission.file.url}
+                        href={`${studentSubmission.file.url}?token=${localStorage.getItem("token")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-2 inline-flex items-center text-xs text-green-700 hover:text-green-800"
