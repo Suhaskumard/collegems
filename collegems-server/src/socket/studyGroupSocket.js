@@ -1,5 +1,51 @@
 import ChatMessage from "../models/ChatMessage.model.js";
 import StudyGroup from "../models/StudyGroup.model.js";
+import Workspace from "../models/Workspace.model.js";
+import * as Y from "yjs";
+
+const activeDocuments = new Map();
+
+const getDocument = async (groupId) => {
+  if (activeDocuments.has(groupId)) {
+    return activeDocuments.get(groupId).ydoc;
+  }
+  
+  const ydoc = new Y.Doc();
+  try {
+    const workspace = await Workspace.findOne({ groupId });
+    if (workspace && workspace.documentState) {
+      Y.applyUpdate(ydoc, workspace.documentState);
+    }
+  } catch (error) {
+    console.error(`Error loading workspace for group ${groupId}:`, error);
+  }
+  
+  activeDocuments.set(groupId, { ydoc, timeoutId: null });
+  return ydoc;
+};
+
+const saveDocument = async (groupId, ydoc) => {
+  try {
+    const documentState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
+    await Workspace.findOneAndUpdate(
+      { groupId },
+      { groupId, documentState },
+      { upsert: true, new: true }
+    );
+  } catch (error) {
+    console.error(`Error saving workspace for group ${groupId}:`, error);
+  }
+};
+
+const debounceSave = (groupId, ydoc) => {
+  const docInfo = activeDocuments.get(groupId);
+  if (docInfo) {
+    if (docInfo.timeoutId) clearTimeout(docInfo.timeoutId);
+    docInfo.timeoutId = setTimeout(() => {
+      saveDocument(groupId, ydoc);
+    }, 5000);
+  }
+};
 
 export const initializeStudyGroupSockets = (io) => {
   io.on("connection", (socket) => {
@@ -13,6 +59,12 @@ export const initializeStudyGroupSockets = (io) => {
         if (group && group.members.includes(userId)) {
           socket.join(`group_${groupId}`);
           socket.to(`group_${groupId}`).emit("user-joined", { userId });
+          
+          // Send initial document state
+          const ydoc = await getDocument(groupId);
+          const stateUpdate = Y.encodeStateAsUpdate(ydoc);
+          socket.emit("sync-initial-state", Array.from(stateUpdate));
+          
           console.log(`User ${userId} joined group ${groupId}`);
         }
       } catch (error) {
@@ -47,10 +99,27 @@ export const initializeStudyGroupSockets = (io) => {
     });
 
     // Handle document sync (Yjs update broadcast)
-    socket.on("sync-update", (data) => {
+    socket.on("sync-update", async (data) => {
       const { groupId, update } = data;
-      // Broadcast the update to everyone else in the room
+      
+      // Broadcast to other clients
       socket.to(`group_${groupId}`).emit("sync-update", update);
+      
+      // Apply to server document
+      try {
+        const ydoc = await getDocument(groupId);
+        const updateUint8 = new Uint8Array(update);
+        Y.applyUpdate(ydoc, updateUint8);
+        debounceSave(groupId, ydoc);
+      } catch (error) {
+        console.error("Error applying sync update on server:", error);
+      }
+    });
+
+    // Handle awareness protocol (cursors, presence)
+    socket.on("awareness-update", (data) => {
+      const { groupId, update } = data;
+      socket.to(`group_${groupId}`).emit("awareness-update", update);
     });
 
     // Disconnect handling is generally managed at the root connection

@@ -25,6 +25,7 @@
     "lucide-react": "^0.563.0",
     "qrcode.react": "^4.2.0",
     "quill": "^2.0.3",
+    "quill-cursors": "^4.3.0",
     "react": "^19.2.0",
     "react-calendar": "^6.0.1",
     "react-dom": "^19.2.0",
