@@ -9,6 +9,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { connectDB } from "./src/config/db.js";
 import { connectRabbitMQ } from "./src/utils/rabbitmq.js";
+import { startPlagiarismWorker } from "./src/workers/plagiarismWorker.js";
 
 import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
@@ -67,6 +68,7 @@ const startService = async () => {
     console.log("📚 Starting Academics Service...");
     // For simplicity, Academics runs the main app but the gateway will route auth/finance away from it
     app.use("/", appAcademics);
+    startPlagiarismWorker();
   } 
   else if (SERVICE_NAME === "gateway") {
     console.log("🚪 Starting API Gateway...");
