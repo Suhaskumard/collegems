@@ -56,6 +56,7 @@ import complaintRoutes from "./routes/complaint.routes.js";
 import searchRoutes from './routes/search.routes.js'; 
 import timetableRoutes from './routes/timetable.routes.js'
 import plagiarismRoutes from "./routes/plagiarism.routes.js";
+import semesterRoutes from "./routes/semester.routes.js";
 import log from "./utils/logger.js";
 
 import httpContext from "express-http-context";
@@ -147,6 +148,7 @@ app.use("/api/notifications", authenticate, notificationRoutes);
 app.use("/api/study-groups", studyGroupRoutes);
 app.use("/api/analytics", authenticate, analyticsRoutes);
 app.use("/api/timetable", authenticate, timetableRoutes);
+app.use("/api/semesters", semesterRoutes);
 
 // Health check
 app.get("/", (_req, res) => {

@@ -4,6 +4,7 @@ import TimetableRule from "../models/TimetableRule.model.js";
 import Room from "../models/Room.model.js";
 import TimeSlot from "../models/TimeSlot.model.js";
 import { jobQueue } from "../engine/JobQueue.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 // @desc    Trigger timetable generation
 // @route   POST /api/timetable/generate
@@ -11,6 +12,8 @@ import { jobQueue } from "../engine/JobQueue.js";
 export const generateTimetable = async (req, res) => {
   try {
     const { name, department, semester } = req.body;
+
+    await checkSemesterFrozen(semester);
 
     const timetable = new Timetable({
       name,
@@ -31,6 +34,7 @@ export const generateTimetable = async (req, res) => {
       data: timetable,
     });
   } catch (error) {
+    if (error.status === 403) return res.status(403).json({ success: false, message: error.message });
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -87,6 +91,15 @@ export const updateTimetableEntry = async (req, res) => {
   try {
     const { room, timeSlot, faculty } = req.body;
     
+    const existingEntry = await TimetableEntry.findById(req.params.entryId).populate("timetable");
+    if (!existingEntry) {
+      return res.status(404).json({ success: false, message: "Entry not found" });
+    }
+
+    if (existingEntry.timetable && existingEntry.timetable.semester) {
+      await checkSemesterFrozen(existingEntry.timetable.semester);
+    }
+
     // In a real scenario, we should re-validate the hard constraints here before updating.
     const entry = await TimetableEntry.findByIdAndUpdate(
       req.params.entryId,
@@ -100,6 +113,7 @@ export const updateTimetableEntry = async (req, res) => {
 
     res.status(200).json({ success: true, data: entry });
   } catch (error) {
+    if (error.status === 403) return res.status(403).json({ success: false, message: error.message });
     res.status(500).json({ success: false, message: error.message });
   }
 };
