@@ -17,18 +17,19 @@ export default function TimetableGrid() {
   ];
 
   return (
-    <div className="overflow-x-auto rounded-xl border bg-white">
+    
+    <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <div className="grid grid-cols-6 min-w-[900px]">
         
         {/* Header Row */}
-        <div className="border-b border-r p-4 font-semibold">
+        <div className="border-b border-r border-gray-200 dark:border-gray-700 p-4 font-semibold text-gray-700 dark:text-gray-300">
           Time
         </div>
 
         {days.map((day) => (
           <div
             key={day}
-            className="border-b border-r p-4 text-center font-semibold"
+            className="border-b border-r border-gray-200 dark:border-gray-700 p-4 text-center font-semibold text-gray-700 dark:text-gray-300"
           >
             {day}
           </div>
@@ -38,7 +39,7 @@ export default function TimetableGrid() {
         {slots.map((slot) => (
           <React.Fragment key={slot}>
             {/* Time Column */}
-            <div className="border-b border-r p-4 font-medium">
+            <div className="border-b border-r border-gray-200 dark:border-gray-700 p-4 font-medium text-gray-600 dark:text-gray-400">
               {slot}
             </div>
 
@@ -46,7 +47,7 @@ export default function TimetableGrid() {
             {days.map((day) => (
               <div
                 key={`${day}-${slot}`}
-                className="border-b border-r p-4 min-h-[100px]"
+                className="border-b border-r border-gray-200 dark:border-gray-700 p-4 min-h-[100px]"
               >
                 {/* Subject Card will go here later */}
               </div>
@@ -56,4 +57,4 @@ export default function TimetableGrid() {
       </div>
     </div>
   );
-}
+}  

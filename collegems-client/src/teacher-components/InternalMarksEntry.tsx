@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Save, AlertCircle, CheckCircle, Loader2, User, BookOpen } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Course {
   _id: string;
@@ -61,7 +62,7 @@ export default function InternalMarksEntry() {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (err) {
       console.error(err);
     }
@@ -70,7 +71,7 @@ export default function InternalMarksEntry() {
   const fetchStudents = async () => {
     try {
       const res = await api.get("/users/students");
-      setStudents(res.data);
+      setStudents(extractArray(res.data));
     } catch (err) {
       console.error(err);
     }

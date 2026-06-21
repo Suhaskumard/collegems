@@ -1,5 +1,7 @@
 import express from "express";
-import { protect } from "../middlewares/auth.middleware.js";
+// Change it to exactly this:
+import { protect, restrictTo } from '../middlewares/auth.middleware.js'; // Adjust 'middlewares' vs 'middleware' based on your folder name!
+import { getHODLeaveDashboardData, overrideLeaveStatus } from '../controllers/hodLeaveController.js';
 import { allowRoles } from "../middlewares/role.middleware.js";
 import {
   createLeave,
@@ -46,6 +48,25 @@ router.patch(
   protect,
   allowRoles("teacher", "hod"),
   reviewLeave
+);
+// ==========================================
+// HOD LEAVE OVERSIGHT ROUTES
+// ==========================================
+
+// Fetch dashboard data
+router.get(
+  '/hod/dashboard', 
+  protect, 
+  restrictTo('hod'), // <-- Changed this!
+  getHODLeaveDashboardData
+);
+
+// Override a leave status
+router.put(
+  '/hod/:leaveId/override', 
+  protect, 
+  restrictTo('hod'), // <-- Changed this!
+  overrideLeaveStatus
 );
 
 export default router;

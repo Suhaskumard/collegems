@@ -131,7 +131,6 @@ export const verifyStudent = async (req, res) => {
         studentId: student.studentId,
         course: student.course,
         semester: student.semester,
-        email: student.email,
       },
     });
   } catch (err) {
@@ -161,7 +160,6 @@ export const verifyToken = async (req, res) => {
         studentId: student.studentId,
         course: student.course,
         semester: student.semester,
-        email: student.email,
       },
     });
   } catch (err) {

@@ -4,6 +4,7 @@ import {
   ArrowRight, RefreshCw, X, Send, Trash2, MessageSquare,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface LeaveData {
   _id: string;
@@ -44,7 +45,7 @@ const LeaveRequest: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get("/leaves/me");
-      setLeaves(res.data || []);
+      setLeaves(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching leaves:", err);
     } finally {

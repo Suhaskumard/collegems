@@ -50,6 +50,17 @@ const feedbackSchema = new mongoose.Schema(
 
     // HOD can add a response
     adminResponse: { type: String, default: "" },
+
+    // Sentiment Analysis properties
+    sentiment: {
+      type: String,
+      enum: ["Positive", "Neutral", "Negative", "Unanalyzed"],
+      default: "Unanalyzed",
+    },
+    sentimentScore: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

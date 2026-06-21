@@ -4,6 +4,7 @@
 //      the student can still see their own anonymous submissions.
 
 import Feedback from "../models/Feedback.model.js";
+import { analyzeFeedbackSentiment } from "../services/analytics.service.js";
 
 // ── Student: submit feedback ──────────────────────────────────────────────────
 // POST /api/feedback
@@ -29,6 +30,13 @@ export const submitFeedback = async (req, res) => {
       course: courseId || null,
       teacher: teacherId || null,
     });
+
+    // Run sentiment analysis asynchronously without blocking the response
+    analyzeFeedbackSentiment(feedback._id, feedback.message).then(async (result) => {
+        feedback.sentiment = result.sentiment;
+        feedback.sentimentScore = result.sentiment_score;
+        await feedback.save();
+    }).catch(err => console.error("Error analyzing sentiment post-creation:", err));
 
     res.status(201).json({ message: "Feedback submitted successfully.", feedback });
   } catch (error) {
@@ -103,6 +111,15 @@ export const getFeedbackAnalytics = async (req, res) => {
       },
     ]);
 
+    const sentimentBreakdown = await Feedback.aggregate([
+      {
+        $group: {
+          _id: "$sentiment",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
     const ratingResult = await Feedback.aggregate([
       { $match: { rating: { $ne: null } } },
       { $group: { _id: null, avgRating: { $avg: "$rating" } } },
@@ -117,7 +134,7 @@ export const getFeedbackAnalytics = async (req, res) => {
 
     res.json({
       total, pending, reviewed, resolved, anonymous,
-      avgRating, categoryBreakdown, recentPending,
+      avgRating, categoryBreakdown, sentimentBreakdown, recentPending,
     });
   } catch (error) {
     console.error("getFeedbackAnalytics error:", error);
@@ -154,5 +171,20 @@ export const deleteFeedback = async (req, res) => {
   } catch (error) {
     console.error("deleteFeedback error:", error);
     res.status(500).json({ message: "Failed to delete feedback." });
+  }
+};
+
+import { batchAnalyzeSentiments } from "../services/analytics.service.js";
+
+// ── HOD: batch analyze all unanalyzed feedback ────────────────────────────────
+// POST /api/feedback/analyze-all
+export const batchAnalyze = async (req, res) => {
+  try {
+    // Run asynchronously
+    batchAnalyzeSentiments();
+    res.json({ message: "Batch sentiment analysis job started." });
+  } catch (error) {
+    console.error("batchAnalyze error:", error);
+    res.status(500).json({ message: "Failed to start batch analysis." });
   }
 };

@@ -3,6 +3,7 @@
 // 1. Renamed internal fetch fn to loadFeedback (avoid collision with browser fetch)
 // 2. Added console.error so you can see exact API errors in browser DevTools
 // 3. Error message now shown in UI when My Submissions fails to load
+// 4. Added dark mode support
 
 import { useEffect, useState } from "react";
 import {
@@ -40,9 +41,9 @@ const CATEGORY_LABELS: Record<Category, string> = {
 };
 
 const STATUS_CONFIG: Record<Status, { label: string; cls: string; icon: any }> = {
-  pending:  { label: "Pending",  cls: "bg-amber-100 text-amber-700",     icon: Clock },
-  reviewed: { label: "Reviewed", cls: "bg-blue-100 text-blue-700",       icon: Eye },
-  resolved: { label: "Resolved", cls: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
+  pending:  { label: "Pending",  cls: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300", icon: Clock },
+  reviewed: { label: "Reviewed", cls: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300", icon: Eye },
+  resolved: { label: "Resolved", cls: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300", icon: CheckCircle },
 };
 
 // ── Star Rating ───────────────────────────────────────────────────────────────
@@ -64,7 +65,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
             className={`w-6 h-6 transition-colors ${
               star <= (hovered || value)
                 ? "fill-amber-400 text-amber-400"
-                : "text-gray-300"
+                : "text-gray-300 dark:text-gray-600"
             }`}
           />
         </button>
@@ -117,19 +118,19 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-blue-600" />
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+        <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         Submit Feedback
       </h2>
 
       {success && (
-        <div className="flex items-center gap-2 p-3 mb-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm font-medium">
+        <div className="flex items-center gap-2 p-3 mb-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-300 text-sm font-medium">
           <CheckCircle className="w-4 h-4" /> Feedback submitted! Switching to your submissions…
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-2 p-3 mb-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="flex items-center gap-2 p-3 mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
           <AlertCircle className="w-4 h-4" /> {error}
         </div>
       )}
@@ -137,63 +138,63 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
       <div className="space-y-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
           <div className="relative">
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm appearance-none
-                focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white pr-8"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none
+                focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white pr-8"
             >
               {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-2.5 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute right-2 top-2.5 pointer-events-none" />
           </div>
         </div>
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Short summary of your feedback"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm
-              focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
           <textarea
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
             placeholder="Describe your feedback in detail..."
             rows={4}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm
-              focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
         {/* Rating */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Rating <span className="text-gray-400 font-normal">(optional)</span>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Rating <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
           </label>
           <StarRating value={form.rating} onChange={(v) => setForm({ ...form, rating: v })} />
         </div>
 
         {/* Anonymous toggle */}
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <button
             type="button"
             onClick={() => setForm({ ...form, isAnonymous: !form.isAnonymous })}
             className={`relative w-10 h-5 rounded-full transition-colors focus:outline-none ${
-              form.isAnonymous ? "bg-blue-600" : "bg-gray-300"
+              form.isAnonymous ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
             }`}
           >
             <span
@@ -204,13 +205,13 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
           </button>
           <div className="flex items-center gap-1.5">
             {form.isAnonymous
-              ? <EyeOff className="w-4 h-4 text-blue-600" />
-              : <Eye className="w-4 h-4 text-gray-500" />}
-            <span className="text-sm font-medium text-gray-700">
+              ? <EyeOff className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              : <Eye className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {form.isAnonymous ? "Submitting anonymously" : "Submit with your name"}
             </span>
           </div>
-          <span className="text-xs text-gray-400 ml-auto">
+          <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
             {form.isAnonymous
               ? "Your name will be hidden from HOD."
               : "Your name will be visible to HOD."}
@@ -245,7 +246,7 @@ function FeedbackHistory() {
     setError("");
     try {
       const res = await api.get("/feedback/my");
-      console.log("My feedback response:", res.data); // ← helpful for debugging
+      console.log("My feedback response:", res.data);
       setItems(res.data);
     } catch (err: any) {
       console.error("Load feedback error:", err?.response?.data || err);
@@ -263,7 +264,7 @@ function FeedbackHistory() {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 rounded-xl bg-gray-100 animate-pulse" />
+          <div key={i} className="h-24 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
         ))}
       </div>
     );
@@ -271,10 +272,10 @@ function FeedbackHistory() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl border border-red-200 p-8 text-center">
-        <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
-        <p className="text-sm font-medium text-gray-900">Failed to load submissions</p>
-        <p className="text-xs text-red-500 mt-1">{error}</p>
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-red-200 dark:border-red-800 p-8 text-center">
+        <AlertCircle className="w-10 h-10 text-red-400 dark:text-red-500 mx-auto mb-3" />
+        <p className="text-sm font-medium text-gray-900 dark:text-white">Failed to load submissions</p>
+        <p className="text-xs text-red-500 dark:text-red-400 mt-1">{error}</p>
         <button
           onClick={loadFeedback}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
@@ -287,10 +288,10 @@ function FeedbackHistory() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-        <p className="text-sm font-medium text-gray-500">No feedback submitted yet.</p>
-        <p className="text-xs text-gray-400 mt-1">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <MessageSquare className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No feedback submitted yet.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
           Your submissions will appear here after you submit feedback.
         </p>
       </div>
@@ -303,11 +304,11 @@ function FeedbackHistory() {
         const cfg = STATUS_CONFIG[item.status];
         const StatusIcon = cfg.icon;
         return (
-          <div key={item._id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={item._id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {CATEGORY_LABELS[item.category]}
                   {item.course && ` · ${item.course.code} — ${item.course.name}`}
                   {" · "}
@@ -317,28 +318,27 @@ function FeedbackHistory() {
                   {item.isAnonymous && " · Anonymous"}
                 </p>
               </div>
-              <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full
-                text-xs font-bold flex-shrink-0 ${cfg.cls}`}>
+              <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${cfg.cls}`}>
                 <StatusIcon className="w-3 h-3" /> {cfg.label}
               </span>
             </div>
 
-            <p className="text-sm text-gray-600 leading-relaxed">{item.message}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.message}</p>
 
             {item.rating && (
               <div className="flex gap-0.5 mt-2">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star key={s} className={`w-3.5 h-3.5 ${
-                    s <= item.rating! ? "fill-amber-400 text-amber-400" : "text-gray-200"
+                    s <= item.rating! ? "fill-amber-400 text-amber-400" : "text-gray-200 dark:text-gray-700"
                   }`} />
                 ))}
               </div>
             )}
 
             {item.adminResponse && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                <p className="text-xs font-semibold text-blue-700 mb-1">HOD Response</p>
-                <p className="text-xs text-blue-800">{item.adminResponse}</p>
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">HOD Response</p>
+                <p className="text-xs text-blue-800 dark:text-blue-300">{item.adminResponse}</p>
               </div>
             )}
           </div>
@@ -356,14 +356,14 @@ export default function StudentFeedback() {
 
   return (
     <div className="space-y-6">
-      {/* Tab switcher */}
+      {/* Tab switcher - FIXED */}
       <div className="flex gap-2">
         <button
           onClick={() => setView("form")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             view === "form"
               ? "bg-blue-600 text-white"
-              : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+              : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
           }`}
         >
           Submit Feedback
@@ -373,7 +373,7 @@ export default function StudentFeedback() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             view === "history"
               ? "bg-blue-600 text-white"
-              : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+              : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
           }`}
         >
           My Submissions
@@ -383,7 +383,7 @@ export default function StudentFeedback() {
       {view === "form" ? (
         <FeedbackForm
           onSubmitted={() => {
-            setHistoryKey((k) => k + 1); // force FeedbackHistory to re-fetch
+            setHistoryKey((k) => k + 1);
             setView("history");
           }}
         />

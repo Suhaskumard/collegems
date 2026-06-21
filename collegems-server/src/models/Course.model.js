@@ -35,8 +35,18 @@ const courseSchema = new mongoose.Schema(
       type: Number,
       default: 60,
     },
+    isLab: {
+      type: Boolean,
+      default: false,
+    },
+    targetBatch: {
+      type: String,
+      default: "General",
+    },
   },
   { timestamps: true },
 );
+
+courseSchema.index({ name: "text", code: "text", department: "text" });
 
 export default mongoose.model("Course", courseSchema);

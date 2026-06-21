@@ -1,5 +1,6 @@
 import Booking from "../models/Booking.model.js";
 import Resource from "../models/Resource.model.js";
+import Class from "../models/Classes.model.js";
 import { logAction } from "../utils/auditService.js";
 
 // Helper function to check conflicts
@@ -18,7 +19,42 @@ const checkConflict = async (resourceId, startTime, endTime, excludeBookingId = 
   }
 
   const conflictingBooking = await Booking.findOne(query);
-  return conflictingBooking;
+  if (conflictingBooking) return conflictingBooking;
+
+  // Check for regular classes
+  const resource = await Resource.findById(resourceId);
+  if (!resource) return null;
+
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const startDay = days[start.getDay()];
+
+  const classes = await Class.find({
+    room: new RegExp(`^${resource.name}$`, "i"),
+    schedule: { $regex: startDay, $options: "i" }
+  });
+
+  for (const c of classes) {
+    const timeMatch = c.schedule.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (timeMatch) {
+      let [hours, minutes] = [parseInt(timeMatch[1], 10), parseInt(timeMatch[2], 10)];
+      if (timeMatch[3].toUpperCase() === 'PM' && hours !== 12) hours += 12;
+      if (timeMatch[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
+
+      const classStart = new Date(start);
+      classStart.setHours(hours, minutes, 0, 0);
+
+      const classEnd = new Date(classStart);
+      classEnd.setHours(hours + 1); // Assuming 1 hour classes
+
+      if (classStart < end && classEnd > start) {
+        return { status: "approved", isClass: true }; // Dummy conflict object for Class
+      }
+    }
+  }
+
+  return null;
 };
 
 // @desc    Get available resources for a specific time window
@@ -53,7 +89,39 @@ export const getAvailableResources = async (req, res) => {
     const query = { _id: { $nin: conflictingResourceIds }, status: "active" };
     if (type) query.type = type;
 
-    const availableResources = await Resource.find(query);
+    let availableResources = await Resource.find(query);
+
+    // Filter out classrooms that have regular classes during this time
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const startDay = days[start.getDay()];
+
+    const classes = await Class.find({ schedule: { $regex: startDay, $options: "i" } });
+    const conflictingRoomNames = new Set();
+
+    classes.forEach(c => {
+      if (!c.room || c.room === "TBD") return;
+      
+      const timeMatch = c.schedule.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (timeMatch) {
+        let [hours, minutes] = [parseInt(timeMatch[1], 10), parseInt(timeMatch[2], 10)];
+        if (timeMatch[3].toUpperCase() === 'PM' && hours !== 12) hours += 12;
+        if (timeMatch[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
+        
+        const classStart = new Date(start);
+        classStart.setHours(hours, minutes, 0, 0);
+        
+        const classEnd = new Date(classStart);
+        classEnd.setHours(hours + 1);
+        
+        if (classStart < end && classEnd > start) {
+          conflictingRoomNames.add(c.room.trim().toLowerCase());
+        }
+      }
+    });
+
+    if (conflictingRoomNames.size > 0) {
+      availableResources = availableResources.filter(r => !conflictingRoomNames.has(r.name.trim().toLowerCase()));
+    }
 
     res.status(200).json(availableResources);
   } catch (error) {

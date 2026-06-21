@@ -222,26 +222,87 @@ git checkout -b feat/your-feature-name
 
 ### Commit Message Style
 
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
+This project enforces [Conventional Commits](https://www.conventionalcommits.org/) via **Husky** + **commitlint**. Your commit will be rejected at save time if the message is malformed — no CI round-trip needed.
+
+#### Format
 
 ```text
 <type>(<optional scope>): <short description>
+
+[optional body]
+
+[optional footer — e.g. Closes #8]
 ```
 
-**Examples for SCMS:**
+#### Allowed types
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature visible to users |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting, whitespace — no logic change |
+| `refactor` | Code restructuring, no behavior change |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance (deps, config, build) |
+| `perf` | Performance improvement |
+| `revert` | Reverts a prior commit |
+
+#### Good commits
+
 ```text
 feat(student): add grade predictor using performance history
-fix(auth): resolve JWT refresh token expiry edge case
-docs: add local setup steps to CONTRIBUTING.md
+fix(auth): resolve jwt refresh token expiry edge case
+docs: add local setup steps to contributing.md
 chore(deps): upgrade mongoose to v9.1
-refactor(middleware): consolidate RBAC role guards
+refactor(middleware): consolidate rbac role guards
 style(teacher): fix attendance marker overflow on mobile
+perf(query): index enrollmentId on attendance collection
+revert: revert "feat(hod): bulk promote feature"
 ```
 
-**Rules:**
+#### Bad commits — these will be **blocked**
+
+```text
+# Missing type
+added login page
+
+# Type not in allowed list
+update: fix the login bug
+
+# Subject starts with uppercase
+fix(auth): Resolve token expiry
+
+# Subject too long (over 72 chars)
+feat(student): add a very detailed and comprehensive grade prediction system that uses historical performance data
+
+# Empty subject
+feat(auth):
+
+# Vague or non-descriptive
+fix: stuff
+chore: changes
+feat: wip
+```
+
+#### Rules enforced automatically
+
+- Type must be one of the allowed list above
+- Subject must be **lower-case**
+- Subject must be **non-empty**
+- Subject line must be **≤ 72 characters**
 - Use **imperative mood** — "add", not "added" or "adds"
-- Keep the subject line under **72 characters**
 - Reference related issues at the bottom: `Closes #8` or `Fixes #14`
+
+#### Local setup (one-time, after cloning)
+
+Husky hooks live at the repo root. Run from the **project root** (not inside `collegems-client` or `collegems-server`):
+
+```bash
+npm install
+```
+
+That's it — `npm install` triggers the `prepare` script which activates the `commit-msg` hook. Every `git commit` after this will be validated automatically.
 
 ---
 

@@ -4,9 +4,10 @@ import { useTheme } from "../../context/ThemeContext";
 import {
   User, Mail, Lock, GraduationCap, Users, Shield, Building2,
   Hash, ChevronRight, ArrowLeft, School, Briefcase, IdCard,
-  Moon, Sun,
+  Moon, Sun, AlertTriangle, X
 } from "lucide-react";
 import api from "../../api/axios";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; 
 
 export default function Register() {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ export default function Register() {
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,15 +36,24 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/register", { ...form, role });
+      const payload = { ...form, role };
+      if (duplicateWarning) {
+        payload.overrideDuplicates = true;
+      }
+      const res = await api.post("/auth/register", payload);
+      
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("userId", res.data.user.id);
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       setForm({});
-      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard" };
+      setDuplicateWarning(null);
+      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
       navigate(routes[res.data.user.role] || "/");
     } catch (err: any) {
-      if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
+      if (err.response?.status === 409 && err.response?.data?.isDuplicateWarning) {
+        setDuplicateWarning(err.response.data);
+      } else if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
         setError(err.response.data.errors[0].msg);
       } else {
         setError(err.response?.data?.message || "Registration failed");
@@ -54,18 +66,13 @@ export default function Register() {
   const roleOptions = [
     { value: "student", label: "Student", icon: GraduationCap, color: "blue", description: "Access courses, assignments, and grades" },
     { value: "teacher", label: "Teacher", icon: Users, color: "amber", description: "Manage classes, assignments, and attendance" },
+    { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's academic progress" },
     { value: "hod", label: "HOD", icon: Shield, color: "emerald", description: "Oversee department and faculty" },
     { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's progress" },
   ];
 
   const getRoleColor = (roleValue: string) => {
-    switch (roleValue) {
-      case "student": return "blue";
-      case "teacher": return "amber";
-      case "hod": return "emerald";
-      case "parent": return "purple";
-      default: return "blue";
-    }
+    switch (roleValue) { case "student": return "blue"; case "teacher": return "amber"; case "hod": return "emerald"; case "parent": return "purple"; default: return "blue"; }
   };
 
   const colorClasses = {
@@ -163,10 +170,17 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="password" className={labelClass}>Password *</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
-                <input id="password" name="password" type="password" value={form.password || ""} onChange={handleChange} className={inputClass} placeholder="••••••••" />
+            <label htmlFor="password" className={labelClass}>Password *</label>
+             <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
+                <input id="password" name="password" type={showPassword ? "text" : "password"} value={form.password || ""} onChange={handleChange} className={inputClass} placeholder="••••••••" />
+                <button
+                 type="button"
+                 onClick={() => setShowPassword(!showPassword)}
+                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                 >
+                 {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -261,10 +275,10 @@ export default function Register() {
                   <Users className="w-4 h-4 text-purple-600" /> Parent Information
                 </h3>
                 <div>
-                  <label htmlFor="childStudentId" className={labelClass}>Child's Student ID *</label>
+                  <label htmlFor="studentId" className={labelClass}>Child's Student ID *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IdCard className="h-4 w-4 text-gray-400" /></div>
-                    <input id="childStudentId" name="childStudentId" value={form.childStudentId || ""} onChange={handleChange} className={inputClass} placeholder="STU2024001" />
+                    <input id="studentId" name="studentId" value={form.studentId || ""} onChange={handleChange} className={inputClass} placeholder="STU2024001" />
                   </div>
                 </div>
               </div>
@@ -315,6 +329,52 @@ export default function Register() {
           </p>
         </div>
       </div>
+
+      {/* Duplicate Warning Modal */}
+      {duplicateWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/20">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="font-bold">Potential Duplicate Found</h3>
+              </div>
+              <button onClick={() => setDuplicateWarning(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                We found existing users that match the details you provided. Creating a duplicate may cause issues.
+              </p>
+              <div className="max-h-48 overflow-y-auto mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                {duplicateWarning.matches?.map((match: any, idx: number) => (
+                  <div key={idx} className="p-3 border-b border-gray-100 dark:border-gray-700 last:border-0 bg-gray-50 dark:bg-gray-800">
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{match.name} ({match.role})</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Matched on: {match.matchReason}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Create Anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

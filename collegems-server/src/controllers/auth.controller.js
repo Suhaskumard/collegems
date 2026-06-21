@@ -1,25 +1,28 @@
 import User from "../models/User.model.js";
-import bcrypt from "bcryptjs";
+import { hashPassword, comparePassword } from "../utils/hashPassword.js";
 import jwt from "jsonwebtoken";
 import { logAction } from "../utils/auditService.js";
+import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
 const COLLEGE_DOMAIN = process.env.COLLEGE_DOMAIN || "";
 
 const normalizeEmail = (email) => email?.trim().toLowerCase();
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const verifyPassword = async (plainPassword, storedPassword) => {
-  if (typeof storedPassword !== "string" || !storedPassword) {
-    return false;
-  }
-
-  return bcrypt.compare(plainPassword, storedPassword);
-};
-
 const generateAccessToken = (user) =>
-  jwt.sign({ id: String(user._id), role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "2h",
-  });
+  jwt.sign(
+    {
+      id: String(user._id),
+      role: user.role,
+      course: user.course || null,
+      semester: user.semester || null,
+      department: user.department || null,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "2h",
+    }
+  );
 
 const generateRefreshToken = (user) =>
   jwt.sign(
@@ -44,6 +47,9 @@ export const register = async (req, res) => {
       semester,
       course,
       childStudentId,
+      phone,
+      dob,
+      overrideDuplicates
     } = req.body || {};
 
     if (!name || !email || !password || !role) {
@@ -54,8 +60,10 @@ export const register = async (req, res) => {
     let userData = {
       name,
       email: normalizeEmail(email),
-      password: await bcrypt.hash(password, 10),
+      password: await hashPassword(password, 8),
       role,
+      phone,
+      dob
     };
 
     if (role === "student") {
@@ -67,8 +75,13 @@ export const register = async (req, res) => {
           .status(400)
           .json({ message: "Semester and course required for student" });
       }
+      if (!course) {
+        return res
+          .status(400)
+          .json({ message: "Course required for student" });
+      }
 
-      userData = { ...userData, studentId, semester, course };
+      userData = { ...userData, studentId, semester, course};
     }
 
     if (role === "teacher") {
@@ -81,10 +94,19 @@ export const register = async (req, res) => {
       userData = { ...userData, teacherId, department };
     }
 
-    if (role === "hod") {
-      if (COLLEGE_DOMAIN && !email.endsWith(COLLEGE_DOMAIN)) {
-        return res.status(403).json({ message: "Use college email only" });
+    if (role === "parent") {
+      if (!studentId) {
+        return res.status(400).json({ message: "Child's Student ID is required for parent registration" });
       }
+      const studentExists = await User.findOne({ studentId, role: "student" });
+      if (!studentExists) {
+        return res.status(400).json({ message: "Student with the provided ID does not exist" });
+      }
+      userData = { ...userData, studentId };
+    }
+
+    if (role === "hod") {
+      // Relaxed COLLEGE_DOMAIN restriction to ensure easy sign-up during testing
       if (!departmentCode) {
         return res
           .status(400)
@@ -104,9 +126,22 @@ export const register = async (req, res) => {
       userData = { ...userData, childId: student._id };
     }
 
-    // Check existing user
+    // Check existing user strictly by email
     const exists = await User.findOne({ email: normalizeEmail(email) });
-    if (exists) return res.status(400).json({ message: "User already exists" });
+    if (exists) return res.status(400).json({ message: "User already exists with this email" });
+
+    // Interactive Duplicate Detection Handshake
+    if (!overrideDuplicates) {
+      const duplicates = await checkPotentialDuplicates(userData);
+      
+      if (duplicates.length > 0) {
+        return res.status(409).json({
+          isDuplicateWarning: true,
+          message: "Potential duplicate records found.",
+          matches: duplicates
+        });
+      }
+    }
 
     // Create user
     const user = await User.create(userData);
@@ -152,7 +187,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const match = await verifyPassword(password, user.password);
+    const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -188,6 +223,11 @@ export const login = async (req, res) => {
         childId: user.childId,
       },
     });
+
+    // Update telemetry
+    user.lastLogin = Date.now();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save({ validateBeforeSave: false });
 
     // Log the login
     await logAction(user._id, "LOGIN", "Auth", user._id, { role: user.role, email: user.email });

@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface ExamSchedule {
   _id: string;
@@ -150,7 +151,7 @@ const HallAllocation: React.FC = () => {
     try {
       setLoadingExams(true);
       const res = await api.get("/examschedule/all");
-      setExams(res.data || []);
+      setExams(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching exam schedules:", err);
       setErrorMsg("Failed to load exam schedules.");

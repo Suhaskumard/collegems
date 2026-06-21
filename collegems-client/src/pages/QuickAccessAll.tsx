@@ -79,6 +79,18 @@ const allItems = [
     route: "/faculty",
     category: "Campus Life",
   },
+  {
+    label: "Resource Booking",
+    description: "Check real-time classroom availability and book resources for events or study sessions",
+    icon: CalendarCheck,
+    badge: "Available Now",
+    badgeColor: "text-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    iconColor: "text-indigo-600",
+    route: "/student/book-resources",
+    category: "Campus Life",
+  },
 ];
 
 const categories = ["All", "Academics", "Campus Life"];

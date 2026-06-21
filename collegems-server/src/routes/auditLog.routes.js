@@ -1,5 +1,5 @@
 import express from "express";
-import { getAuditLogs, exportAuditLogs } from "../controllers/auditLog.controller.js";
+import { getAuditLogs, exportAuditLogs, getSystemLogs } from "../controllers/auditLog.controller.js";
 import { protect, restrictTo } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -10,5 +10,6 @@ router.use(restrictTo("hod"));
 
 router.get("/", getAuditLogs);
 router.get("/export", exportAuditLogs);
+router.get("/system-logs", getSystemLogs);
 
 export default router;

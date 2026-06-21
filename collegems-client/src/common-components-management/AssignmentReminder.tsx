@@ -1,3 +1,4 @@
+
 // ─── FILE: collegems-client/src/common-components-management/AssignmentReminder.tsx
 // Place this file in the common-components-management folder (same level as
 // AcademicCalendar.tsx, Library.tsx, Students.tsx).
@@ -64,42 +65,42 @@ function daysLabel(status: AssignmentStatus, dueDate: string): string {
 const STATUS = {
   overdue: {
     label: "Overdue",
-    iconBg: "bg-red-100",
-    iconColor: "text-red-600",
-    cardBorder: "border-red-200",
-    cardBg: "bg-red-50",
-    badgeBg: "bg-red-100",
-    badgeText: "text-red-700",
+    iconBg: "bg-red-100 dark:bg-red-900/30",
+    iconColor: "text-red-600 dark:text-red-400",
+    cardBorder: "border-red-200 dark:border-red-800",
+    cardBg: "bg-red-50 dark:bg-red-900/20",
+    badgeBg: "bg-red-100 dark:bg-red-900/30",
+    badgeText: "text-red-700 dark:text-red-300",
     icon: AlertTriangle,
   },
   dueToday: {
     label: "Due Today",
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-600",
-    cardBorder: "border-amber-200",
-    cardBg: "bg-amber-50",
-    badgeBg: "bg-amber-100",
-    badgeText: "text-amber-700",
+    iconBg: "bg-amber-100 dark:bg-amber-900/30",
+    iconColor: "text-amber-600 dark:text-amber-400",
+    cardBorder: "border-amber-200 dark:border-amber-800",
+    cardBg: "bg-amber-50 dark:bg-amber-900/20",
+    badgeBg: "bg-amber-100 dark:bg-amber-900/30",
+    badgeText: "text-amber-700 dark:text-amber-300",
     icon: Clock,
   },
   upcoming: {
     label: "Upcoming",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    cardBorder: "border-blue-200",
-    cardBg: "bg-blue-50",
-    badgeBg: "bg-blue-100",
-    badgeText: "text-blue-700",
+    iconBg: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    cardBorder: "border-blue-200 dark:border-blue-800",
+    cardBg: "bg-blue-50 dark:bg-blue-900/20",
+    badgeBg: "bg-blue-100 dark:bg-blue-900/30",
+    badgeText: "text-blue-700 dark:text-blue-300",
     icon: BookOpen,
   },
   submitted: {
     label: "Submitted",
-    iconBg: "bg-emerald-100",
-    iconColor: "text-emerald-600",
-    cardBorder: "border-emerald-200",
-    cardBg: "bg-emerald-50",
-    badgeBg: "bg-emerald-100",
-    badgeText: "text-emerald-700",
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    cardBorder: "border-emerald-200 dark:border-emerald-800",
+    cardBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    badgeBg: "bg-emerald-100 dark:bg-emerald-900/30",
+    badgeText: "text-emerald-700 dark:text-emerald-300",
     icon: CheckCircle,
   },
 };
@@ -125,23 +126,23 @@ function AssignmentCard({ item }: { item: ReminderAssignment }) {
           w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
           ${cfg.iconBg} ${cfg.iconColor}
         `}
-      >
+      >     
         <Icon className="w-5 h-5" />
       </div>
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 text-sm truncate">
+        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
           {item.title}
         </p>
-        <p className="text-xs text-gray-500 mt-0.5 truncate">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
           {item.course?.code || item.course?.name || "Unknown course"}
           {item.teacher?.name ? ` · ${item.teacher.name}` : ""}
           {" · Due "}
           {formatDate(item.dueDate)}
         </p>
         {item.status === "submitted" && item.marks !== undefined && item.marks !== null && (
-          <p className="text-xs text-emerald-700 font-medium mt-0.5">
+          <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium mt-0.5">
             Marks: {item.marks}/{item.totalPoints ?? "?"}
           </p>
         )}
@@ -157,7 +158,7 @@ function AssignmentCard({ item }: { item: ReminderAssignment }) {
         {label}
       </span>
 
-      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
     </div>
   );
 }
@@ -170,7 +171,7 @@ function Skeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="h-16 rounded-xl bg-gray-100 animate-pulse"
+          className="h-16 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
         />
       ))}
     </div>
@@ -210,18 +211,18 @@ export default function AssignmentReminder() {
   const visible = showAll ? assignments : assignments.slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-blue-600" />
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
               Assignment Reminders
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {loading
                 ? "Loading…"
                 : `${assignments.length} assignment${assignments.length !== 1 ? "s" : ""} need attention`}
@@ -236,8 +237,8 @@ export default function AssignmentReminder() {
               className={`
                 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold
                 ${overdueCount > 0
-                  ? "bg-red-100 text-red-700"
-                  : "bg-amber-100 text-amber-700"}
+                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                  : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"}
               `}
             >
               <AlertTriangle className="w-3 h-3" />
@@ -251,11 +252,11 @@ export default function AssignmentReminder() {
           <button
             onClick={fetchReminders}
             disabled={loading}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             title="Refresh"
           >
             <RefreshCw
-              className={`w-4 h-4 text-gray-500 ${loading ? "animate-spin" : ""}`}
+              className={`w-4 h-4 text-gray-500 dark:text-gray-400 ${loading ? "animate-spin" : ""}`}
             />
           </button>
         </div>
@@ -266,11 +267,11 @@ export default function AssignmentReminder() {
         <Skeleton />
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-3">
-            <AlertTriangle className="w-6 h-6 text-red-500" />
+          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-3">
+            <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
           </div>
-          <p className="text-sm font-medium text-gray-900">Failed to load</p>
-          <p className="text-xs text-gray-500 mt-1">{error}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">Failed to load</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{error}</p>
           <button
             onClick={fetchReminders}
             className="mt-3 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -280,11 +281,11 @@ export default function AssignmentReminder() {
         </div>
       ) : assignments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
-            <CheckCircle className="w-6 h-6 text-emerald-600" />
+          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3">
+            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <p className="text-sm font-semibold text-gray-900">All caught up!</p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">All caught up!</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             No upcoming or overdue assignments right now.
           </p>
         </div>
@@ -298,9 +299,9 @@ export default function AssignmentReminder() {
             <button
               onClick={() => setShowAll(!showAll)}
               className="
-                w-full py-3 rounded-xl border border-gray-200
-                text-sm font-semibold text-blue-600
-                hover:bg-blue-50 transition-colors
+                w-full py-3 rounded-xl border border-gray-200 dark:border-gray-700
+                text-sm font-semibold text-blue-600 dark:text-blue-400
+                hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors
                 flex items-center justify-center gap-1
               "
             >

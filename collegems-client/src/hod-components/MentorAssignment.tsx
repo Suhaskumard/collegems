@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { Users, Plus } from "lucide-react";
+import { extractArray } from "../utils/apiHelpers";
 
 export default function MentorAssignment() {
   const [mentorships, setMentorships] = useState<any[]>([]);
@@ -21,11 +22,11 @@ export default function MentorAssignment() {
       const [mRes, tRes, sRes] = await Promise.all([
         api.get("/mentorships"),
         api.get("/users/teachers"),
-        api.get("/users/students")
+        api.get("/users/students?limit=200"),
       ]);
       setMentorships(mRes.data);
       setTeachers(tRes.data);
-      setStudents(sRes.data);
+      setStudents(extractArray(sRes.data));
     } catch (error) {
       console.error("Failed to fetch mentorship data", error);
     } finally {

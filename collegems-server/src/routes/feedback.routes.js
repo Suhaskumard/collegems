@@ -11,6 +11,7 @@ import {
   getFeedbackAnalytics,
   updateFeedbackStatus,
   deleteFeedback,
+  batchAnalyze,
 } from "../controllers/feedback.controller.js";
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.post("/",    protect, allowRoles("student"), submitFeedback);
 router.get("/my",   protect, allowRoles("student"), getMyFeedback);
 
 // ── HOD routes ────────────────────────────────────────────────────────────────
+router.post("/analyze-all", protect, allowRoles("hod"), batchAnalyze);
 router.get("/all",        protect, allowRoles("hod"), getAllFeedback);
 router.get("/analytics",  protect, allowRoles("hod"), getFeedbackAnalytics);
 router.patch("/:id",      protect, allowRoles("hod"), updateFeedbackStatus);

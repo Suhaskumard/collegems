@@ -16,6 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 // interface Attendance {
 //   studentId: string;
@@ -48,8 +49,8 @@ export default function TeacherAttendance() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/users/students");
-      setStudents(res.data);
+      const res = await api.get("/users/students?limit=200");
+      setStudents(extractArray(res.data));
 
       // Initialize all students as present by default
       const initialAttendance: any = {};
@@ -80,7 +81,7 @@ export default function TeacherAttendance() {
     try {
       setLoading(true);
       const res = await api.get("/attendance/low");
-      setLowAttendanceStudents(res.data);
+      setLowAttendanceStudents(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching low attendance:", error);
     } finally {

@@ -7,6 +7,8 @@ import {
   BarChart2, Trash2, Send, RefreshCw, AlertCircle, Filter,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
+import AdvancedExportButton from "../common-components-management/AdvancedExportButton";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,8 @@ interface FeedbackItem {
   isAnonymous: boolean;
   status: Status;
   adminResponse?: string;
+  sentiment: string;
+  sentimentScore: number;
   student?: { name: string; email: string; studentId?: string };
   course?: { name: string; code: string };
   teacher?: { name: string };
@@ -36,6 +40,7 @@ interface Analytics {
   anonymous: number;
   avgRating: string | null;
   categoryBreakdown: { _id: string; count: number; avgRating: number }[];
+  sentimentBreakdown: { _id: string; count: number }[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -83,8 +88,8 @@ function AnalyticsPanel() {
         ))}
       </div>
 
-      {/* Category breakdown + avg rating */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Category breakdown + avg rating + sentiment */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <BarChart2 className="w-4 h-4 text-blue-600" /> By Category
@@ -104,6 +109,31 @@ function AnalyticsPanel() {
                 <span className="text-xs font-medium text-gray-700 w-6 text-right">{c.count}</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <BarChart2 className="w-4 h-4 text-purple-600" /> Sentiment Analysis
+          </p>
+          <div className="space-y-2">
+            {data.sentimentBreakdown && data.sentimentBreakdown.map((s) => {
+              const colorClass = s._id === 'Positive' ? 'bg-emerald-500' : s._id === 'Negative' ? 'bg-rose-500' : s._id === 'Neutral' ? 'bg-amber-500' : 'bg-gray-400';
+              return (
+              <div key={s._id} className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 w-20 flex-shrink-0">
+                  {s._id}
+                </span>
+                <div className="flex-1 bg-gray-100 rounded-full h-2">
+                  <div
+                    className={`${colorClass} h-2 rounded-full`}
+                    style={{ width: `${Math.round((s.count / data.total) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-700 w-6 text-right">{s.count}</span>
+              </div>
+              );
+            })}
           </div>
         </div>
 
@@ -147,6 +177,15 @@ function FeedbackCard({
   const cfg = STATUS_CONFIG[status];
   const StatusIcon = cfg.icon;
 
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case "Positive": return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "Negative": return "bg-rose-100 text-rose-700 border-rose-200";
+      case "Neutral": return "bg-amber-100 text-amber-700 border-amber-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -175,6 +214,9 @@ function FeedbackCard({
             )}
             <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold ${cfg.cls}`}>
               <StatusIcon className="w-3 h-3" /> {cfg.label}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded font-semibold border ${getSentimentColor(item.sentiment)}`}>
+              {item.sentiment} {item.sentimentScore ? `(${(item.sentimentScore > 0 ? '+' : '')}${item.sentimentScore})` : ''}
             </span>
           </div>
           <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
@@ -268,7 +310,7 @@ export default function FeedbackManagement() {
       if (filterCat) params.append("category", filterCat);
       if (filterSt)  params.append("status",   filterSt);
       const res = await api.get(`/feedback/all?${params.toString()}`);
-      setItems(res.data);
+      setItems(extractArray(res.data));
     } catch {}
     finally { setLoading(false); }
   };
@@ -347,6 +389,21 @@ export default function FeedbackManagement() {
               <option value="reviewed">Reviewed</option>
               <option value="resolved">Resolved</option>
             </select>
+            <AdvancedExportButton
+              data={items}
+              filename="Feedback_Export"
+              pdfTitle="Student Feedback Report"
+              headers={["Category", "Title", "Message", "Status", "Sentiment", "Sentiment Score", "Date"]}
+              dataMapper={(item: FeedbackItem) => [
+                CATEGORY_LABELS[item.category] || item.category,
+                item.title,
+                item.message,
+                item.status.toUpperCase(),
+                item.sentiment || "N/A",
+                item.sentimentScore?.toString() || "0",
+                new Date(item.createdAt).toLocaleDateString()
+              ]}
+            />
           </div>
 
           {/* List */}

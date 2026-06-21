@@ -82,6 +82,7 @@ SCMS is structured around role-based modules, ensuring that every user has a tai
 ### 📊 Analytics & Reports
 
 - **Visual Dashboards**: High-fidelity charts for tracking campus performance, outstanding fees, and monthly attendance rates.
+- **Predictive Analytics (AI/ML)**: Identifies at-risk students through machine learning algorithms analyzing historical and ongoing student data to provide timely interventions.
 - **Exporting Tools**: Download financial, academic, and attendance reports as PDF or Excel spreadsheets.
 
 ### ⚡ Real-Time & AI Features
@@ -116,6 +117,13 @@ A reliable, scalable REST API built using the robust Node.js ecosystem:
 - **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) (ODM)
 - **Security & Encryption**: BcryptJS & JSON Web Tokens (JWT)
 - **Utilities**: Nodemailer (Email integration) & Multer (Multi-part file uploads)
+
+### Machine Learning Service
+
+A dedicated microservice for intelligent student analytics and risk prediction:
+
+- **Runtime**: [Python](https://www.python.org/)
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (high performance API framework)
 
 ---
 
@@ -189,6 +197,7 @@ Follow these steps to run a copy of the project locally on your machine.
 - **Node.js** (v18.x or above recommended)
 - **MongoDB** (Local instance or MongoDB Atlas cluster URI)
 - **NPM** or **Yarn**
+- **Python** (v3.10+ for the Machine Learning service)
 
 ### 1. Backend Setup
 
@@ -239,6 +248,22 @@ Follow these steps to run a copy of the project locally on your machine.
    npm run dev
    ```
    _The client app will compile and start running on_ `http://localhost:5173` _(or your local Vite default port)_
+
+### 3. Machine Learning Service Setup
+
+1. Open a new terminal and navigate to the ML service directory:
+   ```bash
+   cd collegems-ml-service
+   ```
+2. Install the required Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI server:
+   ```bash
+   python main.py
+   ```
+   _The ML service will start running on_ `http://localhost:8000`
 
 ### 3. Database Seeding & Demo Data
 
@@ -300,6 +325,9 @@ collegems/
 │   │   └── utils/             # Mailers and helper scripts
 │   ├── server.js              # Server entry point
 │   └── package.json
+├── collegems-ml-service/      # Python FastAPI Microservice
+│   ├── main.py                # ML service entry point
+│   └── requirements.txt       # Python dependencies
 └── README.md
 ````
 

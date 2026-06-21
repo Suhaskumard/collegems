@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import { Users, History } from "lucide-react";
 
 export default function StudentMentorshipView() {
@@ -21,7 +22,7 @@ export default function StudentMentorshipView() {
   const fetchMentorships = async () => {
     try {
       const res = await api.get("/mentorships/my-mentors");
-      setMentorships(res.data);
+      setMentorships(extractArray(res.data));
       if (res.data.length > 0) {
         setSelectedMentorshipId(res.data[0]._id);
       }
@@ -35,7 +36,7 @@ export default function StudentMentorshipView() {
   const fetchHistory = async (id: string) => {
     try {
       const res = await api.get(`/mentorships/${id}/history`);
-      setHistory(res.data);
+      setHistory(extractArray(res.data));
     } catch (error) {
       console.error("Failed to fetch history", error);
     }

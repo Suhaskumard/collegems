@@ -118,3 +118,36 @@ export const exportAuditLogs = async (req, res) => {
     res.status(500).json({ message: "Error exporting audit logs." });
   }
 };
+
+import SystemLog from "../models/SystemLog.model.js";
+
+export const getSystemLogs = async (req, res) => {
+  try {
+    const { level, correlationId, service, page = 1, limit = 50 } = req.query;
+
+    const query = {};
+    if (level) query.level = level;
+    if (correlationId) query.correlationId = correlationId;
+    if (service) query.service = service;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const logs = await SystemLog.find(query)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const totalLogs = await SystemLog.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      logs,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalLogs / parseInt(limit)),
+      totalLogs,
+    });
+  } catch (error) {
+    console.error("Error fetching system logs:", error);
+    res.status(500).json({ success: false, message: "Error fetching system logs." });
+  }
+};

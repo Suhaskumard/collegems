@@ -17,6 +17,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Course {
   _id: string;
@@ -63,7 +64,7 @@ const Classes: React.FC = () => {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
@@ -74,7 +75,7 @@ const Classes: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get("/classes/all");
-      setClasses(response.data);
+      setClasses(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching classes:", error);
     } finally {
@@ -86,7 +87,7 @@ const Classes: React.FC = () => {
   const fetchTeachers = async () => {
     try {
       const response = await api.get("/users/teachers");
-      setTeachers(response.data);
+      setTeachers(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching teachers:", error);
     }

@@ -4,6 +4,7 @@ import Assignment from "../models/Assignment.model.js";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
 import Class from "../models/Classes.model.js";
+import Results from "../models/Results.model.js";
 
 export const getDashboardData = async (req, res) => {
   const { role, id } = req.user;
@@ -207,6 +208,49 @@ export const getDashboardData = async (req, res) => {
     });
   }
 
+  // 👪 PARENT
+  if (role === "parent") {
+    const studentUser = await User.findOne({ studentId: user?.studentId, role: "student" }).lean();
+    if (!studentUser) {
+      return res.json({
+        user,
+        student: null,
+        message: "No child student found linked to this account",
+        cards: [
+          { title: "Attendance %", value: "0%" },
+          { title: "Pending Assignments", value: 0 },
+          { title: "Fee Due", value: 0 },
+        ],
+      });
+    }
+
+    const total = await Attendance.countDocuments({ student: studentUser._id });
+    const present = await Attendance.countDocuments({
+      student: studentUser._id,
+      status: "present",
+    });
+
+    const assignments = await Assignment.countDocuments({
+      "submissions.student": { $ne: studentUser._id },
+    });
+
+    const fee = await Fee.findOne({ student: studentUser._id });
+
+    return res.json({
+      user,
+      student: studentUser,
+      currentSemester: studentUser?.semester,
+      cards: [
+        {
+          title: "Attendance %",
+          value: total ? Math.round((present / total) * 100) + "%" : "0%",
+        },
+        { title: "Pending Assignments", value: assignments },
+        { title: "Fee Due", value: fee ? fee.total - fee.paid : 0 },
+      ],
+    });
+  }
+
   // 👨‍🏫 TEACHER
   if (role === "teacher") {
     const courses = await Course.countDocuments({ teacher: id });
@@ -260,4 +304,80 @@ export const getDashboardData = async (req, res) => {
   }
 
   res.status(403).json({ message: "Invalid role" });
+};
+
+const getSemesterMetrics = async (studentId, semesterNumber) => {
+  const courses = await Course.find({ semester: semesterNumber }).select("_id").lean();
+  const courseIds = courses.map((c) => c._id);
+
+  const totalAttendance = await Attendance.countDocuments({
+    student: studentId,
+    course: { $in: courseIds },
+  });
+  const presentAttendance = await Attendance.countDocuments({
+    student: studentId,
+    course: { $in: courseIds },
+    status: "present",
+  });
+  const attendancePercentage = totalAttendance
+    ? Math.round((presentAttendance / totalAttendance) * 100)
+    : 0;
+
+  const results = await Results.find({
+    studentId,
+    semester: String(semesterNumber),
+  }).lean();
+  const averageMarks = results.length
+    ? Math.round(results.reduce((sum, r) => sum + (r.totalMarks || 0), 0) / results.length)
+    : 0;
+
+  const enrolledCourseIds = await Attendance.distinct("course", {
+    student: studentId,
+    course: { $in: courseIds },
+  });
+
+  return {
+    attendancePercentage,
+    averageMarks,
+    enrolledCourses: enrolledCourseIds.length,
+  };
+};
+
+export const getSemesterComparison = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const user = await User.findById(id).select("semester").lean();
+
+    if (!user || !user.semester) {
+      return res.status(400).json({ message: "No semester information found for this account" });
+    }
+
+    const currentSemester = parseInt(user.semester, 10);
+    const previousSemester = currentSemester - 1;
+
+    if (previousSemester < 1) {
+      return res.status(400).json({
+        message: "No previous semester to compare against — you're in your first semester.",
+      });
+    }
+
+    const current = await getSemesterMetrics(id, currentSemester);
+    const previous = await getSemesterMetrics(id, previousSemester);
+
+    res.json({
+      success: true,
+      currentSemester,
+      previousSemester,
+      current,
+      previous,
+      difference: {
+        attendancePercentage: current.attendancePercentage - previous.attendancePercentage,
+        averageMarks: current.averageMarks - previous.averageMarks,
+        enrolledCourses: current.enrolledCourses - previous.enrolledCourses,
+      },
+    });
+  } catch (error) {
+    console.error("Semester comparison failed:", error);
+    res.status(500).json({ success: false, message: "Failed to compare semesters" });
+  }
 };

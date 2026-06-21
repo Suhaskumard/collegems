@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import MyAssignments from "../teacher-components/MyAssignments";
 import api from "../api/axios";
 import {
   Users, BarChart3, FileText, Clock, Bell, Search, LayoutDashboard,
   CheckSquare, ClipboardList, BookMarked, Book, Coins, Menu, X,
   ChevronRight, Calendar, LogOut, Settings, GraduationCap, CalendarDays,
   Percent, Moon, Sun, ClipboardCheck, Trophy,
+  Briefcase,
+  ShieldCheck,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -29,21 +32,29 @@ import AssessmentSettings from "../teacher-components/AssessmentSettings";
 import InternalMarksEntry from "../teacher-components/InternalMarksEntry";
 import OfficeHours from "../teacher-components/OfficeHours";
 import ResourceBooking from "../user-components/ResourceBooking";
+import AnnouncementForm from "../common-components-management/AnnouncementForm";
+import AnnouncementManage from "../common-components-management/AnnouncementManage";
+import Clubs from "../common-components-management/Clubs";
+import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
+import { useNotifications } from "../hooks/useNotifications";
+import RiskDashboard from "./RiskDashboard";
+import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 
-export default function TeacherDashboard() {
+interface TeacherDashboardProps {
+  initialTab?: string;
+}
+
+export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) {
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const [data, setData] = useState<any>(null);
   const [courses, setCourses] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab ?? "overview");
+  const { notifications } = useNotifications();
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
-  const [notifications] = useState<any[]>([
-    { id: 1, type: "assignment", message: "New assignment submission from Student A", time: "2 hours ago" },
-    { id: 2, type: "announcement", message: "Department meeting scheduled", time: "1 day ago" },
-    { id: 3, type: "attendance", message: "Attendance report ready", time: "2 days ago" },
-  ]);
+  const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -62,7 +73,20 @@ export default function TeacherDashboard() {
         api.get("/courses/all"),
       ]);
       setData(dashboardRes.data);
-      setCourses(coursesRes.data);
+      
+      // --- NEW SAFTEY CHECK FOR COURSES ---
+      const fetchedCourses = coursesRes.data;
+      if (Array.isArray(fetchedCourses)) {
+        setCourses(fetchedCourses);
+      } else if (fetchedCourses && Array.isArray(fetchedCourses.data)) {
+        setCourses(fetchedCourses.data);
+      } else if (fetchedCourses && Array.isArray(fetchedCourses.courses)) {
+        setCourses(fetchedCourses.courses);
+      } else {
+        setCourses([]); // Fallback to an empty array to prevent crashes
+      }
+      // ------------------------------------
+
       setUpcomingClasses([
         { id: 1, course: "Mathematics 101", time: "10:00 AM", room: "Room 301", status: "upcoming", students: 28 },
         { id: 2, course: "Physics 201", time: "2:00 PM", room: "Lab 204", status: "upcoming", students: 24 },
@@ -77,9 +101,11 @@ export default function TeacherDashboard() {
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "announcements", label: "Announcements", icon: Bell },
     { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "officehours", label: "Office Hours", icon: Clock },
     { id: "courses", label: "My Courses", icon: BookMarked },
+    { id: "my-assignments", label: "My Assignments", icon: Briefcase },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
     { id: "leave-approvals", label: "Leave Approvals", icon: ClipboardCheck },
@@ -97,6 +123,9 @@ export default function TeacherDashboard() {
     { id: "events", label: "Organize Events", icon: CalendarDays },
     { id: "library", label: "Library Catalog", icon: Book },
     { id: "book-resources", label: "Book Resources", icon: CalendarDays },
+    { id: "clubs", label: "Clubs & Organizations", icon: Users },
+    { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
+    { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
   ];
 
   const activeTabLabel = activeTab === "settings" ? "Settings"
@@ -216,7 +245,7 @@ export default function TeacherDashboard() {
                 <button onClick={toggleTheme} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                   {darkMode ? <Sun className="w-5 h-5 text-gray-300" /> : <Moon className="w-5 h-5 text-gray-600" />}
                 </button>
-                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative">
+                <button onClick={() => navigate("/teacher/announcements")} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative" title="Go to announcements">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full"></span>
                 </button>
@@ -281,7 +310,7 @@ export default function TeacherDashboard() {
                       </button>
                     </div>
                     <div className="space-y-3">
-                      {courses.slice(0, 3).map((course, index) => (
+                      {(Array.isArray(courses) ? courses : []).slice(0, 3).map((course, index) => (
                         <div key={course._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-100 rounded-lg">
@@ -329,8 +358,8 @@ export default function TeacherDashboard() {
                       <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">3 new</span>
                     </div>
                     <div className="space-y-3">
-                      {notifications.map((notification) => (
-                        <div key={notification.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
+                      {notifications.map((notification: any) => (
+                        <div key={notification.id} onClick={() => notification.type === "announcement" && navigate("/teacher/announcements")} className="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-2xl cursor-pointer transition-colors">
                           <div className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}>
                             {getNotificationIcon(notification.type)}
                           </div>
@@ -342,6 +371,9 @@ export default function TeacherDashboard() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Attendance Alerts Widget */}
+                  <AttendanceAlertsWidget />
                 </div>
               </div>
             </div>
@@ -367,7 +399,18 @@ export default function TeacherDashboard() {
           {activeTab === "events" && <OrganizeEvents />}
           {activeTab === "settings" && <TeacherSettings />}
           {activeTab === "library" && <Library />}
+          {activeTab === "my-assignments" && <MyAssignments />}
           {activeTab === "book-resources" && <ResourceBooking />}
+          {activeTab === "clubs" && <Clubs />}
+          {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
+          {activeTab === "risk-dashboard" && <RiskDashboard />}
+          {activeTab === "announcements" && (
+            <div className="space-y-8">
+              <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />
+              <hr className="border-gray-200 dark:border-gray-700" />
+              <AnnouncementManage refreshKey={refreshAnnouncements} />
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -1,6 +1,11 @@
-import bcrypt from "bcryptjs";
+import { hashPassword, comparePassword } from "../utils/hashPassword.js";
 import User from "../models/User.model.js";
+import StudentTimelineEvent from "../models/StudentTimelineEvent.model.js";
 import { logAction } from "../utils/auditService.js";
+import { getPaginatedData } from "../utils/pagination.util.js";
+import calculateProfileCompletion from "../utils/profileCompletion.js";
+import Attendance from "../models/Attendance.model.js";
+import Results from "../models/Results.model.js";
 
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
@@ -93,12 +98,12 @@ export const updatePassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const match = await bcrypt.compare(currentPassword, user.password);
+    const match = await comparePassword(currentPassword, user.password);
     if (!match) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = await hashPassword(newPassword, 8);
     await user.save();
 
     res.json({ message: "Password updated successfully" });
@@ -160,6 +165,8 @@ export const getStudentProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const student = await User.findOne({ _id: id, role: "student" }).select("-password");
+        `name email ${field}`
+      );
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -171,52 +178,84 @@ export const getStudentProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-export const bulkFieldReset = async (req, res) => {
+
+export const getStudents = async (req, res) => {
   try {
-    const { userIds, field } = req.body;
-
-    // Validate input
-    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({ message: "No users selected" });
-    }
-
-    if (!field) {
-      return res.status(400).json({ message: "No field specified" });
-    }
-
-    // Allowed fields to reset (security: whitelist)
-    const allowedFields = ["phone", "department", "tags", "teacherId"];
-    if (!allowedFields.includes(field)) {
-      return res.status(400).json({ message: "Field not allowed to be reset" });
-    }
-
-    // Preview mode - just return affected users without resetting
-    if (req.query.preview === "true") {
-      const users = await User.find({ _id: { $in: userIds } }).select(
-        `name email ${field}`
-      );
-      return res.json({ affectedUsers: users, field });
-    }
-
-    // Perform the reset
-    const resetValue = null;
-    await User.updateMany(
-      { _id: { $in: userIds } },
-      { $set: { [field]: resetValue } }
-    );
-
-    // Log the action
-    await logAction(req.user.id, "BULK_FIELD_RESET", "User", null, {
-      userIds,
-      field,
+    const result = await getPaginatedData(User, req.query, {
+      baseFilter: { role: "student" },
+      searchFields: ["name", "email", "studentId"],
+      select: "name email role studentId course semester joinedAt lastUpdated",
+      defaultSort: { name: 1 },
+      defaultLimit: 20,
     });
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    res.status(500).json({ message: "Server error fetching students" });
+  }
+};
+
+export const uploadResumeFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a PDF file" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Save relative path
+    const resumePath = `/uploads/resumes/${req.file.filename}`;
+    user.resumeUrl = resumePath;
+    await user.save();
 
     res.json({
-      message: `Field "${field}" reset successfully for ${userIds.length} users`,
-      affectedCount: userIds.length,
+      success: true,
+      message: "Resume uploaded successfully",
+      resumeUrl: resumePath,
     });
   } catch (error) {
-    console.error("Error in bulk field reset:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error uploading resume:", error);
+    res.status(500).json({ message: "Server error uploading resume" });
+  }
+};
+
+export const getStudentSummary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await User.findOne({ _id: id, role: "student" }).select("name email studentId course semester joinedAt");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Attendance Calculation
+    const totalAttendance = await Attendance.countDocuments({ student: id });
+    const presentAttendance = await Attendance.countDocuments({ student: id, status: "present" });
+    const attendancePercentage = totalAttendance ? Math.round((presentAttendance / totalAttendance) * 100) : null;
+
+    // Results Summary (calculate average marks)
+    const results = await Results.find({ studentId: id, status: "published" });
+    let averageMarks = null;
+    if (results.length > 0) {
+      const numericResults = results.filter(r => r.marks && !isNaN(parseFloat(r.marks)));
+      if (numericResults.length > 0) {
+          const totalMarks = numericResults.reduce((acc, curr) => acc + parseFloat(curr.marks), 0);
+          averageMarks = Math.round(totalMarks / numericResults.length);
+      }
+    }
+
+    res.json({
+      student,
+      attendancePercentage,
+      averageMarks,
+      totalExams: results.length
+    });
+  } catch (error) {
+    console.error("Error fetching student summary:", error);
+    res.status(500).json({ message: "Server error fetching summary" });
   }
 };

@@ -19,6 +19,10 @@ const EventsSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        club: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Club",
+         },
 
         description: {
             type: String,

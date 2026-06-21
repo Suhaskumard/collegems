@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import {
   Plus,
   Search,
@@ -71,7 +72,7 @@ export default function HODCourses() {
     try {
       setLoading(true);
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
       alert("Failed to load courses");
@@ -83,7 +84,7 @@ export default function HODCourses() {
   const fetchTeachers = async () => {
     try {
       const response = await api.get("/users/teachers");
-      setTeachersList(response.data);
+      setTeachersList(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching teachers:", error);
     }

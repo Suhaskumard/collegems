@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { Check, X, Clock } from "lucide-react";
 
 interface Booking {
@@ -25,9 +25,7 @@ const BookingManagement: React.FC = () => {
 
   const fetchBookings = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/bookings", {
-        withCredentials: true,
-      });
+      const { data } = await api.get("/bookings");
       setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -41,10 +39,9 @@ const BookingManagement: React.FC = () => {
     if (remarks === null) return; // cancelled prompt
 
     try {
-      await axios.put(
-        `http://localhost:5000/api/bookings/${id}/status`,
-        { status, remarks },
-        { withCredentials: true }
+      await api.put(
+        `/bookings/${id}/status`,
+        { status, remarks }
       );
       fetchBookings();
     } catch (error: any) {

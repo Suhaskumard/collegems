@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "./hashPassword.js";
 
 // Load env variables
 dotenv.config();
@@ -54,7 +54,7 @@ const seedData = async () => {
     }
 
     // 1. Create or Find HOD
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    const hashedPassword = await hashPassword("password123", 10);
     let hod = await User.findOne({ email: "hod@college.edu" });
     if (!hod) {
       hod = await User.create({
@@ -174,8 +174,8 @@ const seedData = async () => {
         { upsert: true, runValidators: true }
       );
 
-      // Bob: 70% attendance
-      const status2 = d === "2026-05-19" || d === "2026-05-22" || d === "2026-05-28" ? "absent" : "present";
+      // Bob: 50% attendance (High Risk)
+      const status2 = d === "2026-05-19" || d === "2026-05-22" || d === "2026-05-28" || d === "2026-05-20" || d === "2026-05-26" ? "absent" : "present";
       await Attendance.findOneAndUpdate(
         { student: student2._id, course: course1._id, date: d },
         { status: status2 },
@@ -249,11 +249,11 @@ const seedData = async () => {
       { studentId: student2._id, courseId: course1._id },
       {
         semester: "3",
-        internalMarks: 18,
-        externalMarks: 48,
-        practicalMarks: 8,
-        totalMarks: 74,
-        grade: "B",
+        internalMarks: 8,
+        externalMarks: 28,
+        practicalMarks: 4,
+        totalMarks: 40,
+        grade: "D",
         status: "published",
         createdBy: teacher1._id
       },
@@ -263,11 +263,11 @@ const seedData = async () => {
       { studentId: student2._id, courseId: course2._id },
       {
         semester: "3",
-        internalMarks: 20,
-        externalMarks: 50,
-        practicalMarks: 8,
-        totalMarks: 78,
-        grade: "B+",
+        internalMarks: 10,
+        externalMarks: 30,
+        practicalMarks: 5,
+        totalMarks: 45,
+        grade: "C",
         status: "published",
         createdBy: teacher2._id
       },
