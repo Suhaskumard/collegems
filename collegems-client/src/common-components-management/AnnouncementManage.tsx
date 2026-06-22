@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import AnnouncementForm from "./AnnouncementForm";
+import EmptyState from "../components/EmptyState";
 
 interface Announcement {
   _id: string;
@@ -58,6 +59,8 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
   const userData = userStr ? JSON.parse(userStr) : null;
   const currentUserId = userData?._id || userData?.id;
   const currentUserRole = userData?.role || localStorage.getItem("role");
+  const hasActiveFilters = Boolean(filterRole || filterCourse || filterSemester || filterStatus);
+  const showPublishCta = !hasActiveFilters;
 
   // inline confirm modal state
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -221,10 +224,23 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
           <span className="animate-spin border-4 border-indigo-400 border-t-transparent rounded-full w-10 h-10" />
         </div>
       ) : announcements.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
-          <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>No announcements found.</p>
-        </div>
+        showPublishCta ? (
+          <EmptyState
+            icon={<Bell className="w-7 h-7 text-indigo-600" />}
+            title="No notices published yet"
+            description="Use the composer above to publish the first notice for your audience."
+            actionLabel="Publish Notice"
+            onAction={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            actionHint="Jumps to the notice composer at the top of the page."
+          />
+        ) : (
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500">
+            <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No announcements found.</p>
+          </div>
+        )
       ) : (
         <div className="space-y-3">
           {announcements.map((a) => (
@@ -406,3 +422,4 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
     </div>
   );
 }
+

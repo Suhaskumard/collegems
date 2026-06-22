@@ -15,9 +15,11 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
 import { useServerDataTable } from "../hooks/useServerDataTable";
 import AdvancedExportButton from "./AdvancedExportButton";
 import CompareStudentsModal from "./CompareStudentsModal";
+import EmptyState from "../components/EmptyState";
 
 interface Student {
   _id?: string;
@@ -33,6 +35,7 @@ interface Student {
 }
 
 const Students: React.FC = () => {
+  const navigate = useNavigate();
   const { data, isLoading, isError, refetch, tableState, actions } =
     useServerDataTable({
       endpoint: "/users/students",
@@ -42,6 +45,8 @@ const Students: React.FC = () => {
 
   const students = data?.data || [];
   const meta = data?.meta || { totalRecords: 0, currentPage: 1, totalPages: 1, hasNextPage: false, hasPrevPage: false };
+  const hasActiveFilters = Boolean(tableState.search) || Object.keys(tableState.filters).length > 0;
+  const showCreateCta = !hasActiveFilters && meta.totalRecords === 0;
 
   // Debounced search state
   const [searchInput, setSearchInput] = useState(tableState.search);
@@ -277,13 +282,24 @@ const Students: React.FC = () => {
         <>
           {/* Students Grid/List */}
           {!isError && students.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-              <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">
-                No students found
-              </h3>
-              <p className="text-gray-500">Try adjusting your search or filters.</p>
-            </div>
+            showCreateCta ? (
+              <EmptyState
+                icon={<Users className="w-7 h-7 text-blue-600" />}
+                title="No students yet"
+                description="Create the first student record to start building your roster."
+                actionLabel="Create First Student"
+                onAction={() => navigate("/register")}
+                actionHint="Opens the registration page for a new student account."
+              />
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-1">
+                  No students found
+                </h3>
+                <p className="text-gray-500">Try adjusting your search or filters.</p>
+              </div>
+            )
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {students.map((student: Student) => (
@@ -584,3 +600,4 @@ const Students: React.FC = () => {
 };
 
 export default Students;
+
