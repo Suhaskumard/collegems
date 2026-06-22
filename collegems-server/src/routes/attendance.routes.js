@@ -8,6 +8,7 @@ import {
   getAttendanceAlerts,
   resolveAttendanceAlert
 } from "../controllers/attendance.controller.js";
+import { checkDataLock } from "../middlewares/dataLock.middleware.js";
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.post(
   "/mark",
   protect,
   allowRoles("teacher"),
+  checkDataLock("attendance"),
   markAttendance
 );
 
@@ -43,6 +45,7 @@ router.patch(
   "/alerts/:id/resolve",
   protect,
   allowRoles("teacher", "hod", "admin"),
+  checkDataLock("attendance"),
   resolveAttendanceAlert
 );
 

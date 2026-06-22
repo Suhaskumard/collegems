@@ -47,3 +47,8 @@ export const updateTimetableEntry = async (entryId: string, data: { room?: strin
     throw error;
   }
 };
+
+export const getTimetableSuggestions = async (params?: { department?: string; semester?: number; timetableId?: string }) => {
+  const response = await axiosInstance.get("/timetable/suggestions", { params });
+  return response.data;
+};

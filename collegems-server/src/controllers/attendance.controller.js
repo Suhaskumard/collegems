@@ -23,7 +23,7 @@ export const markAttendance = async (req, res) => {
         {
           status: r.status,
         },
-        { upsert: true, new: true },
+        { upsert: true, new: true, editorId: req.user.id },
       );
     }
 

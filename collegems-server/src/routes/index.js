@@ -10,6 +10,7 @@ import express from "express";
 // import authRoutes from "./auth.routes.js";
 // import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
+import historyRoutes from "./history.routes.js";
 
 // Academic Routes
 import attendanceRoutes from "./attendance.routes.js";
@@ -75,10 +76,13 @@ import notificationRoutes from "./notification.routes.js";
 import plagiarismRoutes from "./plagiarism.routes.js";
 import workflowRoutes from "./workflow.routes.js";
 import dependencyRoutes from "./dependency.routes.js";
+import dataLockRoutes from "./dataLock.routes.js";
+import snapshotRoutes from "./snapshot.routes.js";
+import sequenceRoutes from "./sequence.routes.js";
 
 // Faculty Assignment (if needed later)
 // import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-// import searchRoutes from './search.routes.js';
+import searchRoutes from './search.routes.js';
 
 // ========================================
 // MIDDLEWARES
@@ -95,7 +99,7 @@ const router = express.Router();
 // CORE ROUTES (Commented out for now)
 // ========================================
 // router.use("/auth", authRoutes);
-// router.use("/search", searchRoutes);
+router.use("/search", searchRoutes);
 // router.use("/dashboard", dashboardRoutes);
 // router.use("/faculty-assignments", facultyAssignmentRoutes);
 
@@ -131,6 +135,7 @@ router.use("/scholarships", authenticate, scholarshipRoutes);
 // USER & ADMIN ROUTES
 // ========================================
 router.use("/users", authenticate, userRoutes);
+router.use("/history", historyRoutes);
 router.use("/leaves", authenticate, leaveRoutes);
 router.use("/teacher-attendance", teacherAttendanceRoutes);
 router.use("/office-hours", officeHoursRoutes);
@@ -185,6 +190,9 @@ router.use("/notifications", authenticate, notificationRoutes);
 router.use("/plagiarism", authenticate, plagiarismRoutes);
 router.use("/workflows", workflowRoutes);
 router.use("/dependencies", dependencyRoutes);
+router.use("/data-locks", dataLockRoutes);
+router.use("/snapshots", snapshotRoutes);
+router.use("/sequences", sequenceRoutes);
 
 // ========================================
 // EXPORT ROUTER

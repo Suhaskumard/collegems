@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import timelinePlugin from "../plugins/timelinePlugin.js";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -83,5 +84,7 @@ userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "t
 userSchema.plugin(timelinePlugin, {
   trackedFields: ["course", "semester", "phone", "email"]
 });
+
+userSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("User", userSchema);

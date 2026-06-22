@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNotifications } from "../hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { RecentHistorySection } from "../components/RecentHistorySection";
 
 export default function MainDashboard() {
   const navigate = useNavigate();
@@ -304,8 +305,10 @@ export default function MainDashboard() {
             </div>
           </div>
 
+          <RecentHistorySection />
+
           {/* Bottom Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
             {/* Notifications */}
             <div className="lg:col-span-2">
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">

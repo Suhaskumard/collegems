@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import {
@@ -18,11 +18,45 @@ export default function Register() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
+  const [passwordStrength, setPasswordStrength] = useState<"" | "Weak" | "Medium" | "Strong">("");
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError("");
   };
+
+    // Add this after handleChange function
+  const getPasswordStrength = (password: string): "" | "Weak" | "Medium" | "Strong" => {
+    if (!password) return "";
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (score <= 1) return "Weak";
+    if (score <= 3) return "Medium";
+    return "Strong";
+  };
+
+  const handleTogglePassword = () => {
+    if (!showPassword) {
+      setShowPassword(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => {
+        setShowPassword(false);
+      }, 3000);
+    } else {
+      setShowPassword(false);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
   
   const handleRegister = async () => {
     if (loading) return;
@@ -169,6 +203,7 @@ export default function Register() {
               </div>
             </div>
 
+            
             <div>
             <label htmlFor="password" className={labelClass}>Password *</label>
              <div className="relative">
@@ -183,6 +218,34 @@ export default function Register() {
                  {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                 </button>
               </div>
+                
+              {/* Password Strength Indicator */}
+              {passwordStrength && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Password strength:</span>
+                    <span className={`text-xs font-medium ${
+                      passwordStrength === "Weak" ? "text-red-500" :
+                      passwordStrength === "Medium" ? "text-yellow-500" :
+                      "text-green-500"
+                    }`}>
+                      {passwordStrength}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${
+                      passwordStrength === "Weak" ? "w-1/3 bg-red-500" :
+                      passwordStrength === "Medium" ? "w-2/3 bg-yellow-500" :
+                      "w-full bg-green-500"
+                    }`} />
+                  </div>
+                  {showPassword && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      🔒 Password will auto-hide in 3 seconds
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Student Fields */}

@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -30,6 +30,8 @@ import AuditLogs from "../hod-components/AuditLogs";
 import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
+import DataLocks from "../hod-components/DataLocks";
+import { SequenceRepair } from "../common-components-management/SequenceRepair";
 
 // Pages
 import RiskDashboard from "./RiskDashboard";
@@ -69,7 +71,9 @@ type TabType =
   | "risk-dashboard"
   | "system-logs"
   | "system-health"
-  | "freeze-semesters";
+  | "freeze-semesters"
+  | "data-locks"
+  | "sequence-repair";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -144,6 +148,8 @@ export default function HODDashboard() {
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
     { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
+    { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
+    { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
   ];
 
@@ -422,9 +428,11 @@ export default function HODDashboard() {
         {/* {activeTab === "system-logs" && <SystemLogsDashboard />} */}
         {activeTab === "system-health" && <SystemHealthDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
-        {activeTab === "manage-resources" && <ResourceManagement />}
-        {activeTab === "freeze-semesters" && <SemesterManagement />}
-        {activeTab === "risk-dashboard" && <RiskDashboard />}
+        { activeTab === "manage-resources" && <ResourceManagement /> }
+        { activeTab === "freeze-semesters" && <SemesterManagement /> }
+        { activeTab === "data-locks" && <DataLocks /> }
+        { activeTab === "sequence-repair" && <SequenceRepair /> }
+        { activeTab === "risk-dashboard" && <RiskDashboard /> }
       </>
     );
   };
