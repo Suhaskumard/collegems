@@ -4,7 +4,9 @@ import { allowRoles } from "../middlewares/role.middleware.js";
 import {
   markAttendance,
   getMyAttendance,
-  getLowAttendance
+  getLowAttendance,
+  getAttendanceAlerts,
+  resolveAttendanceAlert
 } from "../controllers/attendance.controller.js";
 
 const router = express.Router();
@@ -28,6 +30,20 @@ router.get(
   protect,
   allowRoles("teacher", "hod"),
   getLowAttendance
+);
+
+router.get(
+  "/alerts",
+  protect,
+  allowRoles("teacher", "hod", "admin"),
+  getAttendanceAlerts
+);
+
+router.patch(
+  "/alerts/:id/resolve",
+  protect,
+  allowRoles("teacher", "hod", "admin"),
+  resolveAttendanceAlert
 );
 
 export default router;

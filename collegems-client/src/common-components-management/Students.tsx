@@ -17,7 +17,8 @@ import {
 import api from "../api/axios";
 import { useServerDataTable } from "../hooks/useServerDataTable";
 import AdvancedExportButton from "./AdvancedExportButton";
-
+import CompareStudentsModal from "./CompareStudentsModal";
+import StudentTimeline from "./StudentTimeline";
 interface Student {
   _id?: string;
   name: string;
@@ -57,6 +58,22 @@ const Students: React.FC = () => {
   const [fetchingProfile, setFetchingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
 
+  const [selectedForCompare, setSelectedForCompare] = useState<Student[]>([]);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+
+  const handleCompareToggle = (student: Student, e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      if (selectedForCompare.length < 2) {
+        setSelectedForCompare([...selectedForCompare, student]);
+      } else {
+        alert("You can only compare 2 students at a time.");
+      }
+    } else {
+      setSelectedForCompare(selectedForCompare.filter((s) => s._id !== student._id));
+    }
+  };
+
   const handleViewProfile = async (id: string | undefined) => {
     if (!id) return;
     try {
@@ -72,7 +89,8 @@ const Students: React.FC = () => {
     }
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return "ST";
     return name
       .split(" ")
       .map((word) => word[0])
@@ -276,6 +294,15 @@ const Students: React.FC = () => {
                   <div className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center justify-center mt-3 mr-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedForCompare.some((s) => s._id === student._id)}
+                            onChange={(e) => handleCompareToggle(student, e)}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                            title="Select for comparison"
+                          />
+                        </div>
                         <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
                           {getInitials(student.name)}
                         </div>
@@ -492,6 +519,10 @@ const Students: React.FC = () => {
                       </p>
                     </div>
                   </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <StudentTimeline studentId={fullProfile?._id || selectedStudent?._id || ""} />
+                  </div>
                 </div>
               )}
 
@@ -514,6 +545,39 @@ const Students: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Compare Bar */}
+      {selectedForCompare.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] p-4 z-40 flex items-center justify-between px-8 ml-0 md:ml-64 transition-all">
+          <div className="flex items-center gap-4">
+            <span className="font-medium text-gray-700 dark:text-gray-300">Comparing {selectedForCompare.length}/2</span>
+            <div className="flex gap-2">
+              {selectedForCompare.map(s => (
+                <span key={s._id} className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-sm px-3 py-1 rounded-full flex items-center gap-2">
+                  {s.name}
+                  <button onClick={() => setSelectedForCompare(selectedForCompare.filter(st => st._id !== s._id))} className="hover:text-blue-900 dark:hover:text-blue-100">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3">
+             <button onClick={() => setSelectedForCompare([])} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">Clear</button>
+             <button 
+               disabled={selectedForCompare.length !== 2}
+               onClick={() => setShowCompareModal(true)}
+               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+             >
+               Compare
+             </button>
+          </div>
+        </div>
+      )}
+
+      {showCompareModal && (
+<CompareStudentsModal students={selectedForCompare as any} onClose={() => setShowCompareModal(false)} />
       )}
     </div>
   );

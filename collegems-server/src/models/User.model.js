@@ -1,12 +1,18 @@
 import mongoose from "mongoose";
+import timelinePlugin from "../plugins/timelinePlugin.js";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["student", "teacher", "parent", "hod"], required: true },
+  role: { type: String, enum: ["student", "teacher", "parent", "hod", "alumni", "admin"], required: true },
   phone: { type: String },
   
+  // Telemetry & Account Status
+  lastLogin: { type: Date },
+  loginCount: { type: Number, default: 0 },
+  accountStatus: { type: String, enum: ["active", "archived", "suspended"], default: "active" },
+
   // File attachments
   resumeUrl: { type: String },
 
@@ -64,8 +70,12 @@ const userSchema = new mongoose.Schema({
       inApp: { type: Boolean, default: true },
     },
   },
-});
+}, { timestamps: true });
 
 userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "text" });
+
+userSchema.plugin(timelinePlugin, {
+  trackedFields: ["course", "semester", "phone", "email"]
+});
 
 export default mongoose.model("User", userSchema);

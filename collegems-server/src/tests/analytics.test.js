@@ -5,7 +5,7 @@ import { generateAnalyticsForStudent } from "../services/analytics.service.js";
 import User from "../models/User.model.js";
 import StudentAnalytics from "../models/StudentAnalytics.model.js";
 import Attendance from "../models/Attendance.model.js";
-import InternalAssessment from "../models/InternalAssessment.model.js";
+import Results from "../models/Results.model.js";
 
 // Mock global fetch to simulate Python ML Microservice
 global.fetch = async (url, options) => {
@@ -50,9 +50,9 @@ describe("Analytics Service Tests", () => {
              return 10; // Total attendance
         }; // Attendance = 60%
 
-        InternalAssessment.find = async () => ([
-             { totalInternalMarks: 40 },
-             { totalInternalMarks: 35 }
+        Results.find = async () => ([
+             { internalMarks: 20 },
+             { internalMarks: 25 }
         ]);
 
         StudentAnalytics.findOneAndUpdate = async (query, update, options) => {

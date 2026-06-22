@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { logAction } from "../utils/auditService.js";
+import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
 const COLLEGE_DOMAIN = process.env.COLLEGE_DOMAIN || "";
 
 const normalizeEmail = (email) => email?.trim().toLowerCase();
@@ -54,6 +55,9 @@ export const register = async (req, res) => {
       semester,
       course,
       childStudentId,
+      phone,
+      dob,
+      overrideDuplicates
     } = req.body || {};
 
     if (!name || !email || !password || !role) {
@@ -66,6 +70,8 @@ export const register = async (req, res) => {
       email: normalizeEmail(email),
       password: await bcrypt.hash(password, 8),
       role,
+      phone,
+      dob
     };
 
     if (role === "student") {
@@ -128,9 +134,22 @@ export const register = async (req, res) => {
       userData = { ...userData, childId: student._id };
     }
 
-    // Check existing user
+    // Check existing user strictly by email
     const exists = await User.findOne({ email: normalizeEmail(email) });
-    if (exists) return res.status(400).json({ message: "User already exists" });
+    if (exists) return res.status(400).json({ message: "User already exists with this email" });
+
+    // Interactive Duplicate Detection Handshake
+    if (!overrideDuplicates) {
+      const duplicates = await checkPotentialDuplicates(userData);
+      
+      if (duplicates.length > 0) {
+        return res.status(409).json({
+          isDuplicateWarning: true,
+          message: "Potential duplicate records found.",
+          matches: duplicates
+        });
+      }
+    }
 
     // Create user
     const user = await User.create(userData);
@@ -212,6 +231,11 @@ export const login = async (req, res) => {
         childId: user.childId,
       },
     });
+
+    // Update telemetry
+    user.lastLogin = Date.now();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save({ validateBeforeSave: false });
 
     // Log the login
     await logAction(user._id, "LOGIN", "Auth", user._id, { role: user.role, email: user.email });

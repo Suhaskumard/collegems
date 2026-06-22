@@ -6,6 +6,7 @@ import LibraryFine from "../models/LibraryFine.model.js";
 import Notification from "../models/Notification.model.js";
 import { sendFeeReminderEmail, sendOverdueEmail } from "./email.js";
 import { batchGenerateAnalytics } from "../services/analytics.service.js";
+import { analyzeAttendanceAnomalies } from "../services/attendanceAnomaly.service.js";
 
 /**
  * Normalizes a date to midnight for accurate day-difference calculations.
@@ -156,4 +157,13 @@ export const startLibraryCronJobs = () => {
 
   // Run every day at 00:05 (5 minutes past midnight)
   cron.schedule("5 0 * * *", processLibraryFines);
+};
+
+export const startAttendanceCronJobs = () => {
+  console.log("🕒 Initializing Attendance Cron Jobs...");
+  
+  // Run every day at 01:00 AM
+  cron.schedule("0 1 * * *", async () => {
+    await analyzeAttendanceAnomalies();
+  });
 };

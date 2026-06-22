@@ -3,6 +3,11 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import mongoose from "mongoose";
+
+// Apply Global Multi-Tenant Plugin
+import tenantPlugin from "./utils/tenantPlugin.js";
+mongoose.plugin(tenantPlugin);
 
 // Auth & Core
 import authRoutes from "./routes/auth.routes.js";
@@ -56,8 +61,11 @@ import complaintRoutes from "./routes/complaint.routes.js";
 import searchRoutes from './routes/search.routes.js'; 
 import timetableRoutes from './routes/timetable.routes.js'
 import plagiarismRoutes from "./routes/plagiarism.routes.js";
+import workflowRoutes from "./routes/workflow.routes.js";
+import dependencyRoutes from "./routes/dependency.routes.js";
+import semesterRoutes from "./routes/semester.routes.js";
 import log from "./utils/logger.js";
-
+import Tenant from "./models/Tenant.model.js";
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
 
@@ -67,7 +75,6 @@ const app = express();
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
   : ["http://localhost:5173"];
-
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -78,7 +85,8 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID"]
+  // Just add "x-tenant-id" to the end of this list!
+  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID", "x-tenant-id"]
 }));
 app.use(express.json());
 
@@ -96,6 +104,9 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+import tenantResolver from "./middlewares/tenantResolver.js";
+app.use(tenantResolver);
 
 // Routes
 app.use("/api/auth",      authRoutes);
@@ -147,6 +158,9 @@ app.use("/api/notifications", authenticate, notificationRoutes);
 app.use("/api/study-groups", studyGroupRoutes);
 app.use("/api/analytics", authenticate, analyticsRoutes);
 app.use("/api/timetable", authenticate, timetableRoutes);
+app.use("/api/workflows", workflowRoutes);
+app.use("/api/dependencies", dependencyRoutes);
+app.use("/api/semesters", semesterRoutes);
 
 // Health check
 app.get("/", (_req, res) => {
@@ -165,5 +179,27 @@ app.use((_req, res) => {
 
 // Global error handler (must be last)
 app.use(errorHandler);
+// --- AUTO-SEED DEFAULT TENANT ---
+// --- AUTO-SEED DEFAULT TENANT ---
+mongoose.connection.once('open', async () => {
+  try {
+    const tenantCount = await Tenant.countDocuments();
+    if (tenantCount === 0) {
+      console.log("⚠️ No tenants found in database. Creating a default one...");
+      const newTenant = await Tenant.create({
+        name: "Local Development College",
+        slug: "collegems",           // <-- ADDED THIS
+        domain: "collegems",
+        adminEmail: "admin@collegems.local", // <-- ADDED THIS
+        status: "active"
+      });
+      console.log(`✅ Default Tenant successfully created! ID: ${newTenant._id}`);
+    }
+  } catch (err) {
+    console.log("Error creating default tenant:", err.message);
+  }
+});
+// ---------------------------------
+// ---------------------------------
 
 export default app;

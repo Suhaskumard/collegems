@@ -38,6 +38,7 @@ import Clubs from "../common-components-management/Clubs";
 import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
 import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
+import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -369,6 +370,9 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                       ))}
                     </div>
                   </div>
+
+                  {/* Attendance Alerts Widget */}
+                  <AttendanceAlertsWidget />
                 </div>
               </div>
             </div>

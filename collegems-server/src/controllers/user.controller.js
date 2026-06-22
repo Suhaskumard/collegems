@@ -1,8 +1,11 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
+import StudentTimelineEvent from "../models/StudentTimelineEvent.model.js";
 import { logAction } from "../utils/auditService.js";
 import { getPaginatedData } from "../utils/pagination.util.js";
 import calculateProfileCompletion from "../utils/profileCompletion.js";
+import Attendance from "../models/Attendance.model.js";
+import Results from "../models/Results.model.js";
 
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
@@ -215,5 +218,42 @@ export const uploadResumeFile = async (req, res) => {
   } catch (error) {
     console.error("Error uploading resume:", error);
     res.status(500).json({ message: "Server error uploading resume" });
+  }
+};
+
+export const getStudentSummary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await User.findOne({ _id: id, role: "student" }).select("name email studentId course semester joinedAt");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Attendance Calculation
+    const totalAttendance = await Attendance.countDocuments({ student: id });
+    const presentAttendance = await Attendance.countDocuments({ student: id, status: "present" });
+    const attendancePercentage = totalAttendance ? Math.round((presentAttendance / totalAttendance) * 100) : null;
+
+    // Results Summary (calculate average marks)
+    const results = await Results.find({ studentId: id, status: "published" });
+    let averageMarks = null;
+    if (results.length > 0) {
+      const numericResults = results.filter(r => r.marks && !isNaN(parseFloat(r.marks)));
+      if (numericResults.length > 0) {
+          const totalMarks = numericResults.reduce((acc, curr) => acc + parseFloat(curr.marks), 0);
+          averageMarks = Math.round(totalMarks / numericResults.length);
+      }
+    }
+
+    res.json({
+      student,
+      attendancePercentage,
+      averageMarks,
+      totalExams: results.length
+    });
+  } catch (error) {
+    console.error("Error fetching student summary:", error);
+    res.status(500).json({ message: "Server error fetching summary" });
   }
 };

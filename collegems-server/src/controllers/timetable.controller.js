@@ -4,6 +4,7 @@ import TimetableRule from "../models/TimetableRule.model.js";
 import Room from "../models/Room.model.js";
 import TimeSlot from "../models/TimeSlot.model.js";
 import { jobQueue } from "../engine/JobQueue.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 // @desc    Trigger timetable generation
 // @route   POST /api/timetable/generate
@@ -11,6 +12,8 @@ import { jobQueue } from "../engine/JobQueue.js";
 export const generateTimetable = async (req, res) => {
   try {
     const { name, department, semester } = req.body;
+
+    await checkSemesterFrozen(semester);
 
     const timetable = new Timetable({
       name,
@@ -31,6 +34,7 @@ export const generateTimetable = async (req, res) => {
       data: timetable,
     });
   } catch (error) {
+    if (error.status === 403) return res.status(403).json({ success: false, message: error.message });
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -80,26 +84,52 @@ export const getTimetableEntries = async (req, res) => {
   }
 };
 
+import { checkConflicts } from "../services/scheduleValidation.service.js";
+
 // @desc    Update a specific entry (manual override)
 // @route   PUT /api/timetable/entries/:entryId
 // @access  Private/Admin
 export const updateTimetableEntry = async (req, res) => {
   try {
-    const { room, timeSlot, faculty } = req.body;
+    const { room, timeSlot, faculty, course } = req.body;
+    const entryId = req.params.entryId;
     
-    // In a real scenario, we should re-validate the hard constraints here before updating.
-    const entry = await TimetableEntry.findByIdAndUpdate(
-      req.params.entryId,
-      { room, timeSlot, faculty },
-      { new: true }
-    );
-
-    if (!entry) {
+    // Validate hard constraints before updating.
+    // We need to fetch the existing entry to get the timetable ID and course ID if not provided in body
+    const existingEntry = await TimetableEntry.findById(entryId);
+    if (!existingEntry) {
       return res.status(404).json({ success: false, message: "Entry not found" });
     }
 
+    const targetCourse = course || existingEntry.course;
+
+    const validation = await checkConflicts({
+      timetableId: existingEntry.timetable,
+      timeSlotId: timeSlot,
+      facultyId: faculty,
+      roomId: room,
+      courseId: targetCourse,
+      excludeEntryId: entryId
+    });
+
+    if (validation.hasConflicts) {
+      return res.status(409).json({
+        success: false,
+        errorType: "SCHEDULE_CONFLICT",
+        message: "Schedule conflicts detected.",
+        conflicts: validation.conflicts
+      });
+    }
+
+    const entry = await TimetableEntry.findByIdAndUpdate(
+      entryId,
+      { room, timeSlot, faculty, course: targetCourse },
+      { new: true }
+    );
+
     res.status(200).json({ success: true, data: entry });
   } catch (error) {
+    if (error.status === 403) return res.status(403).json({ success: false, message: error.message });
     res.status(500).json({ success: false, message: error.message });
   }
 };
