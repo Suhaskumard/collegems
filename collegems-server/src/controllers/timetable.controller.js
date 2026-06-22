@@ -85,6 +85,122 @@ export const getTimetableEntries = async (req, res) => {
 };
 
 import { checkConflicts } from "../services/scheduleValidation.service.js";
+import mongoose from "mongoose";
+
+// @desc    Get reusable timetable slot suggestions based on frequent patterns
+// @route   GET /api/timetable/suggestions
+// @access  Private
+export const getSuggestions = async (req, res) => {
+  try {
+    const { department, semester, timetableId } = req.query;
+
+    const pipeline = [];
+
+    // Optional filtering by department or semester via lookup
+    if (department || semester) {
+      pipeline.push({
+        $lookup: {
+          from: "timetables",
+          localField: "timetable",
+          foreignField: "_id",
+          as: "timetableDoc"
+        }
+      });
+      pipeline.push({ $unwind: "$timetableDoc" });
+      
+      const matchCriteria = {};
+      if (department) matchCriteria["timetableDoc.department"] = department;
+      if (semester) matchCriteria["timetableDoc.semester"] = parseInt(semester);
+      
+      pipeline.push({ $match: matchCriteria });
+    }
+
+    pipeline.push({
+      $group: {
+        _id: {
+          course: "$course",
+          faculty: "$faculty",
+          room: "$room",
+          timeSlot: "$timeSlot"
+        },
+        count: { $sum: 1 }
+      }
+    });
+
+    pipeline.push({ $match: { count: { $gt: 1 } } }); // Only frequent patterns
+    pipeline.push({ $sort: { count: -1 } });
+    pipeline.push({ $limit: 20 });
+
+    // Lookup to populate course, faculty, room, timeSlot for readability
+    pipeline.push(
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id.course",
+          foreignField: "_id",
+          as: "courseInfo"
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id.faculty",
+          foreignField: "_id",
+          as: "facultyInfo"
+        }
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_id.room",
+          foreignField: "_id",
+          as: "roomInfo"
+        }
+      },
+      {
+        $lookup: {
+          from: "timeslots",
+          localField: "_id.timeSlot",
+          foreignField: "_id",
+          as: "timeSlotInfo"
+        }
+      }
+    );
+
+    const suggestionsRaw = await TimetableEntry.aggregate(pipeline);
+
+    // Format the response and filter conflicts if timetableId is provided
+    const suggestions = [];
+    for (const s of suggestionsRaw) {
+      const suggestionItem = {
+        course: s.courseInfo[0],
+        faculty: s.facultyInfo[0],
+        room: s.roomInfo[0],
+        timeSlot: s.timeSlotInfo[0],
+        frequency: s.count
+      };
+      
+      if (timetableId && suggestionItem.course && suggestionItem.faculty && suggestionItem.room && suggestionItem.timeSlot) {
+        const validation = await checkConflicts({
+          timetableId,
+          timeSlotId: suggestionItem.timeSlot._id,
+          facultyId: suggestionItem.faculty._id,
+          roomId: suggestionItem.room._id,
+          courseId: suggestionItem.course._id
+        });
+        if (!validation.hasConflicts) {
+          suggestions.push(suggestionItem);
+        }
+      } else {
+        suggestions.push(suggestionItem);
+      }
+    }
+
+    res.status(200).json({ success: true, data: suggestions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // @desc    Update a specific entry (manual override)
 // @route   PUT /api/timetable/entries/:entryId

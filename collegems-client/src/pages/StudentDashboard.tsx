@@ -60,6 +60,7 @@ import StudentSeatView from "../user-components/StudentSeatView";
 import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementsView from "../user-components/AnnouncementsView";
+import SemesterComparison from "../user-components/SemesterComparison";
 
 // HOD Components
 import Teachers from "../hod-components/Teachers";
@@ -88,7 +89,9 @@ type TabType =
   | "bus-routes"
   | "book-resources"
   | "subject-faculty"
+  | "semester-comparison"
   | "settings";
+
 
 // Consolidated and cleaned navigation items
 const navigationItems: {
@@ -108,6 +111,7 @@ const navigationItems: {
   { id: "faculty", label: "Faculty", icon: Users },
   { id: "subject-faculty", label: "Subject Faculty", icon: GraduationCap },
   { id: "results", label: "Results", icon: AwardIcon },
+  { id: "semester-comparison", label: "Semester Comparison", icon: TrendingUp },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "leave", label: "Leave Requests", icon: ClipboardList },
   { id: "library", label: "Library", icon: BookOpen },
@@ -616,6 +620,7 @@ export default function StudentDashboard() {
               {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "semester-comparison" && <SemesterComparison />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "announcements" && <AnnouncementsView />}
               {activeTab === "leave" && <LeaveRequest />}

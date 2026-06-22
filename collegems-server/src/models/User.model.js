@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import timelinePlugin from "../plugins/timelinePlugin.js";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -7,11 +8,17 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "parent", "hod", "alumni", "admin"], required: true },
   phone: { type: String },
-  
+
   // Telemetry & Account Status
   lastLogin: { type: Date },
   loginCount: { type: Number, default: 0 },
   accountStatus: { type: String, enum: ["active", "archived", "suspended"], default: "active" },
+
+  // Tags
+  tags: {
+    type: [String],
+    default: [],
+  },
 
   // File attachments
   resumeUrl: { type: String },
@@ -77,5 +84,7 @@ userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "t
 userSchema.plugin(timelinePlugin, {
   trackedFields: ["course", "semester", "phone", "email"]
 });
+
+userSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("User", userSchema);

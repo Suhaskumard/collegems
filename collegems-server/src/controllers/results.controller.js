@@ -87,7 +87,7 @@ export const publishResult = async (req, res) => {
         const result = await Results.findByIdAndUpdate(
             req.params.id,
             { status: "published" },
-            { new: true }
+            { new: true, editorId: req.user.id }
         );
         res.json(result);
 

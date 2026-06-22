@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -30,6 +30,8 @@ import AuditLogs from "../hod-components/AuditLogs";
 import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
+import DataLocks from "../hod-components/DataLocks";
+import { SequenceRepair } from "../common-components-management/SequenceRepair";
 
 // Pages
 import RiskDashboard from "./RiskDashboard";
@@ -37,6 +39,7 @@ import RiskDashboard from "./RiskDashboard";
 // For now, assuming it's in pages based on the previous error logs.
 // import SystemLogsDashboard from "./SystemLogsDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
+import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
 
 type TabType =
   | "overview"
@@ -67,7 +70,10 @@ type TabType =
   | "manage-resources"
   | "risk-dashboard"
   | "system-logs"
-  | "freeze-semesters";
+  | "system-health"
+  | "freeze-semesters"
+  | "data-locks"
+  | "sequence-repair";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -96,6 +102,7 @@ export default function HODDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
 
   // Profile states
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -137,9 +144,12 @@ export default function HODDashboard() {
     { id: "hall-allocation" as TabType, label: "Hall Allocation", icon: Users },
     { id: "audit-logs" as TabType, label: "Audit Logs", icon: FileText },
     { id: "system-logs" as TabType, label: "System Traces", icon: FileText },
+    { id: "system-health" as TabType, label: "System Health", icon: Activity },
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
     { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
+    { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
+    { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
   ];
 
@@ -330,7 +340,7 @@ export default function HODDashboard() {
                 "bg-emerald-50 text-emerald-700": "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
                 "bg-purple-50 text-purple-700": "bg-purple-50 text-purple-700 hover:bg-purple-100",
               }[card.color] || card.color;
-              
+
               return (
                 <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between">
@@ -378,7 +388,7 @@ export default function HODDashboard() {
         </div>
       );
     }
-const placeholders: Partial<Record<TabType, string>> = {
+    const placeholders: Partial<Record<TabType, string>> = {
       classes: "Class management is not connected on this dashboard yet.",
       syllabus: "Syllabus management is not connected on this dashboard yet.",
       fees: "Fee management is not connected on this dashboard yet.",
@@ -395,9 +405,9 @@ const placeholders: Partial<Record<TabType, string>> = {
       <>
         {activeTab === "announcements" && (
           <div className="space-y-8">
-            <AnnouncementForm />
+            <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />
             <hr className="border-gray-200 dark:border-gray-700" />
-            <AnnouncementManage />
+            <AnnouncementManage refreshKey={refreshAnnouncements} />
           </div>
         )}
         {activeTab === "teachers" && <Teachers />}
@@ -416,10 +426,13 @@ const placeholders: Partial<Record<TabType, string>> = {
         {activeTab === "hall-allocation" && <HallAllocation />}
         {activeTab === "audit-logs" && <AuditLogs />}
         {/* {activeTab === "system-logs" && <SystemLogsDashboard />} */}
+        {activeTab === "system-health" && <SystemHealthDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
-        {activeTab === "manage-resources" && <ResourceManagement />}
-        {activeTab === "freeze-semesters" && <SemesterManagement />}
-        {activeTab === "risk-dashboard" && <RiskDashboard />}
+        { activeTab === "manage-resources" && <ResourceManagement /> }
+        { activeTab === "freeze-semesters" && <SemesterManagement /> }
+        { activeTab === "data-locks" && <DataLocks /> }
+        { activeTab === "sequence-repair" && <SequenceRepair /> }
+        { activeTab === "risk-dashboard" && <RiskDashboard /> }
       </>
     );
   };
@@ -475,11 +488,10 @@ const placeholders: Partial<Record<TabType, string>> = {
                         setSidebarOpen(false);
                       }
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive 
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" 
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`} />
                     <span>{item.label}</span>

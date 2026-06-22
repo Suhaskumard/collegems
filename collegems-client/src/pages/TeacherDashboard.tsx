@@ -54,6 +54,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
   const [activeTab, setActiveTab] = useState(initialTab ?? "overview");
   const { notifications } = useNotifications();
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
+  const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -405,9 +406,9 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "risk-dashboard" && <RiskDashboard />}
           {activeTab === "announcements" && (
             <div className="space-y-8">
-              <AnnouncementForm />
+              <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />
               <hr className="border-gray-200 dark:border-gray-700" />
-              <AnnouncementManage />
+              <AnnouncementManage refreshKey={refreshAnnouncements} />
             </div>
           )}
         </main>

@@ -3,6 +3,19 @@ import Course from "../models/Course.model.js";
 import Announcement from "../models/Announcement.model.js";
 import Assignment from "../models/Assignment.model.js";
 
+const getMatchReason = (doc, query, fields) => {
+  const q = query.toLowerCase();
+  for (const field of fields) {
+    if (doc[field] && String(doc[field]).toLowerCase().includes(q)) {
+      const fieldName = field === 'studentId' ? 'Student ID' : 
+                        field === 'teacherId' ? 'Teacher ID' : 
+                        field.charAt(0).toUpperCase() + field.slice(1);
+      return `Matched by ${fieldName}`;
+    }
+  }
+  return 'Matched by relevance';
+};
+
 // @desc    Global Search
 // @route   GET /api/search?q=query
 // @access  Private
@@ -88,12 +101,29 @@ export const globalSearch = async (req, res) => {
     };
 
     // Execute queries in parallel
-    const [users, courses, announcements, assignments] = await Promise.all([
-      User.find(userQuery).select('-password -settings').limit(LIMIT),
-      Course.find(courseQuery).limit(LIMIT),
-      Announcement.find(announcementQuery).limit(LIMIT),
-      Assignment.find(assignmentQuery).limit(LIMIT)
+    const [usersData, coursesData, announcementsData, assignmentsData] = await Promise.all([
+      User.find(userQuery).select('-password -settings').limit(LIMIT).lean(),
+      Course.find(courseQuery).limit(LIMIT).lean(),
+      Announcement.find(announcementQuery).limit(LIMIT).lean(),
+      Assignment.find(assignmentQuery).limit(LIMIT).lean()
     ]);
+
+    const users = usersData.map(doc => ({
+      ...doc,
+      matchReason: getMatchReason(doc, q, ['name', 'email', 'studentId', 'teacherId'])
+    }));
+    const courses = coursesData.map(doc => ({
+      ...doc,
+      matchReason: getMatchReason(doc, q, ['name', 'code', 'department'])
+    }));
+    const announcements = announcementsData.map(doc => ({
+      ...doc,
+      matchReason: getMatchReason(doc, q, ['title', 'message'])
+    }));
+    const assignments = assignmentsData.map(doc => ({
+      ...doc,
+      matchReason: getMatchReason(doc, q, ['title', 'description'])
+    }));
 
     res.status(200).json({
       success: true,

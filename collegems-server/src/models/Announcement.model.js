@@ -22,7 +22,7 @@ const AnnouncementSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Audience filters — all are optional; absence means "all"
+    // Audience filters - all are optional; absence means "all"
     targetRole: {
       type: String,
       enum: ["all", "student", "teacher", "hod", "parent"],
@@ -45,7 +45,7 @@ const AnnouncementSchema = new mongoose.Schema(
 
 
 
-    // Optional expiry date — announcements auto-hide after this
+    // Announcements auto-hide after this
     expiresAt: {
       type: Date,
       default: null,
@@ -62,12 +62,18 @@ const AnnouncementSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    status: {
+      type: String,
+      enum: ["draft", "published"],
+      default: "published",
+    },
   },
   { timestamps: true }
 );
 
 // Index for fast audience queries
-AnnouncementSchema.index({ targetRole: 1, targetCourse: 1, targetSemester: 1 });
+AnnouncementSchema.index({ status: 1, targetRole: 1, targetCourse: 1, targetSemester: 1 });
 AnnouncementSchema.index({ title: "text", message: "text" });
 
 const Announcement = mongoose.model("Announcement", AnnouncementSchema);

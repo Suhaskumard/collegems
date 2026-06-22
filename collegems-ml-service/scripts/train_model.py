@@ -39,7 +39,7 @@ def generate_mock_data(n_samples=5000):
     risk_score += np.random.normal(loc=0, scale=10, size=n_samples)
     
     # Threshold for dropout
-    dropout = (risk_score > 60).astype(int)
+    dropout = (risk_score > 40).astype(int)
     
     df = pd.DataFrame({
         'attendance_percentage': attendance,

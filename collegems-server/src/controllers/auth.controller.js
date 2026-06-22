@@ -1,5 +1,5 @@
 import User from "../models/User.model.js";
-import bcrypt from "bcryptjs";
+import { hashPassword, comparePassword } from "../utils/hashPassword.js";
 import jwt from "jsonwebtoken";
 import { logAction } from "../utils/auditService.js";
 import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
@@ -8,14 +8,6 @@ const COLLEGE_DOMAIN = process.env.COLLEGE_DOMAIN || "";
 const normalizeEmail = (email) => email?.trim().toLowerCase();
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const verifyPassword = async (plainPassword, storedPassword) => {
-  if (typeof storedPassword !== "string" || !storedPassword) {
-    return false;
-  }
-
-  return bcrypt.compare(plainPassword, storedPassword);
-};
 
 const generateAccessToken = (user) =>
   jwt.sign(
@@ -68,7 +60,7 @@ export const register = async (req, res) => {
     let userData = {
       name,
       email: normalizeEmail(email),
-      password: await bcrypt.hash(password, 8),
+      password: await hashPassword(password, 8),
       role,
       phone,
       dob
@@ -195,7 +187,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const match = await verifyPassword(password, user.password);
+    const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }

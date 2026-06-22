@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {Trophy, Tag, Calendar, FileText, CheckCircle, Loader2, AlertCircle, X,} from "lucide-react";
 import axios from "axios";
+import { scrollToFirstError } from "../utils/formHelpers";
 
 //  Types 
 
@@ -186,6 +187,7 @@ export default function AchievementSubmissionForm() {
     const validationErrors = validate(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      scrollToFirstError(validationErrors);
       return;
     }
 

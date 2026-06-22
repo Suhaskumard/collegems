@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { scrollToFirstError } from "../utils/formHelpers";
 
 interface Course {
   _id: string;
@@ -131,7 +132,7 @@ const ExaminationForm: React.FC = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,7 +140,11 @@ const ExaminationForm: React.FC = () => {
     setSubmitError("");
     setSubmitSuccess(false);
 
-    if (!validateForm()) return;
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -249,6 +254,7 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="studentName"
                     value={studentName}
                     onChange={(e) => {
                       setStudentName(e.target.value);
@@ -273,6 +279,7 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="rollNumber"
                     value={rollNumber}
                     onChange={(e) => {
                       setRollNumber(e.target.value);
@@ -300,6 +307,7 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="courseDept"
                     value={courseDept}
                     onChange={(e) => {
                       setCourseDept(e.target.value);
@@ -324,6 +332,7 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="semesterYear"
                     value={semesterYear}
                     onChange={(e) => {
                       setSemesterYear(e.target.value);
@@ -348,7 +357,7 @@ const ExaminationForm: React.FC = () => {
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                   Exam Type
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div id="examType" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {["Regular", "Backlog", "Improvement", "Re-evaluation"].map((type) => (
                     <button
                       key={type}
@@ -392,7 +401,7 @@ const ExaminationForm: React.FC = () => {
                     No active courses found to select subjects.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1">
+                  <div id="subjects" className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1">
                     {courses.map((course) => {
                       const isSelected = selectedSubjects.includes(course.name);
                       return (

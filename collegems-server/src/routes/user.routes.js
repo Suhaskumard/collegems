@@ -12,8 +12,9 @@ import {
   uploadResumeFile,
   getStudentSummary,
   getStudentProfile,
-  
+  bulkAssignTags,
 } from "../controllers/user.controller.js";
+import { getCleanupSuggestions } from "../services/userCleanup.service.js";
 import { uploadResume } from "../middlewares/upload.middleware.js";
 
 const router = express.Router();
@@ -70,12 +71,20 @@ router.get(
   getStudentSummary
 );
 
+router.put(
+  "/students/bulk-tags",
+  protect,
+  authorize("teacher", "hod", "admin"),
+  bulkAssignTags
+);
+
 router.get("/teachers", protect, authorize("hod", "teacher", "student"), async (req, res) => {
   const teachers = await User.find({ role: "teacher" }).select("name email role teacherId department phone");
 
   res.json(teachers);
 });
 
+// TODO: getCleanupSuggestions is not implemented yet
 // router.get("/cleanup-suggestions", protect, authorize("admin"), getCleanupSuggestions);
 
 export default router;

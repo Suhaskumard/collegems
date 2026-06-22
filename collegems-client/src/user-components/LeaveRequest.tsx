@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { scrollToFirstError } from "../utils/formHelpers";
 
 interface LeaveData {
   _id: string;
@@ -63,14 +64,18 @@ const LeaveRequest: React.FC = () => {
     if (!reason.trim()) newErrors.reason = "Reason is required";
     else if (reason.trim().length < 10) newErrors.reason = "Please provide at least 10 characters";
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError("");
     setSubmitSuccess(false);
-    if (!validateForm()) return;
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+      return;
+    }
     try {
       setSubmitting(true);
       await api.post("/leaves", {
@@ -194,7 +199,7 @@ const LeaveRequest: React.FC = () => {
             {/* Subject */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
-              <input type="text" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
+              <input type="text" name="subject" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
                 placeholder="e.g. Family event leave" className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.subject ? "border-red-400" : "border-gray-300"}`} />
               {errors.subject && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.subject}</p>}
             </div>
@@ -218,7 +223,7 @@ const LeaveRequest: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> Start Date
                 </label>
-                <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
+                <input type="date" name="startDate" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.startDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.startDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.startDate}</p>}
               </div>
@@ -226,7 +231,7 @@ const LeaveRequest: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> End Date
                 </label>
-                <input type="date" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
+                <input type="date" name="endDate" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.endDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.endDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.endDate}</p>}
               </div>
@@ -235,7 +240,7 @@ const LeaveRequest: React.FC = () => {
             {/* Reason */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
-              <textarea rows={4} value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
+              <textarea rows={4} name="reason" value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
                 placeholder="Describe the reason for your leave..."
                 className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none ${errors.reason ? "border-red-400" : "border-gray-300"}`} />
               {errors.reason && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.reason}</p>}

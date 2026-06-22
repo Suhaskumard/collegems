@@ -13,7 +13,17 @@ export const createAnnouncement = async (req, res) => {
       targetSemester,
       expiresAt,
       priority,
+      status,
     } = req.body;
+
+    if (status && !["draft", "published"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be 'draft' or 'published'",
+      });
+    }
+
+    const announcementStatus = status || "published";
 
     const announcement = new Announcement({
       title,
@@ -24,6 +34,7 @@ export const createAnnouncement = async (req, res) => {
       targetSemester: targetSemester || null,
       expiresAt: expiresAt || null,
       priority: priority || "medium",
+      status: announcementStatus,
     });
 
     await announcement.save();
@@ -35,7 +46,9 @@ export const createAnnouncement = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Announcement created successfully",
+      message: announcementStatus === "draft"
+        ? "Announcement saved as draft"
+        : "Announcement published successfully",
       data: populated,
     });
   } catch (error) {
@@ -53,9 +66,10 @@ export const getMyAnnouncements = async (req, res) => {
     // Build audience filter:
     const filter = {
       isActive: true,
-      $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
       $and: [
-        // Role filter
+        // Only show published announcements (treat missing status as published)
+        { $or: [{ status: "published" }, { status: { $exists: false } }] },
+        { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
         { $or: [{ targetRole: "all" }, { targetRole: role }] },
         // Course filter
         {
@@ -92,7 +106,7 @@ export const getMyAnnouncements = async (req, res) => {
 // TODO: Add targetClub after club/society management (#171) is implemented.
 export const getAllAnnouncements = async (req, res) => {
   try {
-    const { targetRole, targetCourse, targetSemester, isActive } =
+    const { targetRole, targetCourse, targetSemester, isActive, status } =
       req.query;
 
     const filter = {};
@@ -100,8 +114,22 @@ export const getAllAnnouncements = async (req, res) => {
     if (targetCourse) filter.targetCourse = targetCourse;
     if (targetSemester) filter.targetSemester = targetSemester;
     if (isActive !== undefined) filter.isActive = isActive === "true";
+    if (status) filter.status = status;
 
-    const announcements = await Announcement.find(filter)
+    const visibilityFilter = {
+      $or: [
+        { status: "published" },
+        { status: { $exists: false } },
+        { postedBy: req.user.id }
+      ]
+    };
+
+    const finalFilter = {
+      ...filter,
+      ...visibilityFilter,
+    };
+
+    const announcements = await Announcement.find(finalFilter)
       .populate("postedBy", "name email role")
       .sort({ createdAt: -1 });
 
@@ -149,11 +177,19 @@ export const updateAnnouncement = async (req, res) => {
     // Teachers can only edit their own announcements
     if (
       req.user.role === "teacher" &&
-      announcement.postedBy.toString() !== req.user._id.toString()
+      announcement.postedBy.toString() !== req.user.id
     ) {
       return res
         .status(403)
         .json({ success: false, message: "Access denied" });
+    }
+
+    // Validate status value
+    if (req.body.status && !["draft", "published"].includes(req.body.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be 'draft' or 'published'",
+      });
     }
 
     const allowed = [
@@ -165,6 +201,7 @@ export const updateAnnouncement = async (req, res) => {
       "expiresAt",
       "priority",
       "isActive",
+      "status",
     ];
 
     allowed.forEach((field) => {
@@ -201,7 +238,7 @@ export const deleteAnnouncement = async (req, res) => {
 
     if (
       req.user.role === "teacher" &&
-      announcement.postedBy.toString() !== req.user._id.toString()
+      announcement.postedBy.toString() !== req.user.id
     ) {
       return res
         .status(403)

@@ -8,6 +8,7 @@ import {
   getRooms,
   getTimeSlots,
   getRules,
+  getSuggestions,
 } from "../controllers/timetable.controller.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get("/rules", getRules);
 
 // Generation and retrieval routes
 router.post("/generate", generateTimetable);
+router.get("/suggestions", getSuggestions); // Place before /:id to avoid treating "suggestions" as an ID
 router.get("/", getTimetables);
 router.get("/:id", getTimetableStatus);
 router.get("/:id/entries", getTimetableEntries);
