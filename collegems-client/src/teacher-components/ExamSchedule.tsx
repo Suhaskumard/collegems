@@ -135,7 +135,7 @@ const ExamSchedule: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "short", year: "numeric", month: "short", day: "numeric",
+      weekday: "short", year: "numeric", month: "short", day: "numeric", timeZone: "UTC"
     });
   };
 
@@ -146,7 +146,7 @@ const ExamSchedule: React.FC = () => {
     return `${Math.floor(dur / 60)}h ${dur % 60}m`;
   };
 
-  const isUpcoming = (date: string) => new Date(date) > new Date();
+  const isUpcoming = (date: string) => date > new Date().toLocaleDateString('en-CA');
 
   const stats = {
     total: examSchedules.length,

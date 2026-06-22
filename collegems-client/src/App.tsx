@@ -7,9 +7,6 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import BulkFieldReset from "./hod-components/BulkFieldReset";
 
 import TimeTable from "./user-components/TimeTable";
- import StudentDashboard from "./pages/StudentDashboard";
-import TimeTable from "./user-components/TimeTable";
-
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
@@ -77,11 +74,6 @@ export default function App() {
           {/* <Route path="/calendar" element={<AcademicCalendar />} /> */}
           <Route path="/calendar" element={<AcademicCalendar />} />
 
-          {/* Student/User Pages */}
-          <Route path="/examschedule" element={<ExamSchedule />} />
-          <Route path="/results" element={<StudentResults />} />
-          <Route path="/events" element={<EventsStudent />} />
-
 
           <Route
             path="/courses"
@@ -109,7 +101,6 @@ export default function App() {
           {/* Your Added Feature */}
           <Route path="/lost-found" element={<LostFoundPortal />} />
 
-          <Route path="/timetable" element={<TimeTable />} />
 
           {/* Existing Project Features */}
           <Route path="/library" element={<Library />} />
@@ -253,7 +244,7 @@ export default function App() {
     </RoleRoute>
   }
 />
-     </Routes>
+
 
         <Route
           path="/parent/dashboard"

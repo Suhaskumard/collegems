@@ -42,7 +42,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/users/profile') || 
+            urlPattern: ({ url }: any) => url.pathname.startsWith('/api/users/profile') || 
                                      url.pathname.startsWith('/api/attendance') ||
                                      url.pathname.startsWith('/api/notices') ||
                                      url.pathname.startsWith('/api/results') ||
@@ -60,7 +60,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: ({ request }) => request.destination === 'image',
+            urlPattern: ({ request }: any) => request.destination === 'image',
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'images-cache',

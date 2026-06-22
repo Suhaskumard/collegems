@@ -28,7 +28,7 @@ const checkConflict = async (resourceId, startTime, endTime, excludeBookingId = 
   const start = new Date(startTime);
   const end = new Date(endTime);
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const startDay = days[start.getDay()];
+  const startDay = days[start.getUTCDay()];
 
   const classes = await Class.find({
     room: new RegExp(`^${resource.name}$`, "i"),
@@ -43,10 +43,10 @@ const checkConflict = async (resourceId, startTime, endTime, excludeBookingId = 
       if (timeMatch[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
 
       const classStart = new Date(start);
-      classStart.setHours(hours, minutes, 0, 0);
+      classStart.setUTCHours(hours, minutes, 0, 0);
 
       const classEnd = new Date(classStart);
-      classEnd.setHours(hours + 1); // Assuming 1 hour classes
+      classEnd.setUTCHours(hours + 1); // Assuming 1 hour classes
 
       if (classStart < end && classEnd > start) {
         return { status: "approved", isClass: true }; // Dummy conflict object for Class
@@ -93,7 +93,7 @@ export const getAvailableResources = async (req, res) => {
 
     // Filter out classrooms that have regular classes during this time
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const startDay = days[start.getDay()];
+    const startDay = days[start.getUTCDay()];
 
     const classes = await Class.find({ schedule: { $regex: startDay, $options: "i" } });
     const conflictingRoomNames = new Set();
@@ -108,10 +108,10 @@ export const getAvailableResources = async (req, res) => {
         if (timeMatch[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
         
         const classStart = new Date(start);
-        classStart.setHours(hours, minutes, 0, 0);
+        classStart.setUTCHours(hours, minutes, 0, 0);
         
         const classEnd = new Date(classStart);
-        classEnd.setHours(hours + 1);
+        classEnd.setUTCHours(hours + 1);
         
         if (classStart < end && classEnd > start) {
           conflictingRoomNames.add(c.room.trim().toLowerCase());
