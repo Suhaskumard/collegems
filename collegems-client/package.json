@@ -35,6 +35,7 @@
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
     "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7",
     "tailwindcss": "^4.1.18",
     "xlsx": "^0.18.5",
     "y-quill": "^1.0.0",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import {
@@ -47,6 +48,8 @@ export default function HODCourses() {
   const [filter, setFilter] = useState("all");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<{id: string, name: string} | null>(null);
 
   // Form states
   const [name, setName] = useState("");
@@ -97,17 +100,24 @@ export default function HODCourses() {
     }
   };
 
-  const deleteCourse = async (courseId: string) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
-    try {
-      await api.delete(`/courses/delete/${courseId}`);
-      alert("Course deleted successfully");
-      fetchCourses();
-    } catch (error) {
-      console.log(error);
-      alert("Failed to delete course");
-    }
-  };
+  
+const handleDeleteClick = (courseId: string, courseName: string) => {
+  setCourseToDelete({ id: courseId, name: courseName });
+  setDeleteModalOpen(true);
+};
+
+const deleteCourse = async () => {
+  if (!courseToDelete) return;
+  try {
+    await api.delete(`/courses/delete/${courseToDelete.id}`);
+    setCourses(prev => prev.filter(c => c._id !== courseToDelete.id));
+    setDeleteModalOpen(false);
+    setCourseToDelete(null);
+  } catch (err) {
+    console.error("Failed to delete course", err);
+    setDeleteModalOpen(false);
+  }
+};
 
   useEffect(() => {
     fetchCourses();
@@ -407,7 +417,7 @@ export default function HODCourses() {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => deleteCourse(course._id)}
+                        onClick={() => handleDeleteClick(course._id, course.name)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete course"
                       >
@@ -635,6 +645,12 @@ export default function HODCourses() {
           </div>
         </div>
       )}
+          <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onConfirm={deleteCourse}
+        onCancel={() => { setDeleteModalOpen(false); setCourseToDelete(null); }}
+        itemName={courseToDelete?.name}
+          />
     </div>
   );
 }
