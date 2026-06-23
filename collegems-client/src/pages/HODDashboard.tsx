@@ -32,6 +32,9 @@ import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
 import DataLocks from "../hod-components/DataLocks";
 import { SequenceRepair } from "../common-components-management/SequenceRepair";
+import FormAbandonmentStats from "../hod-components/FormAbandonmentStats";
+import WorkflowAdmin from "../hod-components/WorkflowAdmin";
+import WorkflowApprovals from "../hod-components/WorkflowApprovals";
 
 // Pages
 import RiskDashboard from "./RiskDashboard";
@@ -73,7 +76,10 @@ type TabType =
   | "system-health"
   | "freeze-semesters"
   | "data-locks"
-  | "sequence-repair";
+  | "sequence-repair"
+  | "form-insights"
+  | "workflow-admin"
+  | "workflow-approvals";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -150,7 +156,10 @@ export default function HODDashboard() {
     { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
     { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
     { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
+    { id: "form-insights" as TabType, label: "Form Insights", icon: Activity },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
+    { id: "workflow-admin" as TabType, label: "Workflow Builder", icon: Settings },
+    { id: "workflow-approvals" as TabType, label: "Pending Approvals", icon: Activity },
   ];
 
   // Fetch data on mount
@@ -432,7 +441,10 @@ export default function HODDashboard() {
         { activeTab === "freeze-semesters" && <SemesterManagement /> }
         { activeTab === "data-locks" && <DataLocks /> }
         { activeTab === "sequence-repair" && <SequenceRepair /> }
+        { activeTab === "form-insights" && <FormAbandonmentStats /> }
         { activeTab === "risk-dashboard" && <RiskDashboard /> }
+        { activeTab === "workflow-admin" && <WorkflowAdmin /> }
+        { activeTab === "workflow-approvals" && <WorkflowApprovals /> }
       </>
     );
   };

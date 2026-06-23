@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ownershipPlugin from "../plugins/ownershipPlugin.js";
 
 const LEADERSHIP_ROLES = [
   "member",
@@ -113,6 +114,7 @@ const clubSchema = new mongoose.Schema(
 );
 
 clubSchema.index({ "members.user": 1 });
+clubSchema.plugin(ownershipPlugin);
 
 export const ROLES = LEADERSHIP_ROLES;
 export default mongoose.model("Club", clubSchema);

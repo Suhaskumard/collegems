@@ -101,6 +101,10 @@ export const publishResult = async (req, res) => {
             resultId: result._id,
             timestamp: new Date()
         });
+        await Student.findByIdAndUpdate(
+          result.studentId,
+          { academicRecordLocked: true }
+        );
     } catch (error) {
         if (error.status === 403) return res.status(403).json({ message: error.message });
         res.status(500).json({ message: "Publish failed" });

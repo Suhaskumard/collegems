@@ -55,6 +55,18 @@ export const updateMe = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+   if (
+     user.academicRecordLocked &&
+     (
+       req.body.studentId !== undefined ||
+       req.body.semester !== undefined ||
+       req.body.course !== undefined
+    )
+  ) {
+    return res.status(403).json({
+      message: "Academic record is locked after result publication",
+    });
+  }
 
     if (email && email !== user.email) {
       const existing = await User.findOne({ email });
@@ -312,5 +324,31 @@ export const bulkAssignTags = async (req, res) => {
   } catch (error) {
     console.error("Error in bulkAssignTags:", error);
     res.status(500).json({ message: "Server error assigning tags" });
+  }
+};
+
+export const unlockAcademicRecord = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { academicRecordLocked: false },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      message: "Academic record unlocked successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Unlock academic record error:", error);
+    res.status(500).json({
+      message: "Failed to unlock academic record",
+    });
   }
 };

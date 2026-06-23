@@ -36,6 +36,8 @@ import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
 import StudentSeatView from "./user-components/StudentSeatView";
+import BackToTop from "./components/BackToTop";
+import PendingChangesBar from "./components/PendingChangesBar";
 import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
@@ -45,13 +47,16 @@ import AnnouncementManage from "./common-components-management/AnnouncementManag
 
 import { PwaManager } from "./components/PwaManager";
 
-import BackToTop from "./components/BackToTop";
-
 export default function App() {
   return (
     <BrowserRouter>
       <PwaManager />
       <BackToTop />
+      <PendingChangesBar onCommit={async (changes) => {
+        // Default commit handler, can be customized or context-driven
+        console.log("Committing changes:", changes);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }} />
       <Routes>
         {/* Public Routes */}
         <Route
@@ -80,11 +85,6 @@ export default function App() {
           {/* <Route path="/calendar" element={<AcademicCalendar />} /> */}
           <Route path="/calendar" element={<AcademicCalendar />} />
 
-          {/* Student/User Pages */}
-          <Route path="/examschedule" element={<ExamSchedule />} />
-          <Route path="/results" element={<StudentResults />} />
-          <Route path="/events" element={<EventsStudent />} />
-
 
           <Route
             path="/courses"
@@ -112,7 +112,6 @@ export default function App() {
           {/* Your Added Feature */}
           <Route path="/lost-found" element={<LostFoundPortal />} />
 
-          <Route path="/timetable" element={<TimeTable />} />
 
           {/* Existing Project Features */}
           <Route path="/library" element={<Library />} />

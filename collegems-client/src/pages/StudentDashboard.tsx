@@ -61,6 +61,7 @@ import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementsView from "../user-components/AnnouncementsView";
 import SemesterComparison from "../user-components/SemesterComparison";
+import UserWorkflows from "../user-components/UserWorkflows";
 
 // HOD Components
 import Teachers from "../hod-components/Teachers";
@@ -90,6 +91,7 @@ type TabType =
   | "book-resources"
   | "subject-faculty"
   | "semester-comparison"
+  | "user-workflows"
   | "settings";
 
 
@@ -122,6 +124,7 @@ const navigationItems: {
   { id: "placement", label: "Placement", icon: Briefcase },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   { id: "book-resources", label: "Book Resources", icon: CalendarDays },
+  { id: "user-workflows", label: "My Workflows", icon: FileText },
 ];
 
 export default function StudentDashboard() {
@@ -634,6 +637,7 @@ export default function StudentDashboard() {
               {activeTab === "subject-faculty" && <Teachers />}
               {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "placement" && <PlacementEligibility />}
+              {activeTab === "user-workflows" && <UserWorkflows />}
               
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">

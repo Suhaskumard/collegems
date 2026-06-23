@@ -103,9 +103,9 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
     return filteredEvents.filter((e) => {
       const eDate = new Date(e.date);
       return (
-        eDate.getDate() === day &&
-        eDate.getMonth() === month &&
-        eDate.getFullYear() === year
+        eDate.getUTCDate() === day &&
+        eDate.getUTCMonth() === month &&
+        eDate.getUTCFullYear() === year
       );
     });
   };
@@ -353,7 +353,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
               <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400 pt-1">
                 <div className="flex items-center gap-1.5">
                   <CalendarIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                  <span>{new Date(selectedEvent.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  <span>{new Date(selectedEvent.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
                 </div>
                 {(selectedEvent.startTime || selectedEvent.endTime) && (
                   <div className="flex items-center gap-1.5">

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ownershipPlugin from "../plugins/ownershipPlugin.js";
 
 const EventsSchema = new mongoose.Schema(
     {
@@ -151,6 +152,8 @@ const EventsSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+EventsSchema.plugin(ownershipPlugin);
 
 const Event = mongoose.model("Event", EventsSchema);
 

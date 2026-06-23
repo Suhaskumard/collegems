@@ -13,6 +13,7 @@ import {
   getStudentSummary,
   getStudentProfile,
   bulkAssignTags,
+  unlockAcademicRecord,
 } from "../controllers/user.controller.js";
 import { getCleanupSuggestions } from "../services/userCleanup.service.js";
 import { uploadResume } from "../middlewares/upload.middleware.js";
@@ -86,5 +87,11 @@ router.get("/teachers", protect, authorize("hod", "teacher", "student"), async (
 
 // TODO: getCleanupSuggestions is not implemented yet
 // router.get("/cleanup-suggestions", protect, authorize("admin"), getCleanupSuggestions);
+router.put(
+  "/students/:id/unlock",
+  protect,
+  authorize("admin"),
+  unlockAcademicRecord
+);
 
 export default router;

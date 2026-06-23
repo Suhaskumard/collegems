@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
 
   // Student/Alumni-specific fields
   studentId: { type: String },
+  academicRecordLocked: {
+    type: Boolean,
+    default: false,
+  },
   semester: {
     type: String,
     required: function () {

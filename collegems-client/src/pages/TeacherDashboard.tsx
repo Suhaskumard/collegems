@@ -39,6 +39,7 @@ import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
 import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
+import UserWorkflows from "../user-components/UserWorkflows";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -126,6 +127,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
+    { id: "user-workflows", label: "My Workflows", icon: FileText },
   ];
 
   const activeTabLabel = activeTab === "settings" ? "Settings"
@@ -404,6 +406,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "clubs" && <Clubs />}
           {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
+          {activeTab === "user-workflows" && <UserWorkflows />}
           {activeTab === "announcements" && (
             <div className="space-y-8">
               <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />

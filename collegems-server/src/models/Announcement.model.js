@@ -63,6 +63,11 @@ const AnnouncementSchema = new mongoose.Schema(
       default: true,
     },
 
+    isSilent: {
+      type: Boolean,
+      default: false,
+    },
+
     status: {
       type: String,
       enum: ["draft", "published"],

@@ -166,7 +166,8 @@ export default function EventsStudent() {
             weekday: 'short',
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            timeZone: 'UTC'
         });
     };
 
