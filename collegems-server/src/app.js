@@ -4,7 +4,6 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import mongoose from "mongoose";
-import analyticsRoutes from './analyticsRoutes.js';
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
 
@@ -48,7 +47,6 @@ app.use(express.json());
 
 // Correlation ID Tracking & Request Logging
 app.use(httpContext.middleware);
-router.use('/analytics', analyticsRoutes);
 app.use((req, res, next) => {
   const correlationId = req.headers['x-correlation-id'] || uuidv4();
   httpContext.set('correlationId', correlationId);
