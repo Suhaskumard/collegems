@@ -584,25 +584,38 @@ export const exportCSV = async (req, res) => {
       return res.status(404).json({ message: "Allocation not found" });
     }
 
+    const { fields } = req.query;
+    const allHeaders = ["Hall Name", "Seat Number", "Student Name", "Roll Number", "Department"];
+    const selectedHeaders = fields ? fields.split(",").map(f => f.trim()) : allHeaders;
+    const validHeaders = selectedHeaders.filter(h => allHeaders.includes(h));
+
+    if (validHeaders.length === 0) {
+      return res.status(400).json({ message: "No valid fields selected for export." });
+    }
+
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", `attachment; filename=hall-allocation-${allocation._id}.csv`);
 
     // CSV header
-    const rows = ["Hall Name,Seat Number,Student Name,Roll Number,Department"];
+    const rows = [validHeaders.join(",")];
 
     for (const hallGroup of allocation.allocations) {
       for (const seat of hallGroup.seats) {
-        // Escape fields that might contain commas
-        const hallName = `"${(hallGroup.hallName || "").replace(/"/g, '""')}"`;
-        const studentName = `"${(seat.studentName || "").replace(/"/g, '""')}"`;
-        const rollNumber = `"${(seat.rollNumber || "").replace(/"/g, '""')}"`;
-        const department = `"${(seat.department || "").replace(/"/g, '""')}"`;
+        // Map row data
+        const rowData = {
+          "Hall Name": `"${(hallGroup.hallName || "").replace(/"/g, '""')}"`,
+          "Seat Number": seat.seatNumber,
+          "Student Name": `"${(seat.studentName || "").replace(/"/g, '""')}"`,
+          "Roll Number": `"${(seat.rollNumber || "").replace(/"/g, '""')}"`,
+          "Department": `"${(seat.department || "").replace(/"/g, '""')}"`
+        };
 
-        rows.push(`${hallName},${seat.seatNumber},${studentName},${rollNumber},${department}`);
+        const row = validHeaders.map(header => rowData[header]);
+        rows.push(row.join(","));
       }
     }
 
-    res.send(rows.join("\n"));
+    res.send(rows.join("\\n"));
   } catch (error) {
     console.error("Error exporting CSV:", error);
     res.status(500).json({ message: "Failed to export CSV" });

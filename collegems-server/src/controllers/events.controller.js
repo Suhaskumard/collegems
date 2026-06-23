@@ -2,11 +2,30 @@ import Event from "../models/Events.model.js";
 import EventAttendance from "../models/EventAttendance.model.js";
 import crypto from "crypto";
 import User from "../models/User.model.js";
+import { checkScheduleConflicts } from "../services/calendarValidation.service.js";
 
 
 // CREATE
 export const createEvent = async (req, res) => {
     try {
+        const { date, startTime, endTime } = req.body;
+        
+        if (date) {
+            const validation = await checkScheduleConflicts({
+                date,
+                startTime: startTime || "",
+                endTime: endTime || ""
+            });
+
+            if (validation.hasConflict) {
+                return res.status(409).json({
+                    success: false,
+                    message: validation.conflictMessage,
+                    conflictDetails: validation.conflictDetails
+                });
+            }
+        }
+
         const event = new Event(req.body);
         await event.save();
 
@@ -53,6 +72,32 @@ export const getEventById = async (req, res) => {
 // update event - admin only
 export const updateEvent = async (req, res) => {
     try {
+        const existingEvent = await Event.findById(req.params.id);
+        if (!existingEvent) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        const newDate = req.body.date || existingEvent.date;
+        const newStartTime = req.body.startTime !== undefined ? req.body.startTime : existingEvent.startTime;
+        const newEndTime = req.body.endTime !== undefined ? req.body.endTime : existingEvent.endTime;
+
+        if (newDate) {
+            const validation = await checkScheduleConflicts({
+                date: newDate,
+                startTime: newStartTime || "",
+                endTime: newEndTime || "",
+                excludeId: req.params.id
+            });
+
+            if (validation.hasConflict) {
+                return res.status(409).json({
+                    success: false,
+                    message: validation.conflictMessage,
+                    conflictDetails: validation.conflictDetails
+                });
+            }
+        }
+
         const event = await Event.findByIdAndUpdate(
             req.params.id,
             req.body,

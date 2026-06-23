@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import {
   User, Mail, Lock, GraduationCap, Users, Shield, Building2,
   Hash, ChevronRight, ArrowLeft, School, Briefcase, IdCard,
-  Moon, Sun,
+  Moon, Sun, AlertTriangle, X
 } from "lucide-react";
 import api from "../../api/axios";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; 
@@ -17,11 +17,46 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
+  const [passwordStrength, setPasswordStrength] = useState<"" | "Weak" | "Medium" | "Strong">("");
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError("");
   };
+
+    // Add this after handleChange function
+  const getPasswordStrength = (password: string): "" | "Weak" | "Medium" | "Strong" => {
+    if (!password) return "";
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (score <= 1) return "Weak";
+    if (score <= 3) return "Medium";
+    return "Strong";
+  };
+
+  const handleTogglePassword = () => {
+    if (!showPassword) {
+      setShowPassword(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => {
+        setShowPassword(false);
+      }, 3000);
+    } else {
+      setShowPassword(false);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
   
   const handleRegister = async () => {
     if (loading) return;
@@ -35,16 +70,24 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/register", { ...form, role });
+      const payload = { ...form, role };
+      if (duplicateWarning) {
+        payload.overrideDuplicates = true;
+      }
+      const res = await api.post("/auth/register", payload);
+      
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("userId", res.data.user.id);
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       setForm({});
+      setDuplicateWarning(null);
       const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
       navigate(routes[res.data.user.role] || "/");
     } catch (err: any) {
-      if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
+      if (err.response?.status === 409 && err.response?.data?.isDuplicateWarning) {
+        setDuplicateWarning(err.response.data);
+      } else if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
         setError(err.response.data.errors[0].msg);
       } else {
         setError(err.response?.data?.message || "Registration failed");
@@ -148,7 +191,7 @@ export default function Register() {
               <label htmlFor="name" className={labelClass}>Full Name *</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><User className="h-4 w-4 text-gray-400" /></div>
-                <input id="name" name="name" type="text" value={form.name || ""} onChange={handleChange} className={inputClass} placeholder="John Doe" />
+                <input id="name" name="name" type="text" value={form.name || ""} onChange={handleChange} disabled={loading} className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} placeholder="John Doe" />
               </div>
             </div>
 
@@ -156,23 +199,53 @@ export default function Register() {
               <label htmlFor="email" className={labelClass}>Email Address *</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Mail className="h-4 w-4 text-gray-400" /></div>
-                <input id="email" name="email" type="email" value={form.email || ""} onChange={handleChange} className={inputClass} placeholder="you@example.com" />
+                <input id="email" name="email" type="email" value={form.email || ""} onChange={handleChange} disabled={loading} className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} placeholder="you@example.com" />
               </div>
             </div>
 
+            
             <div>
             <label htmlFor="password" className={labelClass}>Password *</label>
              <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
-                <input id="password" name="password" type={showPassword ? "text" : "password"} value={form.password || ""} onChange={handleChange} className={inputClass} placeholder="••••••••" />
+              <input id="password" name="password" type={showPassword ? "text" : "password"} value={form.password || ""} onChange={handleChange} disabled={loading} className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} placeholder="••••••••" />
                 <button
-                 type="button"
-                 onClick={() => setShowPassword(!showPassword)}
-                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                 >
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                  {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                 </button>
               </div>
+                
+              {/* Password Strength Indicator */}
+              {passwordStrength && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Password strength:</span>
+                    <span className={`text-xs font-medium ${
+                      passwordStrength === "Weak" ? "text-red-500" :
+                      passwordStrength === "Medium" ? "text-yellow-500" :
+                      "text-green-500"
+                    }`}>
+                      {passwordStrength}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${
+                      passwordStrength === "Weak" ? "w-1/3 bg-red-500" :
+                      passwordStrength === "Medium" ? "w-2/3 bg-yellow-500" :
+                      "w-full bg-green-500"
+                    }`} />
+                  </div>
+                  {showPassword && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      🔒 Password will auto-hide in 3 seconds
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Student Fields */}
@@ -320,6 +393,52 @@ export default function Register() {
           </p>
         </div>
       </div>
+
+      {/* Duplicate Warning Modal */}
+      {duplicateWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/20">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="font-bold">Potential Duplicate Found</h3>
+              </div>
+              <button onClick={() => setDuplicateWarning(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                We found existing users that match the details you provided. Creating a duplicate may cause issues.
+              </p>
+              <div className="max-h-48 overflow-y-auto mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                {duplicateWarning.matches?.map((match: any, idx: number) => (
+                  <div key={idx} className="p-3 border-b border-gray-100 dark:border-gray-700 last:border-0 bg-gray-50 dark:bg-gray-800">
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{match.name} ({match.role})</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Matched on: {match.matchReason}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Create Anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

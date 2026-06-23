@@ -4,12 +4,13 @@ export const getPaginatedData = async (Model, query, options = {}) => {
     populate = [],
     select = "",
     defaultSort = { createdAt: -1 },
-    baseFilter = {}
+    baseFilter = {},
+    defaultLimit = 10,
   } = options;
 
   // 1. Pagination
   const page = parseInt(query.page, 10) || 1;
-  const limit = parseInt(query.limit, 10) || 10;
+  const limit = parseInt(query.limit, 10) || defaultLimit;
   const skip = (page - 1) * limit;
 
   // 2. Sorting

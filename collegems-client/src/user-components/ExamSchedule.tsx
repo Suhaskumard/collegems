@@ -71,14 +71,14 @@ const ExamSchedule: React.FC = () => {
   };
 
   const getUpcomingExams = () => {
-    const today = new Date();
-    return examSchedules.filter((exam) => new Date(exam.examDate) >= today).length;
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    return examSchedules.filter((exam) => exam.examDate >= todayStr).length;
   };
 
   const getTodayExams = () => {
-    const today = new Date().toDateString();
+    const todayStr = new Date().toLocaleDateString('en-CA');
     return examSchedules.filter(
-      (exam) => new Date(exam.examDate).toDateString() === today
+      (exam) => exam.examDate === todayStr
     ).length;
   };
 
@@ -269,10 +269,9 @@ const ExamSchedule: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {filteredExams.map((exam) => {
-                      const examDate = new Date(exam.examDate);
-                      const today = new Date();
-                      const isToday = examDate.toDateString() === today.toDateString();
-                      const isUpcoming = examDate > today;
+                      const localTodayStr = new Date().toLocaleDateString('en-CA');
+                      const isToday = exam.examDate === localTodayStr;
+                      const isUpcoming = exam.examDate > localTodayStr;
 
                       return (
                         <tr key={exam._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
@@ -296,7 +295,7 @@ const ExamSchedule: React.FC = () => {
                             <div className="space-y-1">
                               <div className="flex items-center text-sm text-gray-900 dark:text-white">
                                 <Calendar className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
-                                {examDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                {new Date(exam.examDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                               </div>
                               <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                                 <Clock className="w-3.5 h-3.5 text-gray-400 mr-1.5" />

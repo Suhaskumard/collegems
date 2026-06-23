@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { scrollToFirstError } from "../utils/formHelpers";
+import useFormTracker from "../hooks/useFormTracker";
 
 interface Course {
   _id: string;
@@ -33,6 +35,8 @@ const ExaminationForm: React.FC = () => {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const { trackField, markSubmitted } = useFormTracker({ formId: "examination_form" });
 
   // Form Fields
   const [studentName, setStudentName] = useState("");
@@ -99,6 +103,7 @@ const ExaminationForm: React.FC = () => {
     if (errors.subjects) {
       setErrors((prev) => ({ ...prev, subjects: "" }));
     }
+    trackField("subjects", 6);
   };
 
   const validateForm = () => {
@@ -131,7 +136,7 @@ const ExaminationForm: React.FC = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,7 +144,11 @@ const ExaminationForm: React.FC = () => {
     setSubmitError("");
     setSubmitSuccess(false);
 
-    if (!validateForm()) return;
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -154,6 +163,7 @@ const ExaminationForm: React.FC = () => {
 
       await api.post("/exam-forms", payload);
       setSubmitSuccess(true);
+      markSubmitted();
       setSelectedSubjects([]);
       setExamType("");
       
@@ -249,11 +259,13 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="studentName"
                     value={studentName}
                     onChange={(e) => {
                       setStudentName(e.target.value);
                       if (errors.studentName) setErrors((prev) => ({ ...prev, studentName: "" }));
                     }}
+                    onBlur={() => trackField("studentName", 6)}
                     placeholder="Enter full name"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.studentName ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -273,11 +285,13 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="rollNumber"
                     value={rollNumber}
                     onChange={(e) => {
                       setRollNumber(e.target.value);
                       if (errors.rollNumber) setErrors((prev) => ({ ...prev, rollNumber: "" }));
                     }}
+                    onBlur={() => trackField("rollNumber", 6)}
                     placeholder="Enter student ID"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.rollNumber ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -300,11 +314,13 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="courseDept"
                     value={courseDept}
                     onChange={(e) => {
                       setCourseDept(e.target.value);
                       if (errors.courseDept) setErrors((prev) => ({ ...prev, courseDept: "" }));
                     }}
+                    onBlur={() => trackField("courseDept", 6)}
                     placeholder="e.g. Computer Science & Engineering"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.courseDept ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -324,11 +340,13 @@ const ExaminationForm: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    name="semesterYear"
                     value={semesterYear}
                     onChange={(e) => {
                       setSemesterYear(e.target.value);
                       if (errors.semesterYear) setErrors((prev) => ({ ...prev, semesterYear: "" }));
                     }}
+                    onBlur={() => trackField("semesterYear", 6)}
                     placeholder="e.g. Semester 6 or Year 3"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.semesterYear ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -348,7 +366,7 @@ const ExaminationForm: React.FC = () => {
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                   Exam Type
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div id="examType" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {["Regular", "Backlog", "Improvement", "Re-evaluation"].map((type) => (
                     <button
                       key={type}
@@ -356,6 +374,7 @@ const ExaminationForm: React.FC = () => {
                       onClick={() => {
                         setExamType(type);
                         if (errors.examType) setErrors((prev) => ({ ...prev, examType: "" }));
+                        trackField("examType", 6);
                       }}
                       className={`px-4 py-3 rounded-xl border text-xs font-semibold transition-all ${
                         examType === type
@@ -392,7 +411,7 @@ const ExaminationForm: React.FC = () => {
                     No active courses found to select subjects.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1">
+                  <div id="subjects" className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1">
                     {courses.map((course) => {
                       const isSelected = selectedSubjects.includes(course.name);
                       return (

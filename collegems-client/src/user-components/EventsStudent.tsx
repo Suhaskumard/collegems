@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { addRecentHistory } from "../api/history";
 import { Scanner } from '@yudiel/react-qr-scanner';
 import {
   Calendar,
@@ -130,6 +131,12 @@ export default function EventsStudent() {
     const handleViewDetails = (event: Event) => {
         setSelectedevent(event);
         setShowModal(true);
+        addRecentHistory({
+            entityType: "Event",
+            entityId: event._id,
+            displayName: event.title,
+            url: `/events` // or a direct link if there is one
+        }).catch(console.error);
     };
 
     const closeModal = () => {
@@ -159,7 +166,8 @@ export default function EventsStudent() {
             weekday: 'short',
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            timeZone: 'UTC'
         });
     };
 

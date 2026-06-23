@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
 
 interface Teacher {
   _id?: string;
@@ -116,6 +117,11 @@ const Teachers: React.FC = () => {
   const inputCls = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
   const selectCls = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
+  const handleApplySavedFilter = (savedFilters: any) => {
+    if (savedFilters.searchTerm !== undefined) setSearchTerm(savedFilters.searchTerm);
+    if (savedFilters.filterDepartment !== undefined) setFilterDepartment(savedFilters.filterDepartment);
+  };
+
   return (
     <div className="space-y-6 p-10 bg-gray-50 dark:bg-gray-950 min-h-screen">
       {/* Stats Cards */}
@@ -175,6 +181,11 @@ const Teachers: React.FC = () => {
             >
               <Filter className="w-4 h-4" /> Filters
             </button>
+            <SavedFiltersMenu 
+              dashboardName="HODTeachers" 
+              currentFilters={{ searchTerm, filterDepartment }} 
+              onApplyFilter={handleApplySavedFilter} 
+            />
             <button
               onClick={fetchTeachers}
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

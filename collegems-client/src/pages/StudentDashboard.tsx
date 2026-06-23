@@ -27,13 +27,20 @@ import {
   Briefcase,
   GraduationCap,
   Users,
+  UserCircle, // Added for the ID Card icon
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
+
+// Common Components
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import AssignmentReminder from "../common-components-management/AssignmentReminder";
 import BusRoutes from "../common-components-management/BusRoutes";
 import Library from "../common-components-management/Library";
+import NotificationBell from "../common-components-management/NotificationBell";
+import Scholarships from "../common-components-management/Scholarships";
+
+// Student Components
 import Assignment from "../user-components/Assignment";
 import Attendance from "../user-components/Attendance";
 import Courses from "../user-components/Courses";
@@ -46,23 +53,18 @@ import LeaveRequest from "../user-components/LeaveRequest";
 import StudentAchievements from "../user-components/StudentAchievements";
 import ProfileCompletionCard from "../user-components/ProfileCompletionCard";
 import PlacementEligibility from "../user-components/PlacementEligibility";
-import NotificationBell from "../common-components-management/NotificationBell";
-
-import Scholarships from "../common-components-management/Scholarships";
-// import IDCard from "../user-components/IDCard";
-import Teachers from "../hod-components/Teachers";
-import FacultyView from "../user-components/FacultyView";
-
-
-import Scholarships from "../common-components-management/Scholarships";
 import IDCard from "../user-components/IDCard";
-
+import FacultyView from "../user-components/FacultyView";
 import StudentResults from "../user-components/StudentResults";
 import StudentSeatView from "../user-components/StudentSeatView";
 import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
-
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementsView from "../user-components/AnnouncementsView";
+import SemesterComparison from "../user-components/SemesterComparison";
+import UserWorkflows from "../user-components/UserWorkflows";
+
+// HOD Components
+import Teachers from "../hod-components/Teachers";
 
 type TabType =
   | "overview"
@@ -88,49 +90,41 @@ type TabType =
   | "bus-routes"
   | "book-resources"
   | "subject-faculty"
+  | "semester-comparison"
+  | "user-workflows"
   | "settings";
 
-// Fixed: Added explicit type and fixed subject-faculty item
+
+// Consolidated and cleaned navigation items
 const navigationItems: {
   id: TabType;
   label: string;
   icon: any;
 }[] = [
-  { id: "overview" as TabType, label: "Overview", icon: LayoutGrid },
-  { id: "announcements" as TabType, label: "Announcements", icon: Bell },
-  { id: "attendance" as TabType, label: "Attendance", icon: CalendarCheck },
-  { id: "assignments" as TabType, label: "Assignments", icon: FileText },
-  { id: "fees" as TabType, label: "Fees", icon: Wallet },
-  { id: "courses" as TabType, label: "Courses", icon: BookOpen },
-  { id: "examschedule" as TabType, label: "Exam Schedule", icon: Calendar },
-  {
-    id: "academic-calendar" as TabType,
-    label: "Academic Calendar",
-    icon: CalendarDays,
-  },
-  { id: "events" as TabType, label: "Events", icon: CalendarDays },
-  { id: "faculty" as TabType, label: "Faculty", icon: Users },
-  { id: "results" as TabType, label: "Results", icon: AwardIcon },
-  { id: "achievements" as TabType, label: "Achievements", icon: Trophy },
-  { id: "leave" as TabType, label: "Leave Requests", icon: ClipboardList },
-  { id: "library" as TabType, label: "Library", icon: BookOpen },
-  { id: "exam-form" as TabType, label: "Examination Form", icon: FileText },
-  { id: "scholarships" as TabType, label: "Scholarships", icon: AwardIcon },
-  //{ id: "id-card" as TabType, label: "ID Card", icon: IdCard },
-  { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
-  { id: "placement" as TabType, label: "Placement", icon: Briefcase },
-  { id: "bus-routes" as TabType, label: "Bus Tracking", icon: Bus },
-  // Fixed: Added as TabType here
-  {
-    id: "subject-faculty" as TabType,
-    label: "Subject Faculty",
-    icon: GraduationCap,
-  },
-  {
-    id: "book-resources" as TabType,
-    label: "Book Resources",
-    icon: CalendarDays,
-  },
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "announcements", label: "Announcements", icon: Bell },
+  { id: "attendance", label: "Attendance", icon: CalendarCheck },
+  { id: "assignments", label: "Assignments", icon: FileText },
+  { id: "fees", label: "Fees", icon: Wallet },
+  { id: "courses", label: "Courses", icon: BookOpen },
+  { id: "examschedule", label: "Exam Schedule", icon: Calendar },
+  { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
+  { id: "events", label: "Events", icon: CalendarDays },
+  { id: "faculty", label: "Faculty", icon: Users },
+  { id: "subject-faculty", label: "Subject Faculty", icon: GraduationCap },
+  { id: "results", label: "Results", icon: AwardIcon },
+  { id: "semester-comparison", label: "Semester Comparison", icon: TrendingUp },
+  { id: "achievements", label: "Achievements", icon: Trophy },
+  { id: "leave", label: "Leave Requests", icon: ClipboardList },
+  { id: "library", label: "Library", icon: BookOpen },
+  { id: "exam-form", label: "Examination Form", icon: FileText },
+  { id: "scholarships", label: "Scholarships", icon: AwardIcon },
+  { id: "id-card", label: "ID Card", icon: UserCircle }, // FIX: Replaced IDCard component with UserCircle icon
+  { id: "feedback", label: "Feedback", icon: MessageSquare },
+  { id: "placement", label: "Placement", icon: Briefcase },
+  { id: "bus-routes", label: "Bus Tracking", icon: Bus },
+  { id: "book-resources", label: "Book Resources", icon: CalendarDays },
+  { id: "user-workflows", label: "My Workflows", icon: FileText },
 ];
 
 export default function StudentDashboard() {
@@ -189,58 +183,6 @@ export default function StudentDashboard() {
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   };
-
-
-  const navigationItems = [
-    { id: "overview",          label: "Overview",          icon: LayoutGrid },
-    { id: "attendance",        label: "Attendance",        icon: CalendarCheck },
-    { id: "assignments",       label: "Assignments",       icon: FileText },
-    { id: "fees",              label: "Fees",              icon: Wallet },
-    { id: "courses",           label: "Courses",           icon: BookOpen },
-    { id: "examschedule",      label: "Exam Schedule",     icon: Calendar },
-    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
-    { id: "events",            label: "Events",            icon: CalendarDays },
-    { id: "results",           label: "Results",           icon: AwardIcon },
-    { id: "leave",             label: "Leave Requests",    icon: ClipboardList },
-    { id: "library",           label: "Library",           icon: BookOpen },
-    { id: "exam-form",         label: "Examination Form",  icon: FileText },
-    { id: "feedback",          label: "Feedback",          icon: MessageSquare }, // ← NEW
-    { id: "overview",           label: "Overview",          icon: LayoutGrid },
-    { id: "attendance",         label: "Attendance",        icon: CalendarCheck },
-    { id: "assignments",        label: "Assignments",       icon: FileText },
-    { id: "fees",               label: "Fees",              icon: Wallet },
-    { id: "courses",            label: "Courses",           icon: BookOpen },
-    { id: "examschedule",       label: "Exam Schedule",     icon: Calendar },
-    { id: "academic-calendar",  label: "Academic Calendar", icon: CalendarDays },
-    { id: "events",             label: "Events",            icon: CalendarDays },
-    { id: "results",            label: "Results",           icon: AwardIcon },
-    { id: "leave",              label: "Leave Requests",    icon: ClipboardList }, // ← master
-    { id: "library",            label: "Library",           icon: BookOpen },
-    { id: "exam-form",          label: "Examination Form",  icon: FileText },      // ← master
-    { id: "scholarships",       label: "Scholarships",      icon: AwardIcon },
-    { id: "id-card",            label: "ID Card",           icon: IdCard },
-    { id: "overview", label: "Overview", icon: LayoutGrid },
-    { id: "attendance", label: "Attendance", icon: CalendarCheck },
-    { id: "assignments", label: "Assignments", icon: FileText },
-    { id: "fees", label: "Fees", icon: Wallet },
-    { id: "courses", label: "Courses", icon: BookOpen },
-    { id: "examschedule", label: "Exam Schedule", icon: Calendar },
-    { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
-    { id: "events", label: "Events", icon: CalendarDays },
-    { id: "results", label: "Results", icon: AwardIcon },
-    { id: "achievements", label: "Achievements", icon: Trophy },
-    { id: "leave", label: "Leave Requests", icon: ClipboardList },
-    { id: "library", label: "Library", icon: BookOpen },
-    { id: "exam-form", label: "Examination Form", icon: FileText },
-    { id: "leave", label: "Leave Requests", icon: ClipboardList },
-    { id: "library", label: "Library", icon: BookOpen },
-    { id: "exam-form", label: "Examination Form", icon: FileText },
-    { id: "bus-routes", label: "Bus Tracking", icon: Bus }
-  ];
-
-  // Fixed: Removed duplicate renderTab function - now using inline rendering to avoid duplication
-  // The old renderTab function was redundant and had dark mode issues
-
 
   if (loading) {
     return (
@@ -543,7 +485,6 @@ export default function StudentDashboard() {
                     },
                   ].map((action, index) => {
                     const Icon = action.icon;
-                    // FIXED: Proper dark mode classes - no light backgrounds in dark mode
                     const colorClasses = {
                       blue: "bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-gray-700",
                       amber:
@@ -672,54 +613,37 @@ export default function StudentDashboard() {
                   : "bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
               }
             >
+              {/* Cleaned up duplicate render blocks */}
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "assignments" && <Assignment />}
               {activeTab === "fees" && <Fees />}
               {activeTab === "courses" && <Courses />}
               {activeTab === "examschedule" && <ExamSchedule />}
-
               {activeTab === "my-seat" && <StudentSeatView />}
-
-              {activeTab === "academic-calendar" && (
-                <AcademicCalendar role="student" />
-              )}
+              {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "semester-comparison" && <SemesterComparison />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "announcements" && <AnnouncementsView />}
               {activeTab === "leave" && <LeaveRequest />}
               {activeTab === "library" && <Library />}
               {activeTab === "exam-form" && <ExaminationForm />}
-
               {activeTab === "scholarships" && <Scholarships />}
               {activeTab === "feedback" && <StudentFeedback />}
               {activeTab === "id-card" && <IDCard student={student} />}
-              {activeTab === "bus-routes" && <BusRoutes />}
-
-              {activeTab === "settings" && (
-                <div className="text-sm text-gray-600">
-                    Settings are not available yet for student accounts.
-                </div>
-            )}
-              {activeTab === "library" && <Library />}
-              {activeTab === "exam-form" && <ExaminationForm />}
-              {activeTab === "bus-routes" && <BusRoutes />}
-
-
-              {activeTab === "feedback" && <StudentFeedback />}
               {activeTab === "bus-routes" && <BusRoutes />}
               {activeTab === "faculty" && <FacultyView />}
               {activeTab === "subject-faculty" && <Teachers />}
               {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "placement" && <PlacementEligibility />}
-              {activeTab === "scholarships" && <Scholarships />}
-              {/* {activeTab === "id-card" && <IDCard student={student} />} */}
+              {activeTab === "user-workflows" && <UserWorkflows />}
+              
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Settings are not available yet for student accounts.
                 </div>
               )}
-
             </div>
           )}
 

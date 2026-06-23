@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import EmptyState from "../components/EmptyState";
 
 // interface Attendance {
 //   studentId: string;
@@ -49,7 +50,7 @@ export default function TeacherAttendance() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/users/students");
+      const res = await api.get("/users/students?limit=200");
       setStudents(extractArray(res.data));
 
       // Initialize all students as present by default
@@ -194,6 +195,8 @@ export default function TeacherAttendance() {
     (status: any) => status === "present",
   ).length;
   const absentCount = students.length - presentCount;
+  const hasActiveFilters = filter !== "all" || Boolean(search);
+  const showMarkCta = !hasActiveFilters && students.length === 0;
 
   return (
     <div className="space-y-6">
@@ -336,7 +339,7 @@ export default function TeacherAttendance() {
       {/* Controls Card */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Main Controls */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200" id="mark-attendance-controls">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -441,13 +444,29 @@ export default function TeacherAttendance() {
               <p className="mt-2 text-gray-500">Loading students...</p>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-              <p className="text-gray-500">No students found</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Try adjusting your search or filters
-              </p>
-            </div>
+            showMarkCta ? (
+              <EmptyState
+                icon={<Users className="w-7 h-7 text-blue-600" />}
+                title="No students to mark yet"
+                description="Add students first, then return here to mark attendance for the class."
+                actionLabel="Mark Attendance"
+                onAction={() => {
+                  document.getElementById("mark-attendance-controls")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                actionHint="Jumps back to the attendance controls."
+              />
+            ) : (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-gray-500">No students found</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Try adjusting your search or filters
+                </p>
+              </div>
+            )
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -640,3 +659,4 @@ export default function TeacherAttendance() {
     </div>
   );
 }
+

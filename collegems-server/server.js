@@ -3,7 +3,7 @@ dotenv.config();
 
 import app from "./src/app.js";
 import { connectDB } from "./src/config/db.js";
-import { startFeeCronJobs, startAnalyticsCronJobs, startLibraryCronJobs } from "./src/utils/cronJobs.js";
+import { startFeeCronJobs, startAnalyticsCronJobs, startLibraryCronJobs, startAttendanceCronJobs } from "./src/utils/cronJobs.js";
 
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -32,6 +32,7 @@ connectDB();
 startFeeCronJobs();
 startAnalyticsCronJobs();
 startLibraryCronJobs();
+startAttendanceCronJobs();
 
 const httpServer = createServer(app);
 

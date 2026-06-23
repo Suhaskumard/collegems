@@ -22,6 +22,29 @@ interface AnalyticsData {
   lastCalculatedAt: string;
 }
 
+const getFreshness = (lastCalculatedAt?: string) => {
+  if (!lastCalculatedAt) {
+    return { isStale: true, relativeTime: "Never" };
+  }
+  const date = new Date(lastCalculatedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (60 * 1000));
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+  // Consider stale if older than 24 hours (86400000 ms)
+  const isStale = diffMs > 24 * 60 * 60 * 1000;
+
+  let relativeTime = "";
+  if (diffMins < 1) relativeTime = "Just now";
+  else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
+  else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
+  else relativeTime = `${diffDays}d ago`;
+
+  return { isStale, relativeTime };
+};
+
 export default function RiskDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -162,52 +185,76 @@ export default function RiskDashboard() {
                 <th className="px-6 py-4 font-semibold text-gray-600">Risk Level</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Risk Score</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Predicted Grade</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Last Updated</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Interventions</th>
               </tr>
             </thead>
             <tbody>
               {analytics.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                     No analytics data found for the selected filters.
                   </td>
                 </tr>
               ) : (
-                analytics.map((row) => (
-                  <tr key={row._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4">{row.studentId?.name || "N/A"}</td>
-                    <td className="px-6 py-4">{row.studentId?.studentId || "N/A"}</td>
-                    <td className="px-6 py-4">
-                      {row.studentId?.course || "N/A"} / {row.studentId?.semester || "N/A"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
-                          row.riskLevel === "high"
-                            ? "bg-red-100 text-red-800"
-                            : row.riskLevel === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {row.riskLevel}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{(row.dropoutRiskScore * 100).toFixed(1)}%</td>
-                    <td className="px-6 py-4 font-bold">{row.predictedPerformance}</td>
-                    <td className="px-6 py-4 whitespace-normal min-w-[200px]">
-                      {row.recommendedInterventions && row.recommendedInterventions.length > 0 ? (
-                        <ul className="list-disc pl-4 text-xs space-y-1 text-gray-700">
-                          {row.recommendedInterventions.map((intervention, idx) => (
-                            <li key={idx}>{intervention}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <span className="text-gray-400 text-xs">None</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                analytics.map((row) => {
+                  const { isStale, relativeTime } = getFreshness(row.lastCalculatedAt);
+                  return (
+                    <tr 
+                      key={row._id} 
+                      className={`border-b hover:bg-gray-50 transition-colors ${
+                        isStale 
+                          ? "bg-amber-50/30 hover:bg-amber-50/50 dark:bg-amber-950/5 dark:hover:bg-amber-950/10" 
+                          : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4">{row.studentId?.name || "N/A"}</td>
+                      <td className="px-6 py-4">{row.studentId?.studentId || "N/A"}</td>
+                      <td className="px-6 py-4">
+                        {row.studentId?.course || "N/A"} / {row.studentId?.semester || "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
+                            row.riskLevel === "high"
+                              ? "bg-red-100 text-red-800"
+                              : row.riskLevel === "medium"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {row.riskLevel}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">{(row.dropoutRiskScore * 100).toFixed(1)}%</td>
+                      <td className="px-6 py-4 font-bold">{row.predictedPerformance}</td>
+                      <td className="px-6 py-4">
+                        <span 
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            isStale 
+                              ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800" 
+                              : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                          }`}
+                          title={`Last calculated: ${row.lastCalculatedAt ? new Date(row.lastCalculatedAt).toLocaleString() : "Never"}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isStale ? "bg-amber-500 animate-pulse" : "bg-green-500"}`} />
+                          {isStale ? `Outdated (${relativeTime})` : `Fresh (${relativeTime})`}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-normal min-w-[200px]">
+                        {row.recommendedInterventions && row.recommendedInterventions.length > 0 ? (
+                          <ul className="list-disc pl-4 text-xs space-y-1 text-gray-700">
+                            {row.recommendedInterventions.map((intervention, idx) => (
+                              <li key={idx}>{intervention}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span className="text-gray-400 text-xs">None</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

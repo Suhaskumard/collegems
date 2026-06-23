@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { Plus, MessageSquare, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import useFormTracker from "../hooks/useFormTracker";
 
 export default function StudentComplaints() {
   const [complaints, setComplaints] = useState<any[]>([]);
@@ -18,6 +19,8 @@ export default function StudentComplaints() {
   });
   
   const [commentText, setCommentText] = useState("");
+
+  const { trackField, markSubmitted } = useFormTracker({ formId: "student_complaint" });
 
   useEffect(() => {
     fetchComplaints();
@@ -40,6 +43,7 @@ export default function StudentComplaints() {
     try {
       await api.post("/complaints", form);
       setShowModal(false);
+      markSubmitted();
       setForm({ title: "", description: "", category: "Academic", priority: "Medium", evidenceUrl: "" });
       fetchComplaints();
     } catch (error) {
@@ -222,12 +226,12 @@ export default function StudentComplaints() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                <input required type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Brief title of the issue" />
+                <input required type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.title} onChange={e => setForm({...form, title: e.target.value})} onBlur={() => trackField("title", 5)} placeholder="Brief title of the issue" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.category} onChange={e => { setForm({...form, category: e.target.value}); trackField("category", 5); }}>
                     <option value="Academic">Academic</option>
                     <option value="Hostel">Hostel</option>
                     <option value="Transport">Transport</option>
@@ -237,7 +241,7 @@ export default function StudentComplaints() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.priority} onChange={e => setForm({...form, priority: e.target.value})}>
+                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.priority} onChange={e => { setForm({...form, priority: e.target.value}); trackField("priority", 5); }}>
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
@@ -247,11 +251,11 @@ export default function StudentComplaints() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                <textarea required rows={4} className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Detailed description of the issue..."></textarea>
+                <textarea required rows={4} className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.description} onChange={e => setForm({...form, description: e.target.value})} onBlur={() => trackField("description", 5)} placeholder="Detailed description of the issue..."></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Evidence URL (Optional)</label>
-                <input type="url" className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.evidenceUrl} onChange={e => setForm({...form, evidenceUrl: e.target.value})} placeholder="Link to image or document" />
+                <input type="url" className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.evidenceUrl} onChange={e => setForm({...form, evidenceUrl: e.target.value})} onBlur={() => trackField("evidenceUrl", 5)} placeholder="Link to image or document" />
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
