@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const ResultsSchema = new mongoose.Schema({
     studentId: {
@@ -39,5 +40,7 @@ const ResultsSchema = new mongoose.Schema({
     }
 
 }, { timestamps: true });
+
+ResultsSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("Results", ResultsSchema);

@@ -69,6 +69,7 @@ export const updateMe = async (req, res) => {
     if (department !== undefined) user.department = department;
     if (teacherId !== undefined) user.teacherId = teacherId;
 
+    user._updatedBy = req.user.id;
     await user.save();
 
     const safeUser = user.toObject();
@@ -104,6 +105,7 @@ export const updatePassword = async (req, res) => {
     }
 
     user.password = await hashPassword(newPassword, 8);
+    user._updatedBy = req.user.id;
     await user.save();
 
     res.json({ message: "Password updated successfully" });
@@ -152,6 +154,7 @@ export const updatePreferences = async (req, res) => {
       },
     };
 
+    user._updatedBy = req.user.id;
     await user.save();
 
     res.json(user.settings);
@@ -208,6 +211,7 @@ export const uploadResumeFile = async (req, res) => {
     // Save relative path
     const resumePath = `/uploads/resumes/${req.file.filename}`;
     user.resumeUrl = resumePath;
+    user._updatedBy = req.user.id;
     await user.save();
 
     res.json({
