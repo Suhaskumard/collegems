@@ -36,6 +36,8 @@ import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
 import StudentSeatView from "./user-components/StudentSeatView";
+import BackToTop from "./components/BackToTop";
+import PendingChangesBar from "./components/PendingChangesBar";
 import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
@@ -44,15 +46,17 @@ import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
 
 import { PwaManager } from "./components/PwaManager";
-import BackToTop from "./components/BackToTop";
-import SessionTimeoutWarning from "./components/SessionTimeoutWarning";
 
 export default function App() {
   return (
     <BrowserRouter>
       <PwaManager />
       <BackToTop />
-      <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={5} />
+      <PendingChangesBar onCommit={async (changes) => {
+        // Default commit handler, can be customized or context-driven
+        console.log("Committing changes:", changes);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }} />
       <Routes>
         {/* Public Routes */}
         <Route
