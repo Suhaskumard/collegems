@@ -2,6 +2,7 @@ import AcademicCalendar from "../models/AcademicCalendar.model.js";
 import Assignment from "../models/Assignment.model.js";
 import ExamSchedule from "../models/ExamSchedule.model.js";
 import Event from "../models/Events.model.js";
+import { checkScheduleConflicts } from "../services/calendarValidation.service.js";
 
 // CREATE CUSTOM EVENT (HOD only)
 export const createAcademicEvent = async (req, res) => {
@@ -12,6 +13,20 @@ export const createAcademicEvent = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Title, description, category, and date are required.",
+      });
+    }
+
+    const validation = await checkScheduleConflicts({
+      date,
+      startTime: startTime || "",
+      endTime: endTime || ""
+    });
+
+    if (validation.hasConflict) {
+      return res.status(409).json({
+        success: false,
+        message: validation.conflictMessage,
+        conflictDetails: validation.conflictDetails
       });
     }
 
@@ -125,6 +140,30 @@ export const getAllCalendarEvents = async (req, res) => {
 // UPDATE CUSTOM EVENT (HOD only)
 export const updateAcademicEvent = async (req, res) => {
   try {
+    const existing = await AcademicCalendar.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    const newDate = req.body.date || existing.date;
+    const newStartTime = req.body.startTime !== undefined ? req.body.startTime : existing.startTime;
+    const newEndTime = req.body.endTime !== undefined ? req.body.endTime : existing.endTime;
+
+    const validation = await checkScheduleConflicts({
+      date: newDate,
+      startTime: newStartTime,
+      endTime: newEndTime,
+      excludeId: req.params.id
+    });
+
+    if (validation.hasConflict) {
+      return res.status(409).json({
+        success: false,
+        message: validation.conflictMessage,
+        conflictDetails: validation.conflictDetails
+      });
+    }
+
     const event = await AcademicCalendar.findByIdAndUpdate(
       req.params.id,
       req.body,

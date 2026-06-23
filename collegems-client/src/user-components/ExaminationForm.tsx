@@ -7,6 +7,7 @@ import {
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { scrollToFirstError } from "../utils/formHelpers";
+import useFormTracker from "../hooks/useFormTracker";
 
 interface Course {
   _id: string;
@@ -34,6 +35,8 @@ const ExaminationForm: React.FC = () => {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const { trackField, markSubmitted } = useFormTracker({ formId: "examination_form" });
 
   // Form Fields
   const [studentName, setStudentName] = useState("");
@@ -100,6 +103,7 @@ const ExaminationForm: React.FC = () => {
     if (errors.subjects) {
       setErrors((prev) => ({ ...prev, subjects: "" }));
     }
+    trackField("subjects", 6);
   };
 
   const validateForm = () => {
@@ -159,6 +163,7 @@ const ExaminationForm: React.FC = () => {
 
       await api.post("/exam-forms", payload);
       setSubmitSuccess(true);
+      markSubmitted();
       setSelectedSubjects([]);
       setExamType("");
       
@@ -260,6 +265,7 @@ const ExaminationForm: React.FC = () => {
                       setStudentName(e.target.value);
                       if (errors.studentName) setErrors((prev) => ({ ...prev, studentName: "" }));
                     }}
+                    onBlur={() => trackField("studentName", 6)}
                     placeholder="Enter full name"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.studentName ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -285,6 +291,7 @@ const ExaminationForm: React.FC = () => {
                       setRollNumber(e.target.value);
                       if (errors.rollNumber) setErrors((prev) => ({ ...prev, rollNumber: "" }));
                     }}
+                    onBlur={() => trackField("rollNumber", 6)}
                     placeholder="Enter student ID"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.rollNumber ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -313,6 +320,7 @@ const ExaminationForm: React.FC = () => {
                       setCourseDept(e.target.value);
                       if (errors.courseDept) setErrors((prev) => ({ ...prev, courseDept: "" }));
                     }}
+                    onBlur={() => trackField("courseDept", 6)}
                     placeholder="e.g. Computer Science & Engineering"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.courseDept ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -338,6 +346,7 @@ const ExaminationForm: React.FC = () => {
                       setSemesterYear(e.target.value);
                       if (errors.semesterYear) setErrors((prev) => ({ ...prev, semesterYear: "" }));
                     }}
+                    onBlur={() => trackField("semesterYear", 6)}
                     placeholder="e.g. Semester 6 or Year 3"
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.semesterYear ? "border-red-400 focus:ring-red-400" : "border-gray-300"
@@ -365,6 +374,7 @@ const ExaminationForm: React.FC = () => {
                       onClick={() => {
                         setExamType(type);
                         if (errors.examType) setErrors((prev) => ({ ...prev, examType: "" }));
+                        trackField("examType", 6);
                       }}
                       className={`px-4 py-3 rounded-xl border text-xs font-semibold transition-all ${
                         examType === type

@@ -1,6 +1,8 @@
 // FILE: collegems-server/src/controllers/announcement.controller.js
 
 import Announcement from "../models/Announcement.model.js";
+import User from "../models/User.model.js";
+import { sendNotification } from "../utils/notification.util.js";
 
 //  CREATE
 export const createAnnouncement = async (req, res) => {
@@ -14,6 +16,7 @@ export const createAnnouncement = async (req, res) => {
       expiresAt,
       priority,
       status,
+      isSilent,
     } = req.body;
 
     if (status && !["draft", "published"].includes(status)) {
@@ -35,6 +38,7 @@ export const createAnnouncement = async (req, res) => {
       expiresAt: expiresAt || null,
       priority: priority || "medium",
       status: announcementStatus,
+      isSilent: isSilent || false,
     });
 
     await announcement.save();
@@ -43,6 +47,22 @@ export const createAnnouncement = async (req, res) => {
       "postedBy",
       "name email role"
     );
+
+    if (announcementStatus === "published" && !isSilent) {
+      // Find target audience
+      const query = { accountStatus: "active" };
+      if (targetRole && targetRole !== "all") query.role = targetRole;
+      if (targetCourse) query.course = targetCourse;
+      if (targetSemester) query.semester = targetSemester;
+      
+      User.find(query).select("_id").then(users => {
+        if (users.length > 0) {
+          Promise.allSettled(
+            users.map(u => sendNotification(req.app, u._id, "announcement", `New Announcement: ${title}`))
+          ).catch(err => console.error("Notification dispatch error:", err));
+        }
+      }).catch(err => console.error("Error finding target users:", err));
+    }
 
     res.status(201).json({
       success: true,
@@ -202,13 +222,32 @@ export const updateAnnouncement = async (req, res) => {
       "priority",
       "isActive",
       "status",
+      "isSilent",
     ];
 
+    const wasDraft = announcement.status === "draft";
+    
     allowed.forEach((field) => {
       if (req.body[field] !== undefined) announcement[field] = req.body[field];
     });
 
     await announcement.save();
+
+    // Trigger notifications if transitioning from draft to published, unless isSilent is true
+    if (wasDraft && announcement.status === "published" && !announcement.isSilent) {
+      const query = { accountStatus: "active" };
+      if (announcement.targetRole && announcement.targetRole !== "all") query.role = announcement.targetRole;
+      if (announcement.targetCourse) query.course = announcement.targetCourse;
+      if (announcement.targetSemester) query.semester = announcement.targetSemester;
+      
+      User.find(query).select("_id").then(users => {
+        if (users.length > 0) {
+          Promise.allSettled(
+            users.map(u => sendNotification(req.app, u._id, "announcement", `New Announcement: ${announcement.title}`))
+          ).catch(err => console.error("Notification dispatch error:", err));
+        }
+      }).catch(err => console.error("Error finding target users:", err));
+    }
 
     const updated = await Announcement.findById(announcement._id).populate(
       "postedBy",

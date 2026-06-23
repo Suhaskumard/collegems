@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ownershipPlugin from "../plugins/ownershipPlugin.js";
 
 const courseSchema = new mongoose.Schema(
   {
@@ -48,5 +49,7 @@ const courseSchema = new mongoose.Schema(
 );
 
 courseSchema.index({ name: "text", code: "text", department: "text" });
+
+courseSchema.plugin(ownershipPlugin);
 
 export default mongoose.model("Course", courseSchema);

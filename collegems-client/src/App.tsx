@@ -44,14 +44,15 @@ import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
 
 import { PwaManager } from "./components/PwaManager";
-
 import BackToTop from "./components/BackToTop";
+import SessionTimeoutWarning from "./components/SessionTimeoutWarning";
 
 export default function App() {
   return (
     <BrowserRouter>
       <PwaManager />
       <BackToTop />
+      <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={5} />
       <Routes>
         {/* Public Routes */}
         <Route

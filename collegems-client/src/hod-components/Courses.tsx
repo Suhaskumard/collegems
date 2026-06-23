@@ -16,6 +16,8 @@ import {
   ChevronDown,
   Award,
 } from "lucide-react";
+import { RecordOwnership } from "../common-components-management/RecordOwnership";
+import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
 
 interface Course {
   _id: string;
@@ -58,6 +60,11 @@ export default function HODCourses() {
   const [description, setDescription] = useState("");
   const [maxStudents, setMaxStudents] = useState("");
   const [assignedTeacher, setAssignedTeacher] = useState("");
+
+  const handleApplySavedFilter = (savedFilters: any) => {
+    if (savedFilters.search !== undefined) setSearch(savedFilters.search);
+    if (savedFilters.filter !== undefined) setFilter(savedFilters.filter);
+  };
 
   const departments = [
     "Computer Science",
@@ -295,6 +302,11 @@ const deleteCourse = async () => {
               className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
             />
           </button>
+          <SavedFiltersMenu 
+            dashboardName="HODCourses" 
+            currentFilters={{ search, filter }} 
+            onApplyFilter={handleApplySavedFilter} 
+          />
           <div className="flex items-center gap-3">
             <button
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -596,6 +608,17 @@ const deleteCourse = async () => {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
+              
+              {/* Record Ownership - Only show when editing an existing course */}
+              {editingCourse && (
+                <div className="mt-6">
+                  <RecordOwnership 
+                    modelName="Course" 
+                    recordId={editingCourse._id} 
+                    onTransferSuccess={fetchCourses}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}

@@ -32,6 +32,7 @@ import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
 import DataLocks from "../hod-components/DataLocks";
 import { SequenceRepair } from "../common-components-management/SequenceRepair";
+import FormAbandonmentStats from "../hod-components/FormAbandonmentStats";
 
 // Pages
 import RiskDashboard from "./RiskDashboard";
@@ -73,7 +74,8 @@ type TabType =
   | "system-health"
   | "freeze-semesters"
   | "data-locks"
-  | "sequence-repair";
+  | "sequence-repair"
+  | "form-insights";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -150,6 +152,7 @@ export default function HODDashboard() {
     { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
     { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
     { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
+    { id: "form-insights" as TabType, label: "Form Insights", icon: Activity },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
   ];
 
@@ -432,6 +435,7 @@ export default function HODDashboard() {
         { activeTab === "freeze-semesters" && <SemesterManagement /> }
         { activeTab === "data-locks" && <DataLocks /> }
         { activeTab === "sequence-repair" && <SequenceRepair /> }
+        { activeTab === "form-insights" && <FormAbandonmentStats /> }
         { activeTab === "risk-dashboard" && <RiskDashboard /> }
       </>
     );

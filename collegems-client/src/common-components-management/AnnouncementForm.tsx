@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Bell, Send, Tag, Calendar, Users, AlertCircle,
-  CheckCircle, Loader2, FileText, Megaphone,
+  CheckCircle, Loader2, FileText, Megaphone, BellOff,
 } from "lucide-react";
 import api from "../api/axios";
 import { scrollToFirstError } from "../utils/formHelpers";
@@ -37,6 +37,7 @@ interface FormData {
   targetSemester: string;
   expiresAt: string;
   priority: string;
+  isSilent: boolean;
 }
 
 interface FormErrors {
@@ -53,6 +54,7 @@ const EMPTY_FORM: FormData = {
   targetSemester: "",
   expiresAt: "",
   priority: "medium",
+  isSilent: false,
 };
 
 //  Validation ─
@@ -121,6 +123,7 @@ export interface AnnouncementData {
   targetSemester: string | null;
   expiresAt: string | null;
   priority: string;
+  isSilent?: boolean;
   status?: "draft" | "published";
 }
 
@@ -143,6 +146,7 @@ export default function AnnouncementForm({ mode = "create", initialAnnouncement,
         targetSemester: initialAnnouncement.targetSemester || "",
         expiresAt: initialAnnouncement.expiresAt ? new Date(initialAnnouncement.expiresAt).toISOString().slice(0, 16) : "",
         priority: initialAnnouncement.priority || "medium",
+        isSilent: initialAnnouncement.isSilent || false,
       });
       if (initialAnnouncement.status) {
          submitActionRef.current = initialAnnouncement.status;
@@ -412,8 +416,28 @@ export default function AnnouncementForm({ mode = "create", initialAnnouncement,
               )}
             </div>
 
+            {/* Silent Publish */}
+            <div className="flex items-center gap-2 pt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isSilent"
+                  checked={formData.isSilent}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isSilent: e.target.checked }))}
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <BellOff className="w-4 h-4 text-gray-500" />
+                  Silent Publish
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 ml-1">
+                (Publish without sending push notifications or alerts)
+              </p>
+            </div>
+
             {/* Submit row*/}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={handleClear}

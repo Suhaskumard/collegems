@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { History, RotateCcw, User as UserIcon, Calendar, Loader2 } from "lucide-react";
-import { api } from "../utils/api";
-import { toast } from "sonner";
+import api from "../api/axios";
 
 interface Snapshot {
   _id: string;
@@ -42,14 +41,14 @@ export const RecordSnapshots: React.FC<RecordSnapshotsProps> = ({ modelName, rec
       return res.data;
     },
     onSuccess: () => {
-      toast.success("Record restored successfully");
+      alert("Record restored successfully");
       setIsOpen(false);
       // Invalidate relevant queries based on the model
       queryClient.invalidateQueries({ queryKey: [modelName.toLowerCase()] });
       queryClient.invalidateQueries({ queryKey: ["snapshots", modelName, recordId] });
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to restore record");
+      alert(err.response?.data?.message || "Failed to restore record");
     },
   });
 

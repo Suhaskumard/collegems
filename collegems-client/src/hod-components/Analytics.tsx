@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, TrendingDown, BookOpen, GraduationCap, ChevronRight, Activity } from "lucide-react";
+import { AlertTriangle, Activity } from "lucide-react";
 import api from "../api/axios";
 
 interface AtRiskStudent {
@@ -18,6 +18,29 @@ interface AtRiskStudent {
   recommendedInterventions: string[];
   lastCalculatedAt: string;
 }
+
+const getFreshness = (lastCalculatedAt?: string) => {
+  if (!lastCalculatedAt) {
+    return { isStale: true, relativeTime: "Never" };
+  }
+  const date = new Date(lastCalculatedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (60 * 1000));
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+  // Consider stale if older than 24 hours
+  const isStale = diffMs > 24 * 60 * 60 * 1000;
+
+  let relativeTime = "";
+  if (diffMins < 1) relativeTime = "Just now";
+  else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
+  else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
+  else relativeTime = `${diffDays}d ago`;
+
+  return { isStale, relativeTime };
+};
 
 export default function HODAnalytics() {
   const [atRiskStudents, setAtRiskStudents] = useState<AtRiskStudent[]>([]);
@@ -94,53 +117,77 @@ export default function HODAnalytics() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Risk Score</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Predicted Grade</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Calculated</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recommended Interventions</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {atRiskStudents.map((record) => (
-                  <tr key={record._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{record.studentId?.name || "Unknown"}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{record.studentId?.studentId || record.studentId?.email}</div>
+                {atRiskStudents.map((record) => {
+                  const { isStale, relativeTime } = getFreshness(record.lastCalculatedAt);
+                  return (
+                    <tr 
+                      key={record._id} 
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                        isStale 
+                          ? "bg-amber-50/20 hover:bg-amber-50/40 dark:bg-amber-950/5 dark:hover:bg-amber-950/10" 
+                          : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{record.studentId?.name || "Unknown"}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{record.studentId?.studentId || record.studentId?.email}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 max-w-[100px]">
-                          <div className="bg-red-600 h-2.5 rounded-full" style={{ width: `${Math.round(record.dropoutRiskScore * 100)}%` }}></div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 max-w-[100px]">
+                            <div className="bg-red-600 h-2.5 rounded-full" style={{ width: `${Math.round(record.dropoutRiskScore * 100)}%` }}></div>
+                          </div>
+                          <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                            {Math.round(record.dropoutRiskScore * 100)}%
+                          </span>
                         </div>
-                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">
-                          {Math.round(record.dropoutRiskScore * 100)}%
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                            {record.predictedPerformance}
+                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span 
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            isStale 
+                              ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800" 
+                              : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                          }`}
+                          title={`Last calculated: ${record.lastCalculatedAt ? new Date(record.lastCalculatedAt).toLocaleString() : "Never"}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isStale ? "bg-amber-500 animate-pulse" : "bg-green-500"}`} />
+                          {isStale ? `Outdated (${relativeTime})` : `Fresh (${relativeTime})`}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                          {record.predictedPerformance}
-                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
-                        {record.recommendedInterventions.map((intervention, idx) => (
-                          <li key={idx}>{intervention}</li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
-                        onClick={() => assignMentor(record.studentId._id)}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        Assign Mentor
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
+                          {record.recommendedInterventions.map((intervention, idx) => (
+                            <li key={idx}>{intervention}</li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button 
+                          onClick={() => assignMentor(record.studentId._id)}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Assign Mentor
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
