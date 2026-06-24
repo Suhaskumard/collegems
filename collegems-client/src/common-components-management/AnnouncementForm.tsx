@@ -1,11 +1,11 @@
 // FILE: collegems-client/src/teacher-components/AnnouncementForm.tsx
-
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Bell, Send, Tag, Calendar, Users, AlertCircle,
-  CheckCircle, Loader2, FileText, Megaphone,
+  CheckCircle, Loader2, FileText, Megaphone, BellOff,
 } from "lucide-react";
 import api from "../api/axios";
+import { scrollToFirstError } from "../utils/formHelpers";
 
 //  Constants 
 
@@ -13,17 +13,17 @@ const COURSES = ["BCA", "MCA", "BBA", "MBA"];
 const SEMESTERS = ["1", "2", "3", "4", "5", "6"];
 
 const ROLES = [
-  { value: "all",     label: "Everyone"       },
-  { value: "student", label: "Students only"  },
-  { value: "teacher", label: "Teachers only"  },
-  { value: "hod",     label: "HOD only"       },
-  { value: "parent",  label: "Parents only"   },
+  { value: "all", label: "Everyone" },
+  { value: "student", label: "Students only" },
+  { value: "teacher", label: "Teachers only" },
+  { value: "hod", label: "HOD only" },
+  { value: "parent", label: "Parents only" },
 ];
 
 const PRIORITIES = [
-  { value: "low",    label: "Low"    },
+  { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
-  { value: "high",   label: "High"   },
+  { value: "high", label: "High" },
   { value: "urgent", label: "Urgent" },
 ];
 
@@ -37,6 +37,7 @@ interface FormData {
   targetSemester: string;
   expiresAt: string;
   priority: string;
+  isSilent: boolean;
 }
 
 interface FormErrors {
@@ -53,6 +54,7 @@ const EMPTY_FORM: FormData = {
   targetSemester: "",
   expiresAt: "",
   priority: "medium",
+  isSilent: false,
 };
 
 //  Validation ─
@@ -112,21 +114,58 @@ function FieldWrapper({
 
 //  Main Component ─
 
+export interface AnnouncementData {
+  _id: string;
+  title: string;
+  message: string;
+  targetRole: string;
+  targetCourse: string | null;
+  targetSemester: string | null;
+  expiresAt: string | null;
+  priority: string;
+  isSilent?: boolean;
+  status?: "draft" | "published";
+}
+
 interface Props {
+  mode?: "create" | "edit";
+  initialAnnouncement?: AnnouncementData;
   onSuccess?: () => void;
 }
 
-export default function AnnouncementForm({ onSuccess }: Props) {
+export default function AnnouncementForm({ mode = "create", initialAnnouncement, onSuccess }: Props) {
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
-  const [errors, setErrors]     = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+  useEffect(() => {
+    if (initialAnnouncement) {
+      setFormData({
+        title: initialAnnouncement.title || "",
+        message: initialAnnouncement.message || "",
+        targetRole: initialAnnouncement.targetRole || "all",
+        targetCourse: initialAnnouncement.targetCourse || "",
+        targetSemester: initialAnnouncement.targetSemester || "",
+        expiresAt: initialAnnouncement.expiresAt ? new Date(initialAnnouncement.expiresAt).toISOString().slice(0, 16) : "",
+        priority: initialAnnouncement.priority || "medium",
+        isSilent: initialAnnouncement.isSilent || false,
+      });
+      if (initialAnnouncement.status) {
+         submitActionRef.current = initialAnnouncement.status;
+      }
+    } else {
+      setFormData(EMPTY_FORM);
+      submitActionRef.current = "published";
+    }
+  }, [initialAnnouncement]);
+  const [submitStatus, setSubmitStatus] = useState<"draft" | "published">("published");
+  const submitActionRef = useRef<"draft" | "published">("published");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess]       = useState(false);
-  const [apiError, setApiError]         = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const inputBase =
     "w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors";
   const inputNormal = `${inputBase} border-gray-300`;
-  const inputErr    = `${inputBase} border-red-400 bg-red-50`;
+  const inputErr = `${inputBase} border-red-400 bg-red-50`;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -148,20 +187,33 @@ export default function AnnouncementForm({ onSuccess }: Props) {
     const validationErrors = validate(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      scrollToFirstError(validationErrors);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await api.post("/announcements", {
+      const payload = {
         ...formData,
-        targetCourse:   formData.targetCourse   || null,
+        targetCourse: formData.targetCourse || null,
         targetSemester: formData.targetSemester || null,
-        expiresAt:      formData.expiresAt      || null,
-      });
+        expiresAt: formData.expiresAt || null,
+        status: submitActionRef.current,
+      };
+
+      if (mode === "edit" && initialAnnouncement?._id) {
+        await api.put(`/announcements/${initialAnnouncement._id}`, payload);
+      } else {
+        await api.post("/announcements", payload);
+      }
       setIsSuccess(true);
       setFormData(EMPTY_FORM);
       setErrors({});
+      
+      // Reset action back to default "Publish" mode for the next interaction
+      submitActionRef.current = "published";
+      setSubmitStatus("published");
+      
       setTimeout(() => setIsSuccess(false), 4000);
       onSuccess?.();
     } catch (err: any) {
@@ -176,6 +228,8 @@ export default function AnnouncementForm({ onSuccess }: Props) {
     setErrors({});
     setApiError("");
     setIsSuccess(false);
+    submitActionRef.current = "published";
+    setSubmitStatus("published");
   };
 
   return (
@@ -190,7 +244,7 @@ export default function AnnouncementForm({ onSuccess }: Props) {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                 Announcement
+                Announcement
               </h1>
               <p className="text-gray-500 mt-0.5">
                 Send a targeted notice to specific groups
@@ -201,16 +255,23 @@ export default function AnnouncementForm({ onSuccess }: Props) {
 
         {/*  Success banner  */}
         {isSuccess && (
-          <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-green-800">
-                Announcement posted successfully!
-              </p>
-              <p className="text-sm text-green-700 mt-0.5">
-                It is now visible to the intended audience.
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <p className="text-sm font-medium text-green-800">
+                {mode === "edit" 
+                  ? "Announcement updated successfully." 
+                  : (submitActionRef.current === "draft" 
+                      ? "Draft saved successfully." 
+                      : "Announcement published successfully.")}
               </p>
             </div>
+            <button
+              onClick={() => setIsSuccess(false)}
+              className="text-green-600 hover:text-green-800 transition-colors p-1"
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -256,11 +317,10 @@ export default function AnnouncementForm({ onSuccess }: Props) {
                 {PRIORITIES.map((p) => (
                   <label
                     key={p.value}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${
-                      formData.priority === p.value
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${formData.priority === p.value
                         ? "bg-blue-50 border-blue-400 text-blue-700 font-medium"
                         : "border-gray-200 text-gray-600 hover:border-blue-200 hover:bg-blue-50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -356,8 +416,28 @@ export default function AnnouncementForm({ onSuccess }: Props) {
               )}
             </div>
 
+            {/* Silent Publish */}
+            <div className="flex items-center gap-2 pt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isSilent"
+                  checked={formData.isSilent}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isSilent: e.target.checked }))}
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <BellOff className="w-4 h-4 text-gray-500" />
+                  Silent Publish
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 ml-1">
+                (Publish without sending push notifications or alerts)
+              </p>
+            </div>
+
             {/* Submit row*/}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={handleClear}
@@ -367,18 +447,33 @@ export default function AnnouncementForm({ onSuccess }: Props) {
               </button>
               <button
                 type="submit"
+                onClick={() => {
+                  submitActionRef.current = "draft";
+                  setSubmitStatus("draft");
+                }}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmitting && submitStatus === "draft" ? "Saving..." : "Save as Draft"}
+              </button>
+              <button
+                type="submit"
+                onClick={() => {
+                  submitActionRef.current = "published";
+                  setSubmitStatus("published");
+                }}
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
-                {isSubmitting ? (
+                {isSubmitting && submitStatus === "published" ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Posting...
+                    Publishing...
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                     Post Announcement
+                    Publish
                   </>
                 )}
               </button>

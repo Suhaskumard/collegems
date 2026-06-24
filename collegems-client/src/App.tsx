@@ -4,14 +4,17 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import RoleRoute from "./routes/RoleRoute";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import TimeTable from "./user-components/TimeTable";
+import BulkFieldReset from "./hod-components/BulkFieldReset";
 
+import TimeTable from "./user-components/TimeTable";
 import StudentDashboard from "./pages/StudentDashboard";
+//import TimeTable from "./user-components/TimeTable";
+
+//import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
 import MainDashboard from "./pages/MainDashboard";
-import ParentDashboard from "./pages/ParentDashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import ExamSchedule from "./user-components/ExamSchedule";
@@ -28,11 +31,13 @@ import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
 import RiskDashboard from "./pages/RiskDashboard";
 
-import DashboardLayout from "./layouts/DashboardLayout";
+
 import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
 import StudentSeatView from "./user-components/StudentSeatView";
+import BackToTop from "./components/BackToTop";
+import PendingChangesBar from "./components/PendingChangesBar";
 import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
@@ -40,10 +45,18 @@ import ResourceManagement from "./hod-components/ResourceManagement";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
 
+import { PwaManager } from "./components/PwaManager";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <PwaManager />
+      <BackToTop />
+      <PendingChangesBar onCommit={async (changes) => {
+        // Default commit handler, can be customized or context-driven
+        console.log("Committing changes:", changes);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }} />
       <Routes>
         {/* Public Routes */}
         <Route
@@ -72,11 +85,6 @@ export default function App() {
           {/* <Route path="/calendar" element={<AcademicCalendar />} /> */}
           <Route path="/calendar" element={<AcademicCalendar />} />
 
-          {/* Student/User Pages */}
-          <Route path="/examschedule" element={<ExamSchedule />} />
-          <Route path="/results" element={<StudentResults />} />
-          <Route path="/events" element={<EventsStudent />} />
-
 
           <Route
             path="/courses"
@@ -104,7 +112,6 @@ export default function App() {
           {/* Your Added Feature */}
           <Route path="/lost-found" element={<LostFoundPortal />} />
 
-          <Route path="/timetable" element={<TimeTable />} />
 
           {/* Existing Project Features */}
           <Route path="/library" element={<Library />} />
@@ -239,16 +246,17 @@ export default function App() {
             </RoleRoute>
           }
         />
+    
+      <Route
+  path="/hod/bulk-reset"
+  element={
+    <RoleRoute role="hod">
+      <BulkFieldReset />
+    </RoleRoute>
+  }
+/>
+     
 
-        {/* Parent Routes */}
-        <Route
-          path="/parent/dashboard"
-          element={
-            <RoleRoute role="parent">
-              <ParentDashboard />
-            </RoleRoute>
-          }
-        />
         <Route
           path="/parent/dashboard"
           element={

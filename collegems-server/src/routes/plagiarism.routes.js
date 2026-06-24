@@ -6,6 +6,8 @@ import {
   getAssignmentReports,
   getSubmissionReport,
   reviewReport,
+  submitAppeal,
+  reviewAppeal,
 } from "../controllers/plagiarism.controller.js";
 
 const router = express.Router();
@@ -40,6 +42,22 @@ router.patch(
   protect,
   allowRoles("teacher", "hod"),
   reviewReport
+);
+
+// Student: Submit an appeal
+router.post(
+  "/appeal",
+  protect,
+  allowRoles("student"),
+  submitAppeal
+);
+
+// Teacher: Review an appeal
+router.patch(
+  "/appeal/:id/review",
+  protect,
+  allowRoles("teacher", "hod"),
+  reviewAppeal
 );
 
 export default router;

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "./utils/hashPassword.js";
 
 import User from "./models/User.model.js";
 import Course from "./models/Course.model.js";
@@ -25,7 +25,7 @@ const seedData = async () => {
       },
     });
 
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    const hashedPassword = await hashPassword("password123", 10);
 
     await User.create([
       {

@@ -1,12 +1,10 @@
 // ─── FILE: collegems-server/src/controllers/assignment.controller.js ──────────
-// WHAT CHANGED: Added getUpcomingAssignments() at the bottom.
-// Everything above this is YOUR ORIGINAL CODE — do not touch it.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import Assignment from "../models/Assignment.model.js";
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
+import { publishEvent } from "../utils/rabbitmq.js";
 
 export const createAssignment = async (req, res) => {
   try {
@@ -35,6 +33,12 @@ export const createAssignment = async (req, res) => {
       return res.status(400).json({ message: "Invalid total points" });
     }
 
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    await checkSemesterFrozen(course.semester);
+
     const assignment = await Assignment.create({
       title,
       description,
@@ -48,24 +52,23 @@ export const createAssignment = async (req, res) => {
     res.status(201).json(assignment);
   } catch (error) {
     console.error("Create Assignment Error:", error);
+    if (error.status === 403) return res.status(403).json({ message: error.message });
     res.status(500).json({ message: "Failed to create assignment" });
   }
 };
 
 export const submitAssignment = async (req, res) => {
   try {
-    const assignment = await Assignment.findById(req.params.id);
+    const assignment = await Assignment.findById(req.params.id).populate("course");
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
-
     const alreadySubmitted = assignment.submissions.some(
       (s) => s.student.toString() === req.user.id
     );
     if (alreadySubmitted) {
       return res.status(400).json({ message: "Assignment already submitted" });
     }
-
     const submissionType = assignment.submissionType || "file";
     const textResponse =
       typeof req.body.textResponse === "string" ? req.body.textResponse.trim() : "";
@@ -73,7 +76,6 @@ export const submitAssignment = async (req, res) => {
     const hasFile = Boolean(req.file);
     const hasText = Boolean(textResponse);
     const hasLink = Boolean(link);
-
     if (submissionType === "file" && !hasFile)
       return res.status(400).json({ message: "File is required" });
     if (submissionType === "text" && !hasText)
@@ -82,7 +84,6 @@ export const submitAssignment = async (req, res) => {
       return res.status(400).json({ message: "Link is required" });
     if (submissionType === "both" && (!hasFile || !hasText))
       return res.status(400).json({ message: "File and text response are required" });
-
     if (hasLink) {
       try {
         const parsed = new URL(link);
@@ -93,7 +94,6 @@ export const submitAssignment = async (req, res) => {
         return res.status(400).json({ message: "Invalid link" });
       }
     }
-
     const baseUrl = `${req.protocol}://${req.get("host")}`;
     const submission = {
       student: req.user.id,
@@ -110,24 +110,36 @@ export const submitAssignment = async (req, res) => {
             filename: req.file.filename,
           }
         : undefined,
-    };
 
+    };
     assignment.submissions.push(submission);
     await assignment.save();
+    
+    // Background Plagiarism Detection Pipeline Trigger
+    publishEvent("academics", "assignment.submitted", {
+      assignmentId: assignment._id,
+      studentId: req.user.id
+    });
+
     res.json({ message: "Assignment submitted", submission });
   } catch (error) {
     console.error("Submit Assignment Error:", error);
+    if (error.status === 403) return res.status(403).json({ message: error.message });
     res.status(500).json({ message: "Submission failed" });
   }
-};
+}; 
 
 export const evaluateAssignment = async (req, res) => {
   try {
     const { studentId, marks } = req.body;
-    const assignment = await Assignment.findById(req.params.id);
+    const assignment = await Assignment.findById(req.params.id).populate("course");
 
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    if (assignment.course && assignment.course.semester) {
+      await checkSemesterFrozen(assignment.course.semester);
     }
 
     const submission = assignment.submissions.find(
@@ -143,25 +155,11 @@ export const evaluateAssignment = async (req, res) => {
     res.json({ message: "Assignment evaluated" });
   } catch (error) {
     console.error("Evaluate Assignment Error:", error);
+    if (error.status === 403) return res.status(403).json({ message: error.message });
     res.status(500).json({ message: "Evaluation failed" });
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NEW FUNCTION — Add this to the bottom of your existing controller
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * GET /api/assignment/reminders
- * Returns all assignments for the logged-in student with deadline status:
- *   - overdue   : dueDate is in the past, student hasn't submitted
- *   - dueToday  : dueDate is today, student hasn't submitted
- *   - upcoming  : dueDate is within the next 2 days, student hasn't submitted
- *   - submitted : student already submitted (any dueDate)
- *
- * Only assignments that need the student's attention are returned
- * (overdue, dueToday, upcoming, submitted within the last 7 days).
- */
 export const getUpcomingAssignments = async (req, res) => {
   try {
     const studentId = req.user.id;
@@ -186,12 +184,9 @@ export const getUpcomingAssignments = async (req, res) => {
 
     for (const assignment of all) {
       const due = new Date(assignment.dueDate);
-      // const mySubmission = assignment.submissions.find(
-      //   (s) => s.student.toString() === studentId
-      // );
-const mySubmission = (assignment.submissions || []).find(
-  (s) => s.student.toString() === studentId
-);
+      const mySubmission = (assignment.submissions || []).find(
+        (s) => s.student.toString() === studentId
+      );
       let status;
 
       if (mySubmission) {
@@ -236,6 +231,7 @@ const mySubmission = (assignment.submissions || []).find(
     res.status(500).json({ message: "Failed to fetch assignment reminders" });
   }
 };
+
 /**
  * GET /api/assignment/teacher
  * Returns all assignments created by the logged-in teacher.
@@ -248,6 +244,8 @@ export const getTeacherAssignments = async (req, res) => {
     const assignments = await Assignment.find({ teacher: teacherId })
       .populate("course", "name code")
       .populate("submissions.student", "name email avatarUrl photo") // Important for viewing submissions!
+      // 👇 NEW: Populate the user details inside the comments array for the teacher's view!
+      .populate("comments.user", "name role avatarUrl photo") 
       .sort({ createdAt: -1 })
       .lean();
 
@@ -307,3 +305,75 @@ export const downloadAssignmentFile = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/assignment/teacher/submissions/:id
+ * Fetches a single assignment and populates the student data for the submissions
+ */
+export const getAssignmentSubmissions = async (req, res) => {
+  try {
+    const assignmentId = req.params.id;
+    
+    // Find the assignment and populate the student details inside the submissions array
+    const assignment = await Assignment.findById(assignmentId)
+      .populate({
+        path: "submissions.student",
+        select: "name email avatarUrl photo", // Pulling in necessary student profile data
+      });
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json(assignment);
+  } catch (error) {
+    console.error("Error fetching assignment submissions:", error);
+    res.status(500).json({ message: "Failed to fetch submissions" });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW FUNCTION — Adds a public comment/question to an assignment
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const addAssignmentComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const assignment = await Assignment.findById(id).populate("course");
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    if (assignment.course && assignment.course.semester) {
+      await checkSemesterFrozen(assignment.course.semester);
+    }
+
+    // Add the comment
+    assignment.comments.push({
+      user: req.user.id,
+      text: text.trim()
+    });
+
+    await assignment.save();
+
+    // Fetch the newly saved assignment and populate the user details for the UI response
+    const updatedAssignment = await Assignment.findById(id).populate(
+      "comments.user", 
+      "name role avatarUrl photo"
+    );
+
+    res.status(201).json({ 
+      success: true, 
+      data: updatedAssignment.comments 
+    });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    if (error.status === 403) return res.status(403).json({ message: error.message });
+    res.status(500).json({ message: "Failed to add comment" });
+  }
+};

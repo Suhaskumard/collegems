@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Assignment from "../models/Assignment.model.js";
 import PlagiarismReport from "../models/PlagiarismReport.model.js";
+import PlagiarismAppeal from "../models/PlagiarismAppeal.model.js";
 import { getSubmissionText } from "../utils/textExtraction.js";
 import { compareTexts } from "../utils/similarity.js";
 
@@ -267,5 +268,75 @@ export const reviewReport = async (req, res) => {
   } catch (err) {
     console.error("Review report error:", err);
     res.status(500).json({ message: "Failed to update report" });
+  }
+};
+
+// ── Student: Submit a plagiarism appeal ──
+export const submitAppeal = async (req, res) => {
+  try {
+    const { reportId, justification } = req.body;
+    const studentId = req.user.id;
+
+    if (!justification || !justification.trim()) {
+      return res.status(400).json({ message: "Justification is required." });
+    }
+
+    const report = await PlagiarismReport.findOne({ _id: reportId, student: studentId });
+    if (!report) {
+      return res.status(404).json({ message: "Plagiarism report not found." });
+    }
+
+    // Check if an appeal already exists
+    const existingAppeal = await PlagiarismAppeal.findOne({ reportId });
+    if (existingAppeal && existingAppeal.status !== "rejected") {
+      return res.status(400).json({ message: "An active appeal already exists for this report." });
+    }
+
+    const appeal = await PlagiarismAppeal.create({
+      reportId,
+      student: studentId,
+      assignment: report.assignment,
+      justification
+    });
+
+    report.status = "pending_review"; 
+    await report.save();
+
+    res.status(201).json({ message: "Appeal submitted successfully", appeal });
+  } catch (error) {
+    console.error("Submit appeal error:", error);
+    res.status(500).json({ message: "Failed to submit appeal" });
+  }
+};
+
+// ── Teacher/HOD: Review a student's appeal ──
+export const reviewAppeal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, reviewNotes } = req.body; // status: "approved" or "rejected"
+
+    const appeal = await PlagiarismAppeal.findById(id).populate("reportId");
+    if (!appeal) {
+      return res.status(404).json({ message: "Appeal not found." });
+    }
+
+    appeal.status = status;
+    appeal.reviewedBy = req.user.id;
+    appeal.reviewNotes = reviewNotes || "";
+    await appeal.save();
+
+    // If approved, clear the flag on the report
+    if (status === "approved" && appeal.reportId) {
+      appeal.reportId.flagged = false;
+      appeal.reportId.status = "cleared";
+      appeal.reportId.reviewedBy = req.user.id;
+      appeal.reportId.reviewNotes = `Appeal Approved: ${reviewNotes}`;
+      await appeal.reportId.save();
+    }
+
+    res.json({ message: `Appeal ${status} successfully`, appeal });
+  } catch (error) {
+    console.error("Review appeal error:", error);
+    res.status(500).json({ message: "Failed to review appeal" });
   }
 };

@@ -75,6 +75,19 @@ test("Pagination Utility", async (t) => {
     assert.strictEqual(result.data[1].name, "Diana");
   });
 
+  await t.test("Custom defaultLimit option", async () => {
+    // When no ?limit param is supplied, the defaultLimit option should be respected
+    const result = await getPaginatedData(User, {}, {
+      baseFilter: { role: "student" },
+      defaultLimit: 20,
+    });
+
+    // We only seeded 5 students, so all 5 are returned in one page
+    assert.strictEqual(result.meta.limit, 20);
+    assert.strictEqual(result.meta.totalRecords, 5);
+    assert.strictEqual(result.meta.totalPages, 1);
+  });
+
   await t.test("Teardown", async () => {
     await mongoose.disconnect();
     await mongoServer.stop();

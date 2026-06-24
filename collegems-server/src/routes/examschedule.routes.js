@@ -4,6 +4,7 @@ import { allowRoles } from "../middlewares/role.middleware.js";
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
 import log from "../utils/logger.js";
 import ExamSchedule from "../models/ExamSchedule.model.js";
+import { checkScheduleConflicts } from "../services/calendarValidation.service.js";
 
 const router = express.Router();
 
@@ -35,6 +36,20 @@ router.post(
       !venue
     ) {
       throw new AppError("All fields are required", 400, "MISSING_FIELDS");
+    }
+
+    const validation = await checkScheduleConflicts({
+      date: examDate,
+      startTime,
+      endTime
+    });
+
+    if (validation.hasConflict) {
+      throw new AppError(
+        validation.conflictMessage,
+        409,
+        "SCHEDULE_CONFLICT"
+      );
     }
 
     const examSchedule = await ExamSchedule.create({
@@ -73,6 +88,21 @@ router.put(
 
     if (!id) {
       throw new AppError("Schedule ID is required", 400, "MISSING_ID");
+    }
+
+    const validation = await checkScheduleConflicts({
+      date: examDate,
+      startTime,
+      endTime,
+      excludeId: id
+    });
+
+    if (validation.hasConflict) {
+      throw new AppError(
+        validation.conflictMessage,
+        409,
+        "SCHEDULE_CONFLICT"
+      );
     }
 
     const examSchedule = await ExamSchedule.findByIdAndUpdate(
@@ -121,7 +151,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const examSchedule = await ExamSchedule.find({});
     res.json({ success: true, data: examSchedule });
-  })
+  }
 );
 
 export default router;

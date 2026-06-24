@@ -138,9 +138,10 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
       <div className="space-y-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+          <label htmlFor="feedback-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
           <div className="relative">
             <select
+              id="feedback-category"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none
@@ -156,8 +157,9 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+          <label htmlFor="feedback-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
           <input
+            id="feedback-title"
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -169,8 +171,9 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
 
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+          <label htmlFor="feedback-message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
           <textarea
+            id="feedback-message"
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
             placeholder="Describe your feedback in detail..."

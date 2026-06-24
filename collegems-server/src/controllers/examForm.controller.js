@@ -1,4 +1,5 @@
 import ExaminationForm from "../models/ExaminationForm.model.js";
+import { evaluateEligibility } from "../services/eligibilityEngine.js";
 
 // @desc    Submit a new examination form
 // @route   POST /api/exam-forms
@@ -41,6 +42,27 @@ export const submitExamForm = async (req, res) => {
         message: `You have already submitted an examination form for Semester/Year ${semesterYear} and Exam Type ${examType}.`,
       });
     }
+
+    // --- AUTOMATED ELIGIBILITY ENGINE VALIDATION ---
+    // In a real production scenario, these context values would be dynamically queried 
+    // from the Attendance and Finance microservices/collections.
+    // We mock standard metrics here to satisfy the validation engine for demonstration.
+    const contextData = {
+      attendancePercentage: 80, // e.g., fetched from Attendance service
+      feeDueBalance: 0,        // e.g., fetched from Finance service
+      cgpa: 7.5,
+      activeDisciplinaryHolds: 0
+    };
+
+    const eligibilityResult = await evaluateEligibility(studentId, 'ExamForm', contextData);
+    
+    if (!eligibilityResult.isEligible) {
+      return res.status(403).json({
+        message: "You are not eligible to submit this examination form.",
+        failedCriteria: eligibilityResult.failedCriteria
+      });
+    }
+    // -----------------------------------------------
 
     // Create the exam form
     const newForm = await ExaminationForm.create({

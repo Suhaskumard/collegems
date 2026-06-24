@@ -144,7 +144,10 @@ export default function GlobalSearch() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">{u.name}</p>
-                          <p className="text-xs text-gray-500 capitalize">{u.role}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-xs text-gray-500 capitalize">{u.role}</p>
+                            {u.matchReason && <span className="text-[10px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded">{u.matchReason}</span>}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -166,7 +169,10 @@ export default function GlobalSearch() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</p>
-                          <p className="text-xs text-gray-500">{c.code}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-xs text-gray-500">{c.code}</p>
+                            {c.matchReason && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded">{c.matchReason}</span>}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -188,6 +194,7 @@ export default function GlobalSearch() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-56">{a.title}</p>
+                          {a.matchReason && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{a.matchReason}</p>}
                         </div>
                       </div>
                     ))}
@@ -209,6 +216,7 @@ export default function GlobalSearch() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-56">{a.title}</p>
+                          {a.matchReason && <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-0.5">{a.matchReason}</p>}
                         </div>
                       </div>
                     ))}

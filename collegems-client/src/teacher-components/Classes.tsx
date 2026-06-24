@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import {
   BookOpen,
   Plus,
@@ -51,6 +52,8 @@ const Classes: React.FC = () => {
   const [filterSemester, setFilterSemester] = useState<number | "all">("all");
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<{id: string, name: string} | null>(null);
   const [formData, setFormData] = useState<ClassType>({
     name: "",
     semester: 1,
@@ -187,20 +190,23 @@ const Classes: React.FC = () => {
   };
 
   // Delete class
-  const handleDeleteClass = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this class?")) return;
+  const handleDeleteClick = (id: string, name: string) => {
+  setClassToDelete({ id, name });
+  setDeleteModalOpen(true);
+};
 
-    try {
-      setLoading(true);
-      await api.delete(`/classes/delete/${id}`);
-      fetchClasses();
-    } catch (error) {
-      console.error("Error deleting class:", error);
-      alert("Failed to delete class");
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleDeleteClass = async () => {
+  if (!classToDelete) return;
+  try {
+    await api.delete(`/classes/delete/${classToDelete.id}`);
+    setClasses(prev => prev.filter(c => c._id !== classToDelete.id));
+    setDeleteModalOpen(false);
+    setClassToDelete(null);
+  } catch (err) {
+    console.error("Failed to delete class", err);
+    setDeleteModalOpen(false);
+  }
+};
 
   // Filter classes
   const filteredClasses = classes.filter((cls) => {
@@ -478,7 +484,7 @@ const Classes: React.FC = () => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => cls._id && handleDeleteClass(cls._id)}
+                  onClick={() => cls._id && handleDeleteClick(cls._id, cls.name || "this class")}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete Class"
                 >
@@ -662,6 +668,12 @@ const Classes: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onConfirm={handleDeleteClass}
+        onCancel={() => { setDeleteModalOpen(false); setClassToDelete(null); }}
+        itemName={classToDelete?.name}
+      />
     </div>
   );
 };

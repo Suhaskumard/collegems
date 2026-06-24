@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "./hashPassword.js";
 
 // Load env variables
 dotenv.config();
@@ -54,7 +54,7 @@ const seedData = async () => {
     }
 
     // 1. Create or Find HOD
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    const hashedPassword = await hashPassword("password123", 10);
     let hod = await User.findOne({ email: "hod@college.edu" });
     if (!hod) {
       hod = await User.create({

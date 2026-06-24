@@ -38,6 +38,8 @@ import Clubs from "../common-components-management/Clubs";
 import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
 import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
+import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
+import UserWorkflows from "../user-components/UserWorkflows";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -53,6 +55,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
   const [activeTab, setActiveTab] = useState(initialTab ?? "overview");
   const { notifications } = useNotifications();
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
+  const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -124,6 +127,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
+    { id: "user-workflows", label: "My Workflows", icon: FileText },
   ];
 
   const activeTabLabel = activeTab === "settings" ? "Settings"
@@ -369,6 +373,9 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                       ))}
                     </div>
                   </div>
+
+                  {/* Attendance Alerts Widget */}
+                  <AttendanceAlertsWidget />
                 </div>
               </div>
             </div>
@@ -399,11 +406,12 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "clubs" && <Clubs />}
           {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
+          {activeTab === "user-workflows" && <UserWorkflows />}
           {activeTab === "announcements" && (
             <div className="space-y-8">
-              <AnnouncementForm />
+              <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />
               <hr className="border-gray-200 dark:border-gray-700" />
-              <AnnouncementManage />
+              <AnnouncementManage refreshKey={refreshAnnouncements} />
             </div>
           )}
         </main>

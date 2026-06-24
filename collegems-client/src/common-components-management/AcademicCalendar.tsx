@@ -1,78 +1,23 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Calendar as CalendarIcon,
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Clock,
+  MapPin,
+  Edit2,
+  Trash2,
+  Loader2
+} from "lucide-react";
+import api from "../api/axios";
 
-type EventItem = {
-
-  date: string;
-  type: string;
-};
-
-const AcademicCalendar = () => {
-  const [filter, setFilter] = useState("all");
-
-  // ✅ STATIC DATA (NO API)
-  const events: EventItem[] = [
-    { title: "Mid Term Exams", date: "2026-06-10", type: "exam" },
-    { title: "Sports Day", date: "2026-06-15", type: "holiday" },
-    { title: "Fee Deadline", date: "2026-06-20", type: "deadline" },
-    { title: "Diwali Holiday", date: "2026-11-01", type: "holiday" },
-  ];
-
-  // filter safely
-  const filteredEvents =
-    filter === "all"
-      ? events
-      : events.filter((e) => e.type === filter);
-
-  const getColor = (type: string) => {
-    switch (type) {
-      case "exam":
-        return "#ff4d4d";
-      case "holiday":
-        return "#4caf50";
-      case "deadline":
-        return "#2196f3";
-      default:
-        return "#999";
-    }
-  };
-
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>📅 Academic Calendar</h2>
-
-      {/* FILTER */}
-      <select onChange={(e) => setFilter(e.target.value)}>
-        <option value="all">All</option>
-        <option value="exam">Exam</option>
-        <option value="holiday">Holiday</option>
-        <option value="deadline">Deadline</option>
-      </select>
-
-      {/* EVENTS */}
-      <div style={{ marginTop: "20px" }}>
-        {filteredEvents.map((event, index) => (
-          <div
-            key={index}
-            style={{
-              borderLeft: `6px solid ${getColor(event.type)}`,
-              padding: "10px",
-              marginBottom: "10px",
-              border: "1px solid #ddd",
-              borderRadius: "6px",
-            }}
-          >
-            <h4>{event.title}</h4>
-            <p>{event.date}</p>
-            <small>{event.type}</small>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default AcademicCalendar;
-
+// 1. Fixed the broken interface
+export interface CalendarEvent {
+  _id?: string;
+  title: string;
   description: string;
   category: "Exam" | "Assignment" | "Holiday" | "Workshop" | "Event" | "Deadline";
   date: string | Date;
@@ -80,6 +25,10 @@ export default AcademicCalendar;
   endTime?: string;
   location?: string;
   isSystemGenerated?: boolean;
+}
+
+interface AcademicCalendarProps {
+  role?: string;
 }
 
 export default function AcademicCalendar({ role }: AcademicCalendarProps) {
@@ -154,9 +103,9 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
     return filteredEvents.filter((e) => {
       const eDate = new Date(e.date);
       return (
-        eDate.getDate() === day &&
-        eDate.getMonth() === month &&
-        eDate.getFullYear() === year
+        eDate.getUTCDate() === day &&
+        eDate.getUTCMonth() === month &&
+        eDate.getUTCFullYear() === year
       );
     });
   };
@@ -249,7 +198,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
 
   return (
     <div className="space-y-4">
-      {/* Top Header - FIXED */}
+      {/* Top Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -267,7 +216,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
         )}
       </div>
 
-      {/* Filters - FIXED */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow-xs">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
@@ -293,9 +242,9 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
         </select>
       </div>
 
-      {/* Calendar Grid Container - FIXED */}
+      {/* Calendar Grid Container */}
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-xs">
-        {/* Month Selector - FIXED */}
+        {/* Month Selector */}
         <div className="flex justify-between items-center mb-4">
           <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
             {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
@@ -313,7 +262,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
           </div>
         </div>
 
-        {/* Days grid - FIXED */}
+        {/* Days grid */}
         <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
             <div key={d} className="py-1">{d}</div>
@@ -326,7 +275,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
             <div key={`blank-${i}`} className="min-h-[60px] bg-gray-50/50 dark:bg-gray-800/50 rounded-lg opacity-30" />
           ))}
 
-          {/* Current month days - FIXED */}
+          {/* Current month days */}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const dayEvents = getDayEvents(day);
@@ -369,7 +318,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
         </div>
       </div>
 
-      {/* LEGEND - FIXED */}
+      {/* LEGEND */}
       <div className="flex flex-wrap gap-3 text-[9px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700">
         {categories.map((c) => (
           <div key={c} className="flex items-center gap-1">
@@ -385,7 +334,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
         ))}
       </div>
 
-      {/* DETAIL MODAL - FIXED */}
+      {/* DETAIL MODAL */}
       {showDetails && selectedEvent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full overflow-hidden">
@@ -404,7 +353,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
               <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400 pt-1">
                 <div className="flex items-center gap-1.5">
                   <CalendarIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                  <span>{new Date(selectedEvent.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  <span>{new Date(selectedEvent.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
                 </div>
                 {(selectedEvent.startTime || selectedEvent.endTime) && (
                   <div className="flex items-center gap-1.5">
@@ -439,7 +388,7 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
         </div>
       )}
 
-      {/* FORM MODAL - FIXED */}
+      {/* FORM MODAL */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full overflow-hidden">
@@ -508,4 +457,3 @@ export default function AcademicCalendar({ role }: AcademicCalendarProps) {
     </div>
   );
 }
-

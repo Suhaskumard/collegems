@@ -7,8 +7,14 @@ import {
   RefreshCw,
   Filter,
   AlertTriangle,
+  Send,
+  Loader2,
+  Edit,
+  X,
 } from "lucide-react";
 import api from "../api/axios";
+import AnnouncementForm from "./AnnouncementForm";
+import EmptyState from "../components/EmptyState";
 
 interface Announcement {
   _id: string;
@@ -20,8 +26,9 @@ interface Announcement {
   targetSemester: string | null;
   expiresAt: string | null;
   isActive: boolean;
+  status?: "draft" | "published";
   createdAt: string;
-  postedBy: { name: string; role: string };
+  postedBy: { _id: string; name: string; email?: string; role: string };
 }
 
 const PRIORITY_STYLES: Record<string, string> = {
@@ -31,15 +38,29 @@ const PRIORITY_STYLES: Record<string, string> = {
   urgent: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 };
 
-export default function AnnouncementManage() {
+interface AnnouncementManageProps {
+  refreshKey?: number;
+}
+
+export default function AnnouncementManage({ refreshKey }: AnnouncementManageProps = {}) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [filterRole, setFilterRole] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
   const [filterSemester, setFilterSemester] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+
+  const userStr = localStorage.getItem("userData");
+  const userData = userStr ? JSON.parse(userStr) : null;
+  const currentUserId = userData?._id || userData?.id;
+  const currentUserRole = userData?.role || localStorage.getItem("role");
+  const hasActiveFilters = Boolean(filterRole || filterCourse || filterSemester || filterStatus);
+  const showPublishCta = !hasActiveFilters;
 
   // inline confirm modal state
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -53,6 +74,7 @@ export default function AnnouncementManage() {
       if (filterRole) params.targetRole = filterRole;
       if (filterCourse) params.targetCourse = filterCourse;
       if (filterSemester) params.targetSemester = filterSemester;
+      if (filterStatus) params.status = filterStatus;
 
       const res = await api.get("/announcements", { params });
 
@@ -66,7 +88,7 @@ export default function AnnouncementManage() {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, [filterRole, filterCourse, filterSemester]);
+  }, [filterRole, filterCourse, filterSemester, filterStatus, refreshKey]);
 
   const handleDelete = async () => {
     if (!confirmDeleteId) return;
@@ -85,6 +107,18 @@ export default function AnnouncementManage() {
       console.error("Delete failed:", err);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handlePublish = async (id: string) => {
+    setPublishingId(id);
+    try {
+      await api.put(`/announcements/${id}`, { status: "published" });
+      await fetchAnnouncements();
+    } catch (err) {
+      console.error("Publish failed:", err);
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -171,6 +205,17 @@ export default function AnnouncementManage() {
             </option>
           ))}
         </select>
+
+        {/* Status Filter */}
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+        >
+          <option value="">All Status</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
       </div>
 
       {/* Loading */}
@@ -179,10 +224,23 @@ export default function AnnouncementManage() {
           <span className="animate-spin border-4 border-indigo-400 border-t-transparent rounded-full w-10 h-10" />
         </div>
       ) : announcements.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
-          <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>No announcements found.</p>
-        </div>
+        showPublishCta ? (
+          <EmptyState
+            icon={<Bell className="w-7 h-7 text-indigo-600" />}
+            title="No notices published yet"
+            description="Use the composer above to publish the first notice for your audience."
+            actionLabel="Publish Notice"
+            onAction={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            actionHint="Jumps to the notice composer at the top of the page."
+          />
+        ) : (
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500">
+            <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No announcements found.</p>
+          </div>
+        )
       ) : (
         <div className="space-y-3">
           {announcements.map((a) => (
@@ -205,6 +263,12 @@ export default function AnnouncementManage() {
                     >
                       {a.priority}
                     </span>
+
+                    {a.status === "draft" && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                        Draft
+                      </span>
+                    )}
 
                     {!a.isActive && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500">
@@ -248,14 +312,43 @@ export default function AnnouncementManage() {
                   </p>
                 </div>
 
-                {/* Delete Button */}
-                <button
-                  onClick={() => setConfirmDeleteId(a._id)}
-                  className="p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors shrink-0"
-                  title="Delete announcement"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Action Buttons */}
+                {(currentUserRole === "hod" || currentUserRole === "admin" || a.postedBy?._id === currentUserId) && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {a.status === "draft" && (
+                      <>
+                        <button
+                          onClick={() => setEditingAnnouncement(a)}
+                          className="p-2 rounded-xl text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors"
+                          title="Edit draft"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handlePublish(a._id)}
+                          disabled={publishingId === a._id}
+                          className="p-2 rounded-xl text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 transition-colors disabled:opacity-50"
+                          title="Publish announcement"
+                        >
+                          {publishingId === a._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      onClick={() => setConfirmDeleteId(a._id)}
+                      className="p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors"
+                      title="Delete announcement"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Inline Delete Confirmation */}
@@ -299,6 +392,34 @@ export default function AnnouncementManage() {
           ))}
         </div>
       )}
+
+      {/* Edit Modal */}
+      {editingAnnouncement && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Draft Announcement</h2>
+              <button
+                onClick={() => setEditingAnnouncement(null)}
+                className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            <div className="p-6">
+              <AnnouncementForm
+                mode="edit"
+                initialAnnouncement={editingAnnouncement}
+                onSuccess={() => {
+                  setEditingAnnouncement(null);
+                  fetchAnnouncements();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

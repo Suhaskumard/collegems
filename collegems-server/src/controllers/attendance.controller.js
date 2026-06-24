@@ -1,10 +1,18 @@
 import Attendance from "../models/Attendance.model.js";
+import AttendanceAlert from "../models/AttendanceAlert.model.js";
 import User from "../models/User.model.js";
 import { logAction } from "../utils/auditService.js";
-
+import { checkSemesterFrozen } from "../services/semesterService.js";
 export const markAttendance = async (req, res) => {
   try {
     const { date, records } = req.body;
+
+    if (records && records.length > 0) {
+      const firstStudent = await User.findById(records[0].studentId);
+      if (firstStudent && firstStudent.semester) {
+        await checkSemesterFrozen(firstStudent.semester);
+      }
+    }
 
     for (const r of records) {
       await Attendance.findOneAndUpdate(
@@ -15,7 +23,7 @@ export const markAttendance = async (req, res) => {
         {
           status: r.status,
         },
-        { upsert: true, new: true },
+        { upsert: true, new: true, editorId: req.user.id },
       );
     }
 
@@ -24,6 +32,7 @@ export const markAttendance = async (req, res) => {
     // Log action
     await logAction(req.user.id, "UPDATE_ATTENDANCE", "Attendance", date, { recordsCount: records.length });
   } catch (err) {
+    if (err.status === 403) return res.status(403).json({ message: err.message });
     res.status(500).json({ message: "Attendance failed" });
   }
 };

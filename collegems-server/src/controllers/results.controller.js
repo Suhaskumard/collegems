@@ -122,6 +122,7 @@ export const createResult = async (req, res) => {
         });
     } catch (err) {
         console.log("Create Result Error:", err);
+        if (err.status === 403) return res.status(403).json({ message: err.message });
         res.status(500).json({ message: "Server Error" });
     }
 };

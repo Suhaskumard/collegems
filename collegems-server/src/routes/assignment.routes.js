@@ -1,7 +1,4 @@
 // ─── FILE: collegems-server/src/routes/assignment.routes.js ──────────────────
-// WHAT CHANGED: Added import for getUpcomingAssignments + one new GET route.
-// Everything else is identical to your original file.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import express from "express";
 import fs from "fs";
@@ -11,6 +8,10 @@ import { allowRoles } from "../middlewares/role.middleware.js";
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
 import { protect } from '../middlewares/auth.middleware.js';
 import log from "../utils/logger.js";
+import Assignment from "../models/Assignment.model.js";
+import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
+
+// Consolidated all controller imports into one clean block, INCLUDING getUpcomingAssignments
 import {
   createAssignment,
   submitAssignment,
@@ -19,8 +20,6 @@ import {
   getUpcomingAssignments,
   getTeacherAssignments,
 } from "../controllers/assignment.controller.js";
-import Assignment from "../models/Assignment.model.js";
-import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
 
 const router = express.Router();
 
@@ -110,8 +109,10 @@ const validateUploadedFile = async (req, res, next) => {
 };
 
 // ── Existing routes with error handling ───────────────────────────────────────
+
 router.post("/create", protect, allowRoles("teacher"), asyncHandler(createAssignment));
 
+// Single robust submit route (removed the duplicate conflicting one)
 router.post(
   "/submit/:id",
   protect,
@@ -126,7 +127,7 @@ router.post(
     });
   },
   validateUploadedFile,
-  submitAssignment,
+  submitAssignment
 );
 
 router.get("/download/:filename", protect, downloadAssignmentFile);
@@ -145,13 +146,15 @@ router.get("/student", protect, allowRoles("student","teacher","parent"), async 
   try {
     const assignments = await Assignment.find()
       .populate("course", "name code")
-      .populate("teacher", "name");
+      .populate("teacher", "name")
+      .populate("comments.user", "name role avatarUrl photo"); 
     res.json({ success: true, data: assignments });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
+// Fixed the nested route bug here
 router.get(
   "/teacher/submissions/:assignmentId",
   protect,
@@ -178,6 +181,16 @@ router.get(
     res.json({ success: true, data: assignment });
   })
 );
+
+router.get(
+  "/reminders",
+  protect,
+  allowRoles("student"),
+  asyncHandler(getUpcomingAssignments)
+);
+
+// The new StackOverflow-style Comments Route!
+router.post("/:id/comments", protect, asyncHandler(addAssignmentComment));
 
 router.get(
   "/reminders",
