@@ -27,7 +27,7 @@ import {
   Briefcase,
   GraduationCap,
   Users,
-  UserCircle, // Added for the ID Card icon
+  UserCircle,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -94,8 +94,6 @@ type TabType =
   | "user-workflows"
   | "settings";
 
-
-// Consolidated and cleaned navigation items
 const navigationItems: {
   id: TabType;
   label: string;
@@ -119,7 +117,7 @@ const navigationItems: {
   { id: "library", label: "Library", icon: BookOpen },
   { id: "exam-form", label: "Examination Form", icon: FileText },
   { id: "scholarships", label: "Scholarships", icon: AwardIcon },
-  { id: "id-card", label: "ID Card", icon: UserCircle }, // FIX: Replaced IDCard component with UserCircle icon
+  { id: "id-card", label: "ID Card", icon: UserCircle },
   { id: "feedback", label: "Feedback", icon: MessageSquare },
   { id: "placement", label: "Placement", icon: Briefcase },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
@@ -186,12 +184,69 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Loading your dashboard...
-          </p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
+        {/* Skeleton Sidebar (Hidden on mobile, visible on desktop) */}
+        <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+            <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse h-16"></div>
+          </div>
+          <div className="flex-1 p-4 space-y-3">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="h-11 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
+              ></div>
+            ))}
+          </div>
+        </aside>
+
+        {/* Skeleton Main Layout */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Skeleton Header */}
+          <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 lg:px-8">
+            <div className="h-8 w-8 lg:hidden bg-gray-200 dark:bg-gray-800 rounded animate-pulse mr-4"></div>
+            <div className="h-9 w-64 hidden sm:block bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            <div className="ml-auto flex gap-3">
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            </div>
+          </header>
+
+          {/* Skeleton Dashboard Content */}
+          <main className="p-4 sm:p-6 lg:p-8 flex-1">
+            {/* Title Area */}
+            <div className="mb-8">
+              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-3"></div>
+              <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+            </div>
+
+            {/* Stats Grid Cards Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-36"
+                >
+                  <div className="flex justify-between items-start animate-pulse">
+                    <div className="space-y-3">
+                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                      <div className="h-7 w-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                    </div>
+                    <div className="h-11 w-11 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>
+                  </div>
+                  <div className="mt-6 h-4 w-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Actions & Schedule Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-64 animate-pulse"></div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-64 animate-pulse"></div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -455,8 +510,8 @@ export default function StudentDashboard() {
               <AssignmentReminder />
 
               {/* Quick Actions */}
-              
-               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Quick Actions
                 </h2>
@@ -515,7 +570,7 @@ export default function StudentDashboard() {
                     );
                   })}
                 </div>
-              </div> 
+              </div>
 
               {/* Today's Schedule */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
@@ -620,7 +675,9 @@ export default function StudentDashboard() {
               {activeTab === "courses" && <Courses />}
               {activeTab === "examschedule" && <ExamSchedule />}
               {activeTab === "my-seat" && <StudentSeatView />}
-              {activeTab === "academic-calendar" && <AcademicCalendar role="student" />}
+              {activeTab === "academic-calendar" && (
+                <AcademicCalendar role="student" />
+              )}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
               {activeTab === "semester-comparison" && <SemesterComparison />}
@@ -638,7 +695,7 @@ export default function StudentDashboard() {
               {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
-              
+
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Settings are not available yet for student accounts.
