@@ -190,12 +190,12 @@ export const getStudentProfile = async (req, res) => {
       _id: id,
       role: "student",
     }).select("-password");
-    const student = await User.findOne({ _id: id, role: "student" }).select("-password");
+
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    res.json(student);
+    res.status(200).json(student);
   } catch (error) {
     console.error("Error fetching student profile:", error);
     res.status(500).json({ message: "Server error" });

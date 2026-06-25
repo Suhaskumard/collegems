@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 //import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
+import ParentDashboard from "./pages/ParentDashboard";
 import MainDashboard from "./pages/MainDashboard";
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";
@@ -25,7 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import SemesterRegistration from "./user-components/SemesterRegistration";
-import TimeTable from "./user-components/TimeTable";
+//import TimeTable from "./user-components/TimeTable";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import LostFoundPortal from "./pages/LostFoundPortal";

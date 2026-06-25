@@ -34,7 +34,7 @@ import Library from "../common-components-management/Library";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -61,7 +61,7 @@ export default function ParentDashboard() {
       if (res.data?.student?._id) {
         localStorage.setItem("childStudentId", res.data.student._id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Dashboard fetch error:", err);
     } finally {
       setLoading(false);
@@ -356,7 +356,7 @@ export default function ParentDashboard() {
             <div className="space-y-8">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {data.cards?.map((stat: any, index: number) => {
+                {data.cards?.map((stat: Record<string, unknown>, index: number) => {
                   const colors = [
                     "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30",
                     "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30",

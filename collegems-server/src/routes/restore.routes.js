@@ -7,13 +7,13 @@ import {
   restoreRecord,
 } from "../controllers/restore.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
-import { authorizeRole } from "../middlewares/role.middleware.js";
+import { authorize } from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
 // All restore operations require authentication and admin/hod role
 router.use(authenticate);
-router.use(authorizeRole("admin", "hod"));
+router.use(authorize("admin", "hod"));
 
 router.get("/models", getSupportedModels);
 router.get("/:modelName", getArchivedRecords);
