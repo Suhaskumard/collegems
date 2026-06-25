@@ -21,7 +21,7 @@ router.post(
 );
 
 router.get(
-  "/me",
+  "/my",
   protect,
   allowRoles("student", "parent"),
   getMyAttendance
@@ -30,7 +30,7 @@ router.get(
 router.get(
   "/low",
   protect,
-  allowRoles("teacher", "hod"),
+  allowRoles("teacher", "hod", "student"),
   getLowAttendance
 );
 

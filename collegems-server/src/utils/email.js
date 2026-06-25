@@ -91,3 +91,61 @@ export const sendOverdueEmail = async (user, fee) => {
 
   return sendEmail(user.email, subject, text, html);
 };
+
+/**
+ * Send email verification link
+ * @param {Object} user - User object containing name and email
+ * @param {string} verificationUrl - URL for verification
+ */
+export const sendVerificationEmail = async (user, verificationUrl) => {
+  const subject = `Verify Your Email Address`;
+  const text = `Dear ${user.name},\n\nPlease verify your email address by clicking the following link:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nIf you did not create an account, no further action is required.\n\nRegards,\nCollege Administration`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+      <h2 style="color: #333;">Verify Your Email Address</h2>
+      <p>Dear <strong>${user.name}</strong>,</p>
+      <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email</a>
+      </div>
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #007bff;">${verificationUrl}</p>
+      <p>This link will expire in 24 hours.</p>
+      <p>If you did not create an account, no further action is required.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #777;">Regards,<br>College Administration</p>
+    </div>
+  `;
+
+  return sendEmail(user.email, subject, text, html);
+};
+
+/**
+ * Send password reset email
+ * @param {Object} user - User object containing name and email
+ * @param {string} resetUrl - URL for password reset
+ */
+export const sendPasswordResetEmail = async (user, resetUrl) => {
+  const subject = `Password Reset Request`;
+  const text = `Dear ${user.name},\n\nYou requested a password reset. Please click the following link to set a new password:\n\n${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.\n\nRegards,\nCollege Administration`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+      <h2 style="color: #333;">Password Reset Request</h2>
+      <p>Dear <strong>${user.name}</strong>,</p>
+      <p>You requested a password reset. Please click the button below to set a new password:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+      </div>
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #007bff;">${resetUrl}</p>
+      <p>This link will expire in 1 hour.</p>
+      <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #777;">Regards,<br>College Administration</p>
+    </div>
+  `;
+
+  return sendEmail(user.email, subject, text, html);
+};

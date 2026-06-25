@@ -1,3 +1,6 @@
+
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
@@ -8,10 +11,12 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; 
+import { useToast } from "../../hooks/useToast";
 
 export default function Register() {
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
+  const { toast } = useToast();
   const [role, setRole] = useState("student");
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(false);
@@ -76,14 +81,10 @@ export default function Register() {
       }
       const res = await api.post("/auth/register", payload);
       
-      localStorage.setItem("token", res.data.accessToken);
-      localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("userId", res.data.user.id);
-      localStorage.setItem("userData", JSON.stringify(res.data.user));
+      toast.success(res.data.message || "Registration successful. Please check your email to verify your account.");
       setForm({});
       setDuplicateWarning(null);
-      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
-      navigate(routes[res.data.user.role] || "/");
+      navigate("/login");
     } catch (err: any) {
       if (err.response?.status === 409 && err.response?.data?.isDuplicateWarning) {
         setDuplicateWarning(err.response.data);
