@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -65,12 +66,7 @@ export default function Login() {
 
       {/* Theme Toggle - top right */}
       <div className="absolute top-4 right-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm"
-        >
-          {darkMode ? <Sun className="w-5 h-5 text-gray-300" /> : <Moon className="w-5 h-5 text-gray-600" />}
-        </button>
+        <ThemeSwitcher />
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

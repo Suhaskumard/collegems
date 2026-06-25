@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import GlobalSearch from "./GlobalSearch";
+import ThemeSwitcher from "../components/ThemeSwitcher";
 
 export default function Navbar(){
     const navigate = useNavigate();
@@ -41,16 +42,7 @@ export default function Navbar(){
                         >
                         📅 Calendar
                     </button>
-                    <button
-                        onClick={toggleTheme}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                        {darkMode ? (
-                        <Sun className="w-5 h-5 text-gray-300" />
-                        ) : (
-                        <Moon className="w-5 h-5 text-gray-600" />
-                        )}
-                    </button>
+                    <ThemeSwitcher />
                     <button
                         onClick={() => navigate("/login")}
                         className="px-4 py-2 text-xl font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-2"

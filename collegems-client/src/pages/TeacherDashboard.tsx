@@ -40,6 +40,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 import UserWorkflows from "../user-components/UserWorkflows";
+import ThemeSwitcher from "../components/ThemeSwitcher";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -244,9 +245,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
 
               <div className="flex items-center gap-3">
                 {/* Theme Toggle */}
-                <button onClick={toggleTheme} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                  {darkMode ? <Sun className="w-5 h-5 text-gray-300" /> : <Moon className="w-5 h-5 text-gray-600" />}
-                </button>
+                <ThemeSwitcher />
                 <button onClick={() => navigate("/teacher/announcements")} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative" title="Go to announcements">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full"></span>
