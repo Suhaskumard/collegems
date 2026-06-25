@@ -106,17 +106,12 @@ export default function App() {
 
         {/* Dashboard Layout */}
         <Route element={<DashboardLayout />}>
-
-        
-
           {/* student/user pages */}
           <Route path="/examschedule" element={<ExamSchedule />} />
           <Route path="/results" element={<StudentResults />} />
           <Route path="/events" element={<EventsStudent />} />
           {/* <Route path="/calendar" element={<AcademicCalendar />} /> */}
           <Route path="/calendar" element={<AcademicCalendar />} />
-
-
           <Route
             path="/courses"
             element={
