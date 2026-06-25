@@ -1,115 +1,171 @@
-# Next-Level Project Roadmap: CollegeMS
+# College Management System - Issue Roadmap
 
-This document outlines a series of high-impact, intermediate, and advanced technical issues designed to elevate the College Management System (CollegeMS) to an enterprise-grade platform. These tasks focus on scalability, security, performance optimization, and cutting-edge features.
+This document outlines various tasks and improvements for the College Management System, categorized by difficulty. Contributors can use this roadmap to find issues that match their skill level.
 
----
+## Medium Issues
 
-## 🟡 Intermediate Issues (10)
+**Issue number:** 1
+**Issue name:** Implement Password Reset UI
+**Description:** Create the frontend React components and forms for the "Forgot Password" and "Reset Password" workflows.
 
-These issues require a solid understanding of backend/frontend architecture, caching, background processing, and security best practices.
+**Issue number:** 2
+**Issue name:** Add Pagination to Student List
+**Description:** Update the `GET /api/students` endpoint in the Express server to support `page` and `limit` query parameters for pagination.
 
-### 1. **Caching Layer for Dashboard Analytics**
-- **Type**: Backend, Performance
-- **Description**: Implement Redis caching for high-traffic endpoints like the System Health Dashboard and administrative analytics. This will significantly reduce database load and improve response times for complex aggregations.
-- **Requirements**: Cache invalidation strategy, TTL configuration, Redis integration.
+**Issue number:** 3
+**Issue name:** Teacher Profile Editing
+**Description:** Build a form in the `teacher-components` directory to allow teachers to update their biography, contact info, and office hours.
 
-### 2. **WebSocket Integration for Live Notifications**
-- **Type**: Backend, Frontend
-- **Description**: Upgrade the "Silent Notifications" and general notification system to use WebSockets (e.g., Socket.io) for real-time delivery, replacing any existing polling mechanisms.
-- **Requirements**: Connection pooling, presence detection, graceful fallback to long-polling.
+**Issue number:** 4
+**Issue name:** Assignment Submission Validation
+**Description:** Add basic client-side and server-side validation to ensure assignment submissions include required files and valid text.
 
-### 3. **Role-Based Access Control (RBAC) Matrix Optimization**
-- **Type**: Backend, Security
-- **Description**: Refactor the permission system to support dynamic roles and hierarchical inheritance. Move away from hardcoded role checks to a flexible, database-driven permissions matrix.
-- **Requirements**: Middleware update, UI for admins to create custom roles, permission caching.
+**Issue number:** 5
+**Issue name:** Soft Delete for Courses
+**Description:** Modify the Course model in Mongoose to support soft deletion (e.g., adding an `isDeleted` flag) rather than permanently removing records.
 
-### 4. **Asynchronous Report Generation Service**
-- **Type**: Backend, Infrastructure
-- **Description**: Move heavy data processing tasks like the "Partial Export Builder" to a background worker queue (e.g., BullMQ or Celery) with progress tracking.
-- **Requirements**: Worker processes, job queue management, progress API for frontend polling.
+**Issue number:** 6
+**Issue name:** Upcoming Exams Endpoint
+**Description:** Create a new backend controller method to fetch exams scheduled within the next 14 days for a specific student's enrolled courses.
 
-### 5. **Automated Database Backups with Cloud Storage Integration**
-- **Type**: DevOps, Backend
-- **Description**: Create a cron-job-based service that securely dumps the database, encrypts the payload, and uploads it to secure cloud storage (AWS S3 or similar).
-- **Requirements**: Backup rotation policy, alerting on failure, restoration script.
+**Issue number:** 7
+**Issue name:** Toast Notification System
+**Description:** Implement a reusable toast notification component in the React client to display success, error, and warning messages globally.
 
-### 6. **Rate Limiting & API Abuse Prevention**
-- **Type**: Backend, Security
-- **Description**: Implement sophisticated rate limiting based on IP and user roles (utilizing Redis) to prevent brute-force attacks and API abuse across all endpoints.
-- **Requirements**: Dynamic limits based on auth state, custom HTTP 429 responses.
+**Issue number:** 8
+**Issue name:** Department Filtering
+**Description:** Add a dropdown filter to the student directory page allowing users to filter the student list by their respective departments.
 
-### 7. **Multi-Factor Authentication (MFA) via Authenticator Apps**
-- **Type**: Fullstack, Security
-- **Description**: Add support for TOTP (Time-based One-Time Password) using apps like Google/Microsoft Authenticator for admin and faculty accounts to enhance security.
-- **Requirements**: QR code generation, recovery codes, enforcement toggles.
+**Issue number:** 9
+**Issue name:** Dark Mode Toggle
+**Description:** Implement a theme switcher in the UI that persists the user's preference in `localStorage` and toggles Tailwind CSS dark mode classes.
 
-### 8. **GraphQL Gateway Implementation**
-- **Type**: Backend, API Design
-- **Description**: Introduce a GraphQL layer over the existing REST APIs to allow the frontend to fetch exactly the data it needs for complex views like "Student Transfer History" and "Academic Record Snapshots."
-- **Requirements**: Schema definition, resolver implementation, query complexity limiting.
+**Issue number:** 10
+**Issue name:** Feedback Form Sanitization
+**Description:** Add proper input sanitization to the feedback submission endpoint in the backend to prevent XSS vulnerabilities.
 
-### 9. **Localization (i18n) & Timezone Engine Refactor**
-- **Type**: Fullstack, Architecture
-- **Description**: Completely decouple the system from the server's local time ("Timezone Independent Scheduling") and implement a multi-language support architecture for global adoption.
-- **Requirements**: UTC standardization in DB, user timezone preferences, translation dictionaries.
+## Intermediate Issues
 
-### 10. **Automated Integration Testing Pipeline**
-- **Type**: QA, CI/CD
-- **Description**: Set up a comprehensive Cypress or Playwright end-to-end testing suite targeting critical paths like the "Multi-Step Approval Workflows" and "Academic Data Locking."
-- **Requirements**: Test database seeding, CI/CD integration (GitHub Actions), visual regression tests.
+**Issue number:** 11
+**Issue name:** Redux Toolkit Migration
+**Description:** Migrate the existing state management for student assignments from React Context to Redux Toolkit for better performance.
 
----
+**Issue number:** 12
+**Issue name:** Assignment File Uploads
+**Description:** Implement file upload functionality for assignment submissions using `multer` on the Express backend and handle FormData on the client.
 
-## 🔴 Advanced / Hard Issues (10)
+**Issue number:** 13
+**Issue name:** Role-Based Route Guards
+**Description:** Implement Higher Order Components (HOCs) in React to protect specific routes based on user roles (Student, Teacher, HOD).
 
-These issues tackle complex algorithmic challenges, system architecture overhauls, distributed systems, and machine learning integrations.
+**Issue number:** 14
+**Issue name:** Mongoose Query Optimization
+**Description:** Review and optimize slow database queries in the attendance dashboard, including adding appropriate MongoDB indexes.
 
-### 1. **Real-time Conflict Resolution Engine for Timetabling**
-- **Type**: Backend, Algorithms
-- **Description**: Implement a constraint satisfaction solver (or genetic algorithm) to automatically resolve "Duplicate Timetable Slot Suggestions" and room allocation conflicts, optimizing for professor availability and student pathing.
-- **Requirements**: Graph/heuristic algorithms, multi-variable constraint handling, visual conflict map.
+**Issue number:** 15
+**Issue name:** Email Verification Flow
+**Description:** Implement an email verification system sending SMTP emails with secure, time-limited JWT tokens upon user registration.
 
-### 2. **AI-Powered Predictive Analytics for Student Success**
-- **Type**: Machine Learning, Backend
-- **Description**: Build an ML model to analyze student performance trends, attendance drops, and "Form Abandonment Insights" to flag students at high risk of dropping out or failing courses.
-- **Requirements**: Data pipeline for model training, inference API, explainability layer ("Search Result Explanation").
+**Issue number:** 16
+**Issue name:** HOD Analytics Dashboard
+**Description:** Create a responsive dashboard layout for HODs featuring high-level statistics like total enrollment and average attendance.
 
-### 3. **Distributed Microservices Architecture Refactoring**
-- **Type**: Architecture, Backend
-- **Description**: Begin decoupling the monolithic backend into smaller, domain-specific microservices (e.g., Auth Service, Attendance Service, Grading Service) communicating via an event bus (Kafka/RabbitMQ).
-- **Requirements**: Service discovery, API Gateway, distributed tracing, event-driven architecture.
+**Issue number:** 17
+**Issue name:** Grade Visualization Charts
+**Description:** Integrate Chart.js or Recharts into the React client to display student grade trends over the semester.
 
-### 4. **Blockchain-Backed Academic Credentials Validation**
-- **Type**: Backend, Cryptography
-- **Description**: Create a tamper-proof ledger for issuing final transcripts and degrees, allowing external verifiers (employers) to validate academic records cryptographically without manual university intervention.
-- **Requirements**: Smart contract development, wallet management, public verification portal.
+**Issue number:** 18
+**Issue name:** Express API Caching
+**Description:** Implement basic response caching for frequently accessed, read-heavy API routes (like the public course catalog) using Redis or memory cache.
 
-### 5. **Anomaly Detection System for Data Integrity**
-- **Type**: Security, Machine Learning
-- **Description**: Develop an automated monitoring daemon that detects unusual patterns in grade changes, sequence gaps ("Automatic Sequence Repair"), or unauthorized access anomalies.
-- **Requirements**: Unsupervised learning for outlier detection, real-time alerting to system admins.
+**Issue number:** 19
+**Issue name:** Real-Time Study Group Notifications
+**Description:** Set up Socket.io events to push real-time notifications to users when a new message is posted in their active study groups.
 
-### 6. **Zero-Downtime Database Migration Pipeline**
-- **Type**: DevOps, Infrastructure
-- **Description**: Implement a blue/green deployment strategy coupled with backward-compatible database schema migrations to ensure the platform stays online during major structural updates.
-- **Requirements**: Expand-and-contract migration patterns, traffic routing, automated rollback mechanisms.
+**Issue number:** 20
+**Issue name:** Admin Action Audit Logs
+**Description:** Create an `AuditLog` Mongoose model and middleware to track sensitive administrative actions (e.g., changing grades, deleting users).
 
-### 7. **Dynamic Workflow Engine with Custom Rule Builder**
-- **Type**: Fullstack, Architecture
-- **Description**: Build a fully visual, state-machine-driven workflow builder for the "Multi-Step Approval Workflow", allowing administrators to define custom, node-based approval paths with branching logic.
-- **Requirements**: Directed Acyclic Graph (DAG) execution engine, visual node editor on frontend.
+## Hard Issues
 
-### 8. **Federated Authentication (SSO) with External Identity Providers**
-- **Type**: Backend, Security
-- **Description**: Integrate SAML 2.0 or OAuth2/OIDC to allow users to log in using external university credentials or government ID systems (e.g., Shibboleth, Active Directory).
-- **Requirements**: SAML parsing, identity mapping, certificate management.
+**Issue number:** 21
+**Issue name:** API Rate Limiting
+**Description:** Implement robust rate limiting on all public authentication and data API endpoints to prevent abuse and brute-force attacks.
 
-### 9. **End-to-End Encryption (E2EE) for Sensitive Records**
-- **Type**: Fullstack, Cryptography
-- **Description**: Implement client-side encryption for highly sensitive medical or disciplinary student records, ensuring even database administrators cannot read them without the client's decryption keys.
-- **Requirements**: Public/Private key generation, secure key exchange, encrypted search limitations mitigation.
+**Issue number:** 22
+**Issue name:** Full-Text Course Search
+**Description:** Build a fast, full-text search feature for course materials and syllabi using MongoDB text indexes or integrating a specialized search engine.
 
-### 10. **Advanced Distributed Caching with Event-Driven Invalidation**
-- **Type**: Backend, Performance
-- **Description**: Implement a robust distributed cache layer with fine-grained, event-driven cache invalidation (using Redis Pub/Sub or CDC tools like Debezium) to ensure the "Data Freshness Indicator" is always 100% accurate at scale.
-- **Requirements**: Change Data Capture (CDC), cache stampede prevention, distributed lock management.
+**Issue number:** 23
+**Issue name:** Real-Time Chat Application
+**Description:** Develop a fully functional, real-time chat interface for study groups using Socket.io, including typing indicators and read receipts.
+
+**Issue number:** 24
+**Issue name:** OAuth2 SSO Integration
+**Description:** Implement Single Sign-On (SSO) using Google Workspace so students and faculty can log in using their institution email addresses.
+
+**Issue number:** 25
+**Issue name:** Timetable Conflict Resolution
+**Description:** Build a backend service that validates new class or exam schedules against existing bookings to prevent room and instructor overlap.
+
+**Issue number:** 26
+**Issue name:** Frontend Bundle Optimization
+**Description:** Analyze the Vite build output and implement lazy loading and code splitting to significantly reduce the initial load time of the React client.
+
+**Issue number:** 27
+**Issue name:** End-to-End Testing Suite
+**Description:** Set up Cypress and write comprehensive end-to-end tests covering critical user journeys like logging in, enrolling in a course, and submitting an assignment.
+
+**Issue number:** 28
+**Issue name:** Complex RBAC Implementation
+**Description:** Design and implement a granular Role-Based Access Control (RBAC) system allowing custom permissions beyond the basic Student/Teacher/HOD roles.
+
+**Issue number:** 29
+**Issue name:** PWA Offline Support
+**Description:** Implement Service Workers to cache critical assets and API responses, allowing the React client to function partially while offline.
+
+**Issue number:** 30
+**Issue name:** Transactional Workflows
+**Description:** Implement MongoDB transactions for complex multi-step processes like student enrollment to ensure complete data consistency upon failures.
+
+## Advanced Issues
+
+**Issue number:** 31
+**Issue name:** Drop-Out Prediction ML Model
+**Description:** Develop and train a scikit-learn model in the FastAPI service to predict students at risk of dropping out based on attendance and grades.
+
+**Issue number:** 32
+**Issue name:** Micro-Frontend Architecture
+**Description:** Refactor the React application into a micro-frontend architecture to allow separate teams to deploy the Student, Teacher, and Admin portals independently.
+
+**Issue number:** 33
+**Issue name:** Collaborative Document Editing
+**Description:** Implement a real-time collaborative text editor (similar to Google Docs) for group assignments using WebSockets and Operational Transformation (OT) or CRDTs.
+
+**Issue number:** 34
+**Issue name:** Multi-Tenant Architecture
+**Description:** Redesign the database schema and backend middleware to support multi-tenancy, allowing multiple different colleges to use the same system securely.
+
+**Issue number:** 35
+**Issue name:** NLP Automated Grading
+**Description:** Build an advanced feature in the Python ML service using NLP techniques to provide automated preliminary grading and feedback for short essay questions.
+
+**Issue number:** 36
+**Issue name:** Event-Driven Microservices
+**Description:** Decouple the monolithic Express server into microservices communicating asynchronously via an event bus like Apache Kafka or RabbitMQ.
+
+**Issue number:** 37
+**Issue name:** Automated CI/CD with Rollbacks
+**Description:** Set up a complete CI/CD pipeline using GitHub Actions that includes automated testing, containerization (Docker), deployment, and automated health-check rollbacks.
+
+**Issue number:** 38
+**Issue name:** Database Sharding Strategy
+**Description:** Design and execute a migration plan to move the MongoDB cluster to a sharded architecture to handle massive historical data growth.
+
+**Issue number:** 39
+**Issue name:** AI Assistant via RAG
+**Description:** Implement a Retrieval-Augmented Generation (RAG) pipeline connecting a Large Language Model to the college knowledge base to answer student FAQs automatically.
+
+**Issue number:** 40
+**Issue name:** Zero-Downtime Migrations
+**Description:** Implement a robust database schema migration strategy that allows for structural database changes without requiring any application downtime.

@@ -67,6 +67,7 @@ import reportRoutes from "./report.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
+import restoreRoutes from "./restore.routes.js";
 
 
 // Miscellaneous
@@ -182,6 +183,7 @@ router.use("/reports", reportRoutes);
 router.use("/analytics", authenticate, analyticsRoutes);
 router.use("/audit-logs", authenticate, auditLogRoutes);
 router.use("/system-health", authenticate, systemHealthRoutes);
+router.use("/restore", restoreRoutes);
 
 
 // ========================================
