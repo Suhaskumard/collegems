@@ -75,17 +75,12 @@ export default function App() {
 
         {/* Dashboard Layout */}
         <Route element={<DashboardLayout />}>
-
-        
-
           {/* student/user pages */}
           <Route path="/examschedule" element={<ExamSchedule />} />
           <Route path="/results" element={<StudentResults />} />
           <Route path="/events" element={<EventsStudent />} />
           {/* <Route path="/calendar" element={<AcademicCalendar />} /> */}
           <Route path="/calendar" element={<AcademicCalendar />} />
-
-
           <Route
             path="/courses"
             element={
@@ -239,15 +234,22 @@ export default function App() {
         />
 
         <Route
-          path="/hod/manage-resources"
+          path="/hod/bulk-reset"
           element={
             <RoleRoute role="hod">
-              <ResourceManagement />
+              <BulkFieldReset />
             </RoleRoute>
           }
         />
-    
+
       <Route
+        path="/parent/dashboard"
+        element={
+          <RoleRoute role="parent">
+            <ParentDashboard />
+          </RoleRoute>
+        }
+      />
   path="/hod/bulk-reset"
   element={
     <RoleRoute role="hod">
@@ -255,16 +257,6 @@ export default function App() {
     </RoleRoute>
   }
 />
-     
-
-        <Route
-          path="/parent/dashboard"
-          element={
-            <RoleRoute role="parent">
-              <ParentDashboard />
-            </RoleRoute>
-          }
-        />
       </Routes>
     </BrowserRouter>
   );
