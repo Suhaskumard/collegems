@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema({
   loginCount: { type: Number, default: 0 },
   accountStatus: { type: String, enum: ["active", "archived", "suspended"], default: "active" },
 
+  // Email Verification
+  isEmailVerified: { type: Boolean, default: false },
+  verificationToken: { type: String },
+  verificationTokenExpires: { type: Date },
+
   // Tags
   tags: {
     type: [String],

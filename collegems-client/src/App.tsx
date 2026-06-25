@@ -2,6 +2,7 @@ import AcademicCalendar from "./common-components-management/AcademicCalendar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BulkFieldReset from "./hod-components/BulkFieldReset";
 
@@ -94,6 +95,7 @@ export default function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/verify/student/:studentId" element={<VerifyStudent />} />
         <Route path="/access-denied" element={<AccessDenied />} />
