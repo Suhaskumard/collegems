@@ -87,21 +87,26 @@ const [viewingComments, setViewingComments] = useState<any | null>(null);
   };
 
 const processFile = (selectedFile: File) => {
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      setSubmitError("File is too large! Maximum allowed size is 5MB.");
+    const rules = activeSubmission?.validationRules || {
+      maxFileSizeMB: 5,
+      allowedFileTypes: [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/png"
+      ]
+    };
+
+    if (selectedFile.size > rules.maxFileSizeMB * 1024 * 1024) {
+      setSubmitError(`File is too large! Maximum allowed size is ${rules.maxFileSizeMB}MB.`);
       if (fileInputRef.current) fileInputRef.current.value = ""; 
       setSubmissionForm((prev) => ({ ...prev, file: null }));
       return;
     }
 
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ];
-    
-    if (!allowedTypes.includes(selectedFile.type)) {
-      setSubmitError("Invalid file type! Please upload a .pdf, .doc, or .docx file.");
+    if (rules.allowedFileTypes.length > 0 && !rules.allowedFileTypes.includes(selectedFile.type)) {
+      setSubmitError("Invalid file type! Please upload an allowed format.");
       if (fileInputRef.current) fileInputRef.current.value = ""; 
       setSubmissionForm((prev) => ({ ...prev, file: null }));
       return;
@@ -169,6 +174,22 @@ const processFile = (selectedFile: File) => {
     if (activeSubmissionType === "text" && !textResponse) return setSubmitError("Please enter your response.");
     if (activeSubmissionType === "link" && !link) return setSubmitError("Please provide a link.");
     if (activeSubmissionType === "both" && (!hasFile || !textResponse)) return setSubmitError("Please attach a file and enter your response.");
+
+    const rules = activeSubmission.validationRules || { minTextLength: 10 };
+    if ((activeSubmissionType === "text" || activeSubmissionType === "both") && textResponse.length < rules.minTextLength) {
+      return setSubmitError(`Text response must be at least ${rules.minTextLength} characters long.`);
+    }
+
+    if (activeSubmissionType === "link" || (activeSubmissionType === "both" && link)) {
+      try {
+        const parsed = new URL(link);
+        if (!/^https?:$/.test(parsed.protocol)) {
+          return setSubmitError("Invalid link format. Must be http or https.");
+        }
+      } catch {
+        return setSubmitError("Invalid link format.");
+      }
+    }
 
     setSubmitError(null);
     dispatch(clearError());
