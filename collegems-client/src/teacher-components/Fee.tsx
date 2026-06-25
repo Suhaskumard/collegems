@@ -46,7 +46,7 @@ export default function Hodfee() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/users/students");
+      const response = await api.get("/users/students?limit=0");
       setStudents(extractArray(response.data));
       setMessage(null);
     } catch (error) {

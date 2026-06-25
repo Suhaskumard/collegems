@@ -94,13 +94,13 @@ router.delete(
       throw new AppError("Course ID is required", 400, "MISSING_ID");
     }
 
-    const course = await Course.findByIdAndDelete(id);
+    const course = await Course.findByIdAndUpdate(id, { isDeleted: true, deletedAt: new Date() });
     if (!course) {
       throw new AppError("Course not found", 404, "NOT_FOUND");
     }
 
-    log.info(`Course deleted: ${course.code}`, { courseId: id });
-    invalidateCache('/api/courses'); // Clear course cache
+log.info(`Course deleted: ${course.code}`, { courseId: id });
+invalidateCache('/api/courses'); // Clear course cache
     res.json({ success: true, message: "Course deleted successfully" });
   })
 );
@@ -115,6 +115,46 @@ router.get(
     const courses = await Course.find().populate("teacher", "name email");
     res.json(courses);
   }
+);
+
+// View soft-deleted courses
+router.get(
+  "/deleted",
+  protect,
+  allowRoles("hod", "admin"),
+  asyncHandler(async (req, res) => {
+    const courses = await Course.find({ isDeleted: true })
+      .setOptions({ includeDeleted: true })
+      .populate("teacher", "name email");
+    res.json({ success: true, data: courses });
+  })
+);
+
+// Restore a soft-deleted course
+router.put(
+  "/restore/:id",
+  protect,
+  allowRoles("hod", "admin"),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    if (!id) {
+      throw new AppError("Course ID is required", 400, "MISSING_ID");
+    }
+
+    const course = await Course.findByIdAndUpdate(
+      id,
+      { isDeleted: false, deletedAt: null },
+      { new: true }
+    ).setOptions({ includeDeleted: true });
+
+    if (!course) {
+      throw new AppError("Course not found", 404, "NOT_FOUND");
+    }
+
+    log.info(`Course restored: ${course.code}`, { courseId: id });
+    res.json({ success: true, message: "Course restored successfully", data: course });
+  })
 );
 
 export default router;

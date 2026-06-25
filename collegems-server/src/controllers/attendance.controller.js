@@ -55,7 +55,10 @@ export const getMyAttendance = async (req, res) => {
 
     const data = await Attendance.find({
       student: studentId,
-    }).populate("course", "name");
+    })
+      .select('student status date course')
+      .populate('course', 'name')
+      .lean();
 
     res.json(data);
   } catch (err) {
@@ -88,12 +91,8 @@ export const getLowAttendance = async (req, res) => {
       },
     ]);
 
-    const populated = await Attendance.populate(result, [
-      { path: "_id.student", select: "name email rollNumber" },
-      { path: "_id.course", select: "name code" },
-    ]);
-
-    res.json({ success: true, data: populated });
+    // Directly return aggregation result without populate to keep IDs as ObjectId strings
+    res.json({ success: true, data: result });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
