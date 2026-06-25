@@ -112,7 +112,7 @@ export default function TeacherResult() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/users/students");
+      const response = await api.get("/users/students?limit=0");
       setStudents(extractArray(response.data));
       setFilteredStudents(extractArray(response.data));
     } catch (error) {

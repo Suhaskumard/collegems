@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getStudyGroups, createStudyGroup, joinStudyGroup } from "../../api/studyGroup.api";
 import { Users, Plus, Loader2 } from "lucide-react";
 

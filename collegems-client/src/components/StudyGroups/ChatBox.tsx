@@ -7,7 +7,9 @@ export default function ChatBox({ groupId }: { groupId: string }) {
   const { socket, isConnected } = useSocket();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchHistory();
@@ -16,9 +18,23 @@ export default function ChatBox({ groupId }: { groupId: string }) {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
       });
+      socket.on("typing", ({ userName }) => {
+        setTypingUsers((prev) => new Set(prev).add(userName));
+      });
+      socket.on("stop-typing", ({ userName }) => {
+        setTypingUsers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(userName);
+          return newSet;
+        });
+      });
     }
     return () => {
-      if (socket) socket.off("receive-message");
+      if (socket) {
+        socket.off("receive-message");
+        socket.off("typing");
+        socket.off("stop-typing");
+      }
     };
   }, [groupId, socket, isConnected]);
 
@@ -43,7 +59,32 @@ export default function ChatBox({ groupId }: { groupId: string }) {
     if (!newMessage.trim() || !socket) return;
     
     socket.emit("send-message", { groupId, content: newMessage });
+    
+    const userStr = localStorage.getItem("user");
+    let userName = "A user";
+    if (userStr) {
+      try { userName = JSON.parse(userStr).name; } catch (e) {}
+    }
+    socket.emit("stop-typing", { groupId, userName });
     setNewMessage("");
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    if (socket) {
+      const userStr = localStorage.getItem("user");
+      let userName = "A user";
+      if (userStr) {
+        try { userName = JSON.parse(userStr).name; } catch (e) {}
+      }
+      socket.emit("typing", { groupId, userName });
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stop-typing", { groupId, userName });
+      }, 2000);
+    }
   };
 
   return (
@@ -63,6 +104,12 @@ export default function ChatBox({ groupId }: { groupId: string }) {
         ))}
         <div ref={messagesEndRef} />
       </div>
+      
+      {typingUsers.size > 0 && (
+        <div className="px-4 py-2 text-xs text-gray-500 italic bg-gray-50/50">
+          {Array.from(typingUsers).join(", ")} {typingUsers.size === 1 ? "is" : "are"} typing...
+        </div>
+      )}
 
       <form onSubmit={handleSend} className="p-4 border-t border-gray-200 flex gap-2">
         <input
@@ -70,7 +117,7 @@ export default function ChatBox({ groupId }: { groupId: string }) {
           className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:border-blue-500"
           placeholder="Type a message..."
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputChange}
         />
         <button
           type="submit"

@@ -21,6 +21,7 @@ import log from "./utils/logger.js";
 import { allowedOrigins } from "./config/cors.js";
 
 const app = express();
+app.set("query parser", "extended");
 
 // Middlewares
 app.use(cors({

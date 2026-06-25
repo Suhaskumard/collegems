@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast } from "./useToast";
 import { useSocket } from "../context/SocketContext";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
@@ -14,6 +15,7 @@ export interface Notification {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { socket } = useSocket();
+  const { toast } = useToast();
 
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
@@ -47,6 +49,7 @@ export const useNotifications = () => {
 
     const handleNewNotification = (notification: Notification) => {
       setNotifications((prev) => [notification, ...prev]);
+      toast.info(notification.message);
     };
 
     socket.on("newNotification", handleNewNotification);

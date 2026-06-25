@@ -14,17 +14,20 @@ import {
   batchAnalyze,
 } from "../controllers/feedback.controller.js";
 
+import { sanitizeInput } from "../middlewares/sanitize.middleware.js";
+import { validateFeedback } from "../validators/feedback.validator.js";
+
 const router = express.Router();
 
 // ── Student routes ────────────────────────────────────────────────────────────
-router.post("/",    protect, allowRoles("student"), submitFeedback);
+router.post("/", protect, allowRoles("student"), sanitizeInput, validateFeedback, submitFeedback);
 router.get("/my",   protect, allowRoles("student"), getMyFeedback);
 
 // ── HOD routes ────────────────────────────────────────────────────────────────
 router.post("/analyze-all", protect, allowRoles("hod"), batchAnalyze);
 router.get("/all",        protect, allowRoles("hod"), getAllFeedback);
 router.get("/analytics",  protect, allowRoles("hod"), getFeedbackAnalytics);
-router.patch("/:id",      protect, allowRoles("hod"), updateFeedbackStatus);
+router.patch("/:id",      protect, allowRoles("hod"), sanitizeInput, updateFeedbackStatus);
 router.delete("/:id",     protect, allowRoles("hod"), deleteFeedback);
 
 export default router;
