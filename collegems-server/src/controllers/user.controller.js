@@ -6,7 +6,8 @@ import { getPaginatedData } from "../utils/pagination.util.js";
 import calculateProfileCompletion from "../utils/profileCompletion.js";
 import Attendance from "../models/Attendance.model.js";
 import Results from "../models/Results.model.js";
-
+import crypto from "crypto";
+import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
   return {
@@ -360,6 +361,87 @@ export const unlockAcademicRecord = async (req, res) => {
     console.error("Unlock academic record error:", error);
     res.status(500).json({
       message: "Failed to unlock academic record",
+    });
+  }
+};
+export const createTeacher = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      teacherId,
+      department,
+      phone,
+      dob,
+      overrideDuplicates,
+    } = req.body || {};
+
+    if (!name || !email || !password || !teacherId || !department) {
+      return res.status(400).json({
+        message:
+          "Name, email, password, teacher ID and department are required",
+      });
+    }
+
+    const existing = await User.findOne({
+      email: email.trim().toLowerCase(),
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "User already exists with this email",
+      });
+    }
+
+    let duplicates = [];
+
+if (!overrideDuplicates) {
+  duplicates = await checkPotentialDuplicates({
+    name,
+    email,
+    teacherId,
+    department,
+    phone,
+    dob,
+    role: "teacher",
+  });
+
+  if (duplicates.length > 0) {
+    return res.status(409).json({
+      isDuplicateWarning: true,
+      matches: duplicates,
+    });
+  }
+}
+
+    const teacher = await User.create({
+      name,
+      email: email.trim().toLowerCase(),
+      password: await hashPassword(password, 8),
+      role: "teacher",
+      teacherId,
+      department,
+      phone,
+      dob,
+    });
+
+    await logAction(
+      req.user.id,
+      "CREATE_TEACHER",
+      "User",
+      teacher._id,
+      {}
+    );
+
+    res.status(201).json({
+      message: "Teacher created successfully",
+      teacher,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({  
+      message: "Server error",
     });
   }
 };

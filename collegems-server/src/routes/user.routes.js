@@ -14,6 +14,7 @@ import {
   getStudentProfile,
   bulkAssignTags,
   unlockAcademicRecord,
+  createTeacher,
 } from "../controllers/user.controller.js";
 import { getCleanupSuggestions } from "../services/userCleanup.service.js";
 import { uploadResume } from "../middlewares/upload.middleware.js";
@@ -87,7 +88,12 @@ router.get("/teachers", protect, authorize("hod", "teacher", "student"), async (
 
   res.json(teachers);
 });
-
+router.post(
+  "/teachers",
+  protect,
+  authorize("hod"),
+  createTeacher
+);
 // TODO: getCleanupSuggestions is not implemented yet
 // router.get("/cleanup-suggestions", protect, authorize("admin"), getCleanupSuggestions);
 router.put(

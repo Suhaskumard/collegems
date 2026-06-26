@@ -3,7 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
   Users, Search, RefreshCw, X, Mail, IdCard, Calendar,
-  UserCircle, GraduationCap, BookOpen, ChevronRight, Filter, Clock, MapPin, Wifi,
+  UserCircle, GraduationCap, BookOpen, ChevronRight, Filter, Clock, MapPin, Wifi,Plus,
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
@@ -43,6 +43,18 @@ const Teachers: React.FC = () => {
   const [error, setError] = useState("");
   const [officeHours, setOfficeHours] = useState<{ slots: OfficeHourSlot[]; notes: string } | null>(null);
   const [officeHoursLoading, setOfficeHoursLoading] = useState(false);
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
+
+const [teacherForm, setTeacherForm] = useState({
+  name: "",
+  email: "",
+  password: "",
+  teacherId: "",
+  department: "",
+  phone: "",
+});
+
+const [creatingTeacher, setCreatingTeacher] = useState(false);
 
   useEffect(() => { fetchTeachers(); }, []);
 
@@ -94,7 +106,32 @@ const Teachers: React.FC = () => {
       setLoading(false);
     }
   };
+const createTeacher = async () => {
+  try {
+    setCreatingTeacher(true);
 
+    await api.post("/users/teachers", teacherForm);
+
+    alert("Teacher created successfully!");
+
+    setShowAddTeacher(false);
+
+    setTeacherForm({
+      name: "",
+      email: "",
+      password: "",
+      teacherId: "",
+      department: "",
+      phone: "",
+    });
+
+    fetchTeachers();
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Failed to create teacher");
+  } finally {
+    setCreatingTeacher(false);
+  }
+};
   const getInitials = (name: string) =>
     name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
@@ -189,6 +226,13 @@ const Teachers: React.FC = () => {
               currentFilters={{ searchTerm, filterDepartment }} 
               onApplyFilter={handleApplySavedFilter} 
             />
+            <button
+  onClick={() => setShowAddTeacher(true)}
+  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+>
+  <Plus className="w-4 h-4" />
+  Add Teacher
+</button>
             <button
               onClick={fetchTeachers}
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -312,7 +356,108 @@ const Teachers: React.FC = () => {
           {(searchTerm || filterDepartment !== "all") && ` matching criteria`}
         </div>
       )}
+      {showAddTeacher && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          Add New Teacher
+        </h2>
 
+        <button onClick={() => setShowAddTeacher(false)}>
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+
+        <input
+          className={inputCls}
+          placeholder="Full Name"
+          value={teacherForm.name}
+          onChange={(e) =>
+            setTeacherForm({ ...teacherForm, name: e.target.value })
+          }
+        />
+
+        <input
+          className={inputCls}
+          placeholder="Email"
+          value={teacherForm.email}
+          onChange={(e) =>
+            setTeacherForm({ ...teacherForm, email: e.target.value })
+          }
+        />
+
+        <input
+          className={inputCls}
+          type="password"
+          placeholder="Password"
+          value={teacherForm.password}
+          onChange={(e) =>
+            setTeacherForm({ ...teacherForm, password: e.target.value })
+          }
+        />
+
+        <input
+          className={inputCls}
+          placeholder="Teacher ID"
+          value={teacherForm.teacherId}
+          onChange={(e) =>
+            setTeacherForm({
+              ...teacherForm,
+              teacherId: e.target.value,
+            })
+          }
+        />
+
+        <input
+          className={inputCls}
+          placeholder="Department"
+          value={teacherForm.department}
+          onChange={(e) =>
+            setTeacherForm({
+              ...teacherForm,
+              department: e.target.value,
+            })
+          }
+        />
+
+        <input
+          className={inputCls}
+          placeholder="Phone"
+          value={teacherForm.phone}
+          onChange={(e) =>
+            setTeacherForm({
+              ...teacherForm,
+              phone: e.target.value,
+            })
+          }
+        />
+
+      </div>
+
+      <div className="flex justify-end gap-3 mt-6">
+
+        <button
+          onClick={() => setShowAddTeacher(false)}
+          className="px-4 py-2 rounded-lg border"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={createTeacher}
+          disabled={creatingTeacher}
+          className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {creatingTeacher ? "Creating..." : "Create Teacher"}
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
       {/* Teacher Detail Modal */}
       {selectedTeacher && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
