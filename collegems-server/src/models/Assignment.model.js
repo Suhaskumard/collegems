@@ -37,6 +37,20 @@ const assignmentSchema = new mongoose.Schema(
       default: "file"
     },
     instructionsFile: String,
+    validationRules: {
+      maxFileSizeMB: { type: Number, default: 5 },
+      allowedFileTypes: { 
+        type: [String], 
+        default: [
+          "application/pdf", 
+          "application/msword", 
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "image/jpeg",
+          "image/png"
+        ] 
+      },
+      minTextLength: { type: Number, default: 10 }
+    },
     submissions: [
       {
         student: {

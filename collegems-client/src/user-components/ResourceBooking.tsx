@@ -59,8 +59,8 @@ const ResourceBooking: React.FC = () => {
     
     setLoading(true);
     try {
-      const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
-      const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
+      const startDateTime = new Date(`${date}T${startTime}:00Z`).toISOString();
+      const endDateTime = new Date(`${date}T${endTime}:00Z`).toISOString();
 
       let url = `/bookings/available?startTime=${startDateTime}&endTime=${endDateTime}`;
       if (resourceType) url += `&type=${resourceType}`;
@@ -79,8 +79,8 @@ const ResourceBooking: React.FC = () => {
     if (!selectedResource || !purpose) return;
 
     try {
-      const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
-      const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
+      const startDateTime = new Date(`${date}T${startTime}:00Z`).toISOString();
+      const endDateTime = new Date(`${date}T${endTime}:00Z`).toISOString();
 
       await api.post(
         "/bookings",
@@ -285,11 +285,11 @@ const ResourceBooking: React.FC = () => {
                     <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">{booking.resource?.type?.replace('_', ' ')}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 dark:text-white">{new Date(booking.startTime).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-900 dark:text-white">{new Date(booking.startTime).toLocaleDateString('en-US', { timeZone: 'UTC' })}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                       <Clock className="w-3 h-3" />
-                      {new Date(booking.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
-                      {new Date(booking.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(booking.startTime).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', timeZone: 'UTC'})} - 
+                      {new Date(booking.endTime).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', timeZone: 'UTC'})}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title={booking.purpose}>

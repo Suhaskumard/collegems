@@ -22,7 +22,7 @@ export default function MentorAssignment() {
       const [mRes, tRes, sRes] = await Promise.all([
         api.get("/mentorships"),
         api.get("/users/teachers"),
-        api.get("/users/students?limit=200"),
+        api.get("/users/students?limit=0"),
       ]);
       setMentorships(mRes.data);
       setTeachers(tRes.data);

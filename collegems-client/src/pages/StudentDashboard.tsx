@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AwardIcon,
+  BarChart,
   Bell,
   BookOpen,
   Bus,
@@ -39,6 +40,7 @@ import BusRoutes from "../common-components-management/BusRoutes";
 import Library from "../common-components-management/Library";
 import NotificationBell from "../common-components-management/NotificationBell";
 import Scholarships from "../common-components-management/Scholarships";
+import ThemeSwitcher from "../components/ThemeSwitcher";
 
 // Student Components
 import Assignment from "../user-components/Assignment";
@@ -61,6 +63,7 @@ import UpcomingExamsWidget from "../user-components/UpcomingExamWidget";
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementsView from "../user-components/AnnouncementsView";
 import SemesterComparison from "../user-components/SemesterComparison";
+import UserWorkflows from "../user-components/UserWorkflows";
 
 // HOD Components
 import Teachers from "../hod-components/Teachers";
@@ -90,7 +93,9 @@ type TabType =
   | "book-resources"
   | "subject-faculty"
   | "semester-comparison"
-  | "settings";
+  | "user-workflows"
+  | "settings"
+  | "grade-trend";
 
 
 // Consolidated and cleaned navigation items
@@ -122,6 +127,8 @@ const navigationItems: {
   { id: "placement", label: "Placement", icon: Briefcase },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   { id: "book-resources", label: "Book Resources", icon: CalendarDays },
+  { id: "user-workflows", label: "My Workflows", icon: FileText },
+  { id: "grade-trend", label: "Grade Trend", icon: BarChart },
 ];
 
 export default function StudentDashboard() {
@@ -320,16 +327,7 @@ export default function StudentDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-              >
-                {darkMode ? (
-                  <Sun className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
+              <ThemeSwitcher />
               <NotificationBell />
             </div>
           </div>
@@ -634,6 +632,7 @@ export default function StudentDashboard() {
               {activeTab === "subject-faculty" && <Teachers />}
               {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "placement" && <PlacementEligibility />}
+              {activeTab === "user-workflows" && <UserWorkflows />}
               
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">

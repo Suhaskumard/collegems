@@ -27,8 +27,8 @@ router.get("/pending-approvals", getPendingApprovals);
 router.post("/process/:instanceId", processWorkflowAction);
 
 // --- Admin Routes ---
-// Restrict below routes to admin only
-router.use(restrictTo("admin"));
+// Restrict below routes to admin and hod
+router.use(restrictTo("admin", "hod"));
 
 router.post("/forms", createFormTemplate);
 router.post("/definitions", createWorkflowDef);

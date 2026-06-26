@@ -202,8 +202,8 @@ const LeaveRequest: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
-              <input type="text" name="subject" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
+              <label htmlFor="leave-subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
+              <input id="leave-subject" type="text" name="subject" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
                 onBlur={() => trackField("subject", 5)}
                 placeholder="e.g. Family event leave" className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.subject ? "border-red-400" : "border-gray-300"}`} />
               {errors.subject && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.subject}</p>}
@@ -225,19 +225,19 @@ const LeaveRequest: React.FC = () => {
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                <label htmlFor="leave-start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> Start Date
                 </label>
-                <input type="date" name="startDate" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
+                <input id="leave-start-date" type="date" name="startDate" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
                   onBlur={() => trackField("startDate", 5)}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.startDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.startDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.startDate}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                <label htmlFor="leave-end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> End Date
                 </label>
-                <input type="date" name="endDate" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
+                <input id="leave-end-date" type="date" name="endDate" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
                   onBlur={() => trackField("endDate", 5)}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.endDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.endDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.endDate}</p>}
@@ -246,8 +246,8 @@ const LeaveRequest: React.FC = () => {
 
             {/* Reason */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
-              <textarea rows={4} name="reason" value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
+              <label htmlFor="leave-reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+              <textarea id="leave-reason" rows={4} name="reason" value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
                 onBlur={() => trackField("reason", 5)}
                 placeholder="Describe the reason for your leave..."
                 className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none ${errors.reason ? "border-red-400" : "border-gray-300"}`} />

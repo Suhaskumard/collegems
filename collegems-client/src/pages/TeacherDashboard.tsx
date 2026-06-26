@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import MyAssignments from "../teacher-components/MyAssignments";
 import api from "../api/axios";
@@ -10,6 +10,7 @@ import {
   Percent, Moon, Sun, ClipboardCheck, Trophy,
   Briefcase,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -39,6 +40,9 @@ import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
 import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
+import UserWorkflows from "../user-components/UserWorkflows";
+import ThemeSwitcher from "../components/ThemeSwitcher";
+import TeacherProfile from "../teacher-components/TeacherProfile";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -101,6 +105,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "profile", label: "My Profile", icon: User },
     { id: "announcements", label: "Announcements", icon: Bell },
     { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "officehours", label: "Office Hours", icon: Clock },
@@ -126,6 +131,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
+    { id: "user-workflows", label: "My Workflows", icon: FileText },
   ];
 
   const activeTabLabel = activeTab === "settings" ? "Settings"
@@ -242,9 +248,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
 
               <div className="flex items-center gap-3">
                 {/* Theme Toggle */}
-                <button onClick={toggleTheme} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                  {darkMode ? <Sun className="w-5 h-5 text-gray-300" /> : <Moon className="w-5 h-5 text-gray-600" />}
-                </button>
+                <ThemeSwitcher />
                 <button onClick={() => navigate("/teacher/announcements")} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative" title="Go to announcements">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full"></span>
@@ -379,6 +383,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
             </div>
           )}
 
+          {activeTab === "profile" && <TeacherProfile />}
           {activeTab === "myattendance" && <MyAttendance />}
           {activeTab === "officehours" && <OfficeHours />}
           {activeTab === "courses" && <HodCourses />}
@@ -404,6 +409,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "clubs" && <Clubs />}
           {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
+          {activeTab === "user-workflows" && <UserWorkflows />}
           {activeTab === "announcements" && (
             <div className="space-y-8">
               <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />

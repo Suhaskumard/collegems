@@ -20,6 +20,7 @@ import tenantResolver from "./middlewares/tenantResolver.js";
 import log from "./utils/logger.js";
 
 const app = express();
+app.set("query parser", "extended");
 
 // ========================================
 // MIDDLEWARES

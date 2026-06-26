@@ -427,7 +427,7 @@ export default function EventsManage() {
                                                     <p className="text-xs text-gray-500">{event.category} • {event.mode}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <p>{new Date(event.date).toLocaleDateString()}</p>
+                                                    <p>{new Date(event.date).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                                                     <p className="text-xs text-gray-500">{event.startTime} - {event.endTime}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
