@@ -557,8 +557,9 @@ const FacultyAssignment: React.FC = () => {
               <div className="grid grid-cols-1 gap-4">
                 {/* Faculty */}
                 <div>
-                  <label className={labelCls}>Faculty Member *</label>
+                  <label htmlFor="fa-faculty" className={labelCls}>Faculty Member *</label>
                   <select
+                    id="fa-faculty"
                     className={selectCls}
                     value={form.faculty}
                     onChange={(e) => setForm((f) => ({ ...f, faculty: e.target.value }))}
@@ -574,8 +575,9 @@ const FacultyAssignment: React.FC = () => {
 
                 {/* Course */}
                 <div>
-                  <label className={labelCls}>Subject / Course *</label>
+                  <label htmlFor="fa-course" className={labelCls}>Subject / Course *</label>
                   <select
+                    id="fa-course"
                     className={selectCls}
                     value={form.course}
                     onChange={(e) => handleCourseChange(e.target.value)}
@@ -592,8 +594,9 @@ const FacultyAssignment: React.FC = () => {
                 {/* Section & Semester */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Section *</label>
+                    <label htmlFor="fa-section" className={labelCls}>Section *</label>
                     <select
+                      id="fa-section"
                       className={selectCls}
                       value={form.section}
                       onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
@@ -605,8 +608,9 @@ const FacultyAssignment: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Semester *</label>
+                    <label htmlFor="fa-semester" className={labelCls}>Semester *</label>
                     <select
+                      id="fa-semester"
                       className={selectCls}
                       value={form.semester}
                       onChange={(e) => setForm((f) => ({ ...f, semester: e.target.value }))}
@@ -622,8 +626,9 @@ const FacultyAssignment: React.FC = () => {
                 {/* Academic Year & Department */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Academic Year *</label>
+                    <label htmlFor="fa-academic-year" className={labelCls}>Academic Year *</label>
                     <select
+                      id="fa-academic-year"
                       className={selectCls}
                       value={form.academicYear}
                       onChange={(e) => setForm((f) => ({ ...f, academicYear: e.target.value }))}
@@ -634,8 +639,9 @@ const FacultyAssignment: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Department *</label>
+                    <label htmlFor="fa-department" className={labelCls}>Department *</label>
                     <select
+                      id="fa-department"
                       className={selectCls}
                       value={form.department}
                       onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
