@@ -55,52 +55,58 @@ const seedData = async () => {
 
     // 1. Create or Find HOD
     const hashedPassword = await hashPassword("password123", 10);
-    let hod = await User.findOne({ email: "hod@college.edu" });
-    if (!hod) {
-      hod = await User.create({
+    let hod = await User.findOneAndUpdate(
+      { email: "hod@college.edu" },
+      {
         name: "Dr. Alice Vance",
         email: "hod@college.edu",
         password: hashedPassword,
         role: "hod",
         phone: "+15550199",
-        departmentCode: "CSE"
-      });
-      console.log("HOD created: hod@college.edu");
-    }
+        departmentCode: "CSE",
+        isEmailVerified: true
+      },
+      { upsert: true, new: true }
+    );
+    console.log("HOD ready: hod@college.edu");
 
     // 2. Create Teachers
-    let teacher1 = await User.findOne({ email: "david.evans@college.edu" });
-    if (!teacher1) {
-      teacher1 = await User.create({
+    let teacher1 = await User.findOneAndUpdate(
+      { email: "david.evans@college.edu" },
+      {
         name: "Dr. David Evans",
         email: "david.evans@college.edu",
         password: hashedPassword,
         role: "teacher",
         phone: "+15550188",
         teacherId: "T-1001",
-        department: "Computer Science"
-      });
-      console.log("Teacher 1 created: david.evans@college.edu");
-    }
+        department: "Computer Science",
+        isEmailVerified: true
+      },
+      { upsert: true, new: true }
+    );
+    console.log("Teacher 1 ready: david.evans@college.edu");
 
-    let teacher2 = await User.findOne({ email: "sarah.jenkins@college.edu" });
-    if (!teacher2) {
-      teacher2 = await User.create({
+    let teacher2 = await User.findOneAndUpdate(
+      { email: "sarah.jenkins@college.edu" },
+      {
         name: "Prof. Sarah Jenkins",
         email: "sarah.jenkins@college.edu",
         password: hashedPassword,
         role: "teacher",
         phone: "+15550177",
         teacherId: "T-1002",
-        department: "Computer Science"
-      });
-      console.log("Teacher 2 created: sarah.jenkins@college.edu");
-    }
+        department: "Computer Science",
+        isEmailVerified: true
+      },
+      { upsert: true, new: true }
+    );
+    console.log("Teacher 2 ready: sarah.jenkins@college.edu");
 
     // 3. Create Students
-    let student1 = await User.findOne({ email: "alice.johnson@college.edu" });
-    if (!student1) {
-      student1 = await User.create({
+    let student1 = await User.findOneAndUpdate(
+      { email: "alice.johnson@college.edu" },
+      {
         name: "Alice Johnson",
         email: "alice.johnson@college.edu",
         password: hashedPassword,
@@ -108,14 +114,16 @@ const seedData = async () => {
         phone: "+15550155",
         studentId: "S-2001",
         semester: "3",
-        course: "Computer Science"
-      });
-      console.log("Student 1 created: alice.johnson@college.edu");
-    }
+        course: "Computer Science",
+        isEmailVerified: true
+      },
+      { upsert: true, new: true }
+    );
+    console.log("Student 1 ready: alice.johnson@college.edu");
 
-    let student2 = await User.findOne({ email: "bob.smith@college.edu" });
-    if (!student2) {
-      student2 = await User.create({
+    let student2 = await User.findOneAndUpdate(
+      { email: "bob.smith@college.edu" },
+      {
         name: "Bob Smith",
         email: "bob.smith@college.edu",
         password: hashedPassword,
@@ -123,10 +131,12 @@ const seedData = async () => {
         phone: "+15550144",
         studentId: "S-2002",
         semester: "3",
-        course: "Computer Science"
-      });
-      console.log("Student 2 created: bob.smith@college.edu");
-    }
+        course: "Computer Science",
+        isEmailVerified: true
+      },
+      { upsert: true, new: true }
+    );
+    console.log("Student 2 ready: bob.smith@college.edu");
 
     // 4. Create Courses
     let course1 = await Course.findOne({ code: "CS-301" });

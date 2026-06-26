@@ -56,9 +56,7 @@ export const createResult = async (req, res) => {
             status,
         } = req.body;
 
-        // ✅ find using Mongo _id
         const student = await Student.findById(studentId);
-
         if (!student) {
             return res.status(404).json({ message: "Student not found" });
         }
@@ -68,7 +66,6 @@ export const createResult = async (req, res) => {
         }
 
         const course = await Course.findById(courseId);
-
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }

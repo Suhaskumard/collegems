@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import axios from "../api/axios";
 import { QRCodeSVG } from 'qrcode.react';
+import EmptyState from "../components/EmptyState";
 import {
   Calendar, Clock, MapPin, Video, Users, Mail, Phone, User,
   Image, CheckCircle, XCircle, FileText, Tag,
@@ -152,9 +153,9 @@ export default function EventsManage() {
                 setSuccess(false);
                 setViewMode('list');
             }, 2000);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError("Error creating event. Please try again.");
+            setError(err?.response?.data?.message || "Error creating event. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -316,19 +317,19 @@ export default function EventsManage() {
                                             </div>
                                             {(form.mode === "offline" || form.mode === "hybrid") && (
                                                 <div>
-                                                    <label className={labelClassName}>Venue</label>
+                                                    <label className={labelClassName}>Venue *</label>
                                                     <div className="relative">
                                                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                                        <input name="venue" value={form.venue} placeholder="Full address" onChange={handleChange} className={`${inputClassName} pl-10`} />
+                                                        <input name="venue" value={form.venue} placeholder="Full address" onChange={handleChange} className={`${inputClassName} pl-10`} required />
                                                     </div>
                                                 </div>
                                             )}
                                             {(form.mode === "online" || form.mode === "hybrid") && (
                                                 <div>
-                                                    <label className={labelClassName}>Meeting Link</label>
+                                                    <label className={labelClassName}>Meeting Link *</label>
                                                     <div className="relative">
                                                         <Video className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                                        <input name="meetingLink" value={form.meetingLink} placeholder="https://meet.google.com/..." onChange={handleChange} className={`${inputClassName} pl-10`} />
+                                                        <input name="meetingLink" value={form.meetingLink} placeholder="https://meet.google.com/..." onChange={handleChange} className={`${inputClassName} pl-10`} required />
                                                     </div>
                                                 </div>
                                             )}
@@ -406,7 +407,14 @@ export default function EventsManage() {
                                 <Loader2 className="w-5 h-5 animate-spin" /> Loading events...
                             </div>
                         ) : events.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">No events found. Click "Create Event" to get started.</div>
+                            <EmptyState
+                              icon={<Calendar className="w-7 h-7 text-blue-600" />}
+                              title="No events found"
+                              description="Create your first event to get started."
+                              actionLabel="Create Event"
+                              onAction={() => setViewMode('create')}
+                              actionHint="Opens the event creation form."
+                            />
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-600">

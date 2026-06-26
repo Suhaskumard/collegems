@@ -1,14 +1,16 @@
 // ─── FILE: collegems-server/src/controllers/assignment.controller.js ──────────
 
 import Assignment from "../models/Assignment.model.js";
+import Course from "../models/Course.model.js";
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import { publishEvent } from "../utils/rabbitmq.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 export const createAssignment = async (req, res) => {
   try {
-    const { title, courseId, dueDate, description, submissionType } = req.body;
+    const { title, courseId, dueDate, description, submissionType, validationRules } = req.body;
     const totalPointsRaw =
       req.body.totalPoints !== undefined
         ? req.body.totalPoints
@@ -47,6 +49,7 @@ export const createAssignment = async (req, res) => {
       dueDate,
       totalPoints,
       submissionType: submissionType || "file",
+      validationRules,
     });
 
     res.status(201).json(assignment);
@@ -84,14 +87,46 @@ export const submitAssignment = async (req, res) => {
       return res.status(400).json({ message: "Link is required" });
     if (submissionType === "both" && (!hasFile || !hasText))
       return res.status(400).json({ message: "File and text response are required" });
+
+    // Validate using assignment validation rules
+    const rules = assignment.validationRules || {
+      maxFileSizeMB: 5,
+      allowedFileTypes: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png"],
+      minTextLength: 10
+    };
+
+    if (hasFile && req.file) {
+      const maxSizeBytes = (rules.maxFileSizeMB || 5) * 1024 * 1024;
+      if (req.file.size > maxSizeBytes) {
+        // Also remove the uploaded file to free space
+        if (req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: `File size exceeds maximum limit of ${rules.maxFileSizeMB}MB` });
+      }
+      if (rules.allowedFileTypes && rules.allowedFileTypes.length > 0) {
+        if (!rules.allowedFileTypes.includes(req.file.mimetype)) {
+          if (req.file.path) fs.unlinkSync(req.file.path);
+          return res.status(400).json({ message: "Invalid file type uploaded" });
+        }
+      }
+    }
+
+    if (hasText) {
+      if (textResponse.length < (rules.minTextLength || 10)) {
+        if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: `Text response must be at least ${rules.minTextLength} characters long` });
+      }
+    }
+
     if (hasLink) {
       try {
         const parsed = new URL(link);
         if (!/^https?:$/.test(parsed.protocol)) {
-          return res.status(400).json({ message: "Invalid link" });
+          if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+          return res.status(400).json({ message: "Invalid link format. Must be http or https." });
         }
       } catch {
-        return res.status(400).json({ message: "Invalid link" });
+        if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "Invalid link format" });
       }
     }
     const baseUrl = `${req.protocol}://${req.get("host")}`;

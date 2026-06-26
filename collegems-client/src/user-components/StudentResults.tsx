@@ -511,10 +511,10 @@ export default function StudentResults() {
                     <span className="text-gray-600 dark:text-gray-400">{semester}</span>
                     <span className="font-medium text-gray-900 dark:text-white">{avgPercentage.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${avgPercentage}%` }}
+                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(avgPercentage, 100)}%` }}
                     ></div>
                   </div>
                 </div>

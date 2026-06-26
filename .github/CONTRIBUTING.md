@@ -36,12 +36,14 @@ By participating in this project, you agree to maintain a respectful, inclusive,
 1. **Fork** this repository by clicking the **Fork** button at the top-right of the [SCMS GitHub page](https://github.com/imanchalsingh/collegems).
 
 2. **Clone** your fork locally:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/collegems.git
    cd collegems
    ```
 
 3. **Add the upstream remote** to stay in sync with the original:
+
    ```bash
    git remote add upstream https://github.com/imanchalsingh/collegems.git
    ```
@@ -59,32 +61,36 @@ By participating in this project, you agree to maintain a respectful, inclusive,
 
 #### Prerequisites
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| [Node.js](https://nodejs.org/) | v18.x or above | JavaScript runtime |
-| [npm](https://npmjs.com/) or [Yarn](https://yarnpkg.com/) | Latest stable | Package manager |
-| [MongoDB](https://www.mongodb.com/) | Local instance or Atlas URI | Database |
+| Tool                                                      | Version                     | Purpose            |
+| --------------------------------------------------------- | --------------------------- | ------------------ |
+| [Node.js](https://nodejs.org/)                            | v18.x or above              | JavaScript runtime |
+| [npm](https://npmjs.com/) or [Yarn](https://yarnpkg.com/) | Latest stable               | Package manager    |
+| [MongoDB](https://www.mongodb.com/)                       | Local instance or Atlas URI | Database           |
 
 ---
 
 #### Backend Setup (`collegems-server`)
 
 1. Navigate to the backend directory:
+
    ```bash
    cd collegems-server
    ```
 
 2. Install server dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create your local environment file from the example:
+
    ```bash
    cp .env.example .env
    ```
 
 4. Open `.env` and fill in your values:
+
    ```env
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_super_secure_jwt_secret
@@ -104,21 +110,25 @@ By participating in this project, you agree to maintain a respectful, inclusive,
 Open a new terminal tab, then:
 
 1. Navigate to the frontend directory:
+
    ```bash
    cd collegems-client
    ```
 
 2. Install client-side dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create your local environment file:
+
    ```bash
    cp .env.example .env
    ```
 
 4. Verify the backend URL inside `.env`:
+
    ```env
    VITE_BACKEND_URL=http://localhost:5000/api
    ```
@@ -190,17 +200,18 @@ Use this format:
 <type>/<short-description>
 ```
 
-| Type | When to use | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat/student-grade-predictor` |
-| `fix` | Bug fix | `fix/jwt-token-expiry-handling` |
-| `docs` | Documentation only | `docs/add-contributing-guide` |
-| `chore` | Maintenance (deps, config) | `chore/upgrade-express-v5` |
-| `refactor` | Code restructuring, no behavior change | `refactor/rbac-middleware` |
-| `test` | Adding or updating tests | `test/attendance-controller` |
-| `style` | UI or formatting tweaks | `style/hod-dashboard-mobile` |
+| Type       | When to use                            | Example                         |
+| ---------- | -------------------------------------- | ------------------------------- |
+| `feat`     | New feature                            | `feat/student-grade-predictor`  |
+| `fix`      | Bug fix                                | `fix/jwt-token-expiry-handling` |
+| `docs`     | Documentation only                     | `docs/add-contributing-guide`   |
+| `chore`    | Maintenance (deps, config)             | `chore/upgrade-express-v5`      |
+| `refactor` | Code restructuring, no behavior change | `refactor/rbac-middleware`      |
+| `test`     | Adding or updating tests               | `test/attendance-controller`    |
+| `style`    | UI or formatting tweaks                | `style/hod-dashboard-mobile`    |
 
 **Create your branch:**
+
 ```bash
 git checkout -b feat/your-feature-name
 ```
@@ -236,17 +247,17 @@ This project enforces [Conventional Commits](https://www.conventionalcommits.org
 
 #### Allowed types
 
-| Type | When to use |
-|------|-------------|
-| `feat` | New feature visible to users |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, whitespace — no logic change |
-| `refactor` | Code restructuring, no behavior change |
-| `test` | Adding or updating tests |
-| `chore` | Maintenance (deps, config, build) |
-| `perf` | Performance improvement |
-| `revert` | Reverts a prior commit |
+| Type       | When to use                              |
+| ---------- | ---------------------------------------- |
+| `feat`     | New feature visible to users             |
+| `fix`      | Bug fix                                  |
+| `docs`     | Documentation only                       |
+| `style`    | Formatting, whitespace — no logic change |
+| `refactor` | Code restructuring, no behavior change   |
+| `test`     | Adding or updating tests                 |
+| `chore`    | Maintenance (deps, config, build)        |
+| `perf`     | Performance improvement                  |
+| `revert`   | Reverts a prior commit                   |
 
 #### Good commits
 
@@ -309,11 +320,13 @@ That's it — `npm install` triggers the `prepare` script which activates the `c
 ## Submitting a Pull Request
 
 1. **Ensure the build passes** before pushing:
+
    ```bash
    cd collegems-client && npm run build
    ```
 
 2. **Push your branch** to your fork:
+
    ```bash
    git push origin feat/your-feature-name
    ```
@@ -328,7 +341,7 @@ That's it — `npm install` triggers the `prepare` script which activates the `c
    - Which role(s) are affected (Student / Teacher / HOD)
    - Screenshots or recordings for any UI changes
    - API changes documented if the backend was modified
-   - The issue it resolves: `Closes #<issue-number>`
+   - Link the PR to the issue by adding a reference like `Closes #IssueNumber`, `Fixes #IssueNumber`, `Resolves #IssueNumber`, `Related to #IssueNumber`, or `Ref #IssueNumber` in the description. **Note: Every PR must include a linked issue reference in its description or the CI workflow will fail and block the PR from being merged.**
 
 6. A maintainer will review your PR. Requested changes are normal — address the feedback, push updates, and you'll get merged once approved. 🎉
 
@@ -346,12 +359,14 @@ This project participates in **SSOC '26** — comment on an issue before startin
 4. Start coding **only after assignment**
 
 **Example comment:**
+
 ```markdown
 Hi @imanchalsingh 👋
 
 I'd like to work on this issue for SSOC '26.
 
 Planned approach:
+
 - Add a grade predictor component under user-components/
 - Hook into the existing TanStack Query setup for fetching grades
 - Display predictions on the student dashboard
@@ -368,10 +383,12 @@ Could you please assign this to me?
 Found a bug or have a feature idea? [Open an issue](https://github.com/imanchalsingh/collegems/issues)!
 
 **Before opening an issue:**
+
 - Search [existing issues](https://github.com/imanchalsingh/collegems/issues) to avoid duplicates.
 - Check if it's already fixed in the latest commit on `master`.
 
 **For bug reports, include:**
+
 - Clear, descriptive title
 - Which role is affected (Student / Teacher / HOD)
 - Steps to reproduce the problem
@@ -380,6 +397,7 @@ Found a bug or have a feature idea? [Open an issue](https://github.com/imanchals
 - Terminal or DevTools error logs if available
 
 **For feature requests, include:**
+
 - The problem you're solving
 - Your proposed solution
 - Which module or role it affects
@@ -397,7 +415,7 @@ New to open source or the MERN stack? Look for issues tagged **`good first issue
 
 ---
 
-*This guide is open to improvement too. If something is unclear or missing — feel free to open a PR or issue for it.*
+_This guide is open to improvement too. If something is unclear or missing — feel free to open a PR or issue for it._
 
 ---
 

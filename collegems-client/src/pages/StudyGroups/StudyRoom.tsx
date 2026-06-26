@@ -29,13 +29,19 @@ export default function StudyRoom() {
       });
     };
 
+    const handleActiveUsers = (userIds: string[]) => {
+      setActiveUsers(new Set(userIds));
+    };
+
     socket.on("user-joined", handleUserJoined);
     socket.on("user-left", handleUserLeft);
+    socket.on("active-users", handleActiveUsers);
 
     return () => {
       socket.emit("leave-group", id);
       socket.off("user-joined", handleUserJoined);
       socket.off("user-left", handleUserLeft);
+      socket.off("active-users", handleActiveUsers);
     };
   }, [id, socket, isConnected]);
 

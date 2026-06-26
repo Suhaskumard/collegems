@@ -70,7 +70,7 @@ export default function InternalMarksEntry() {
 
   const fetchStudents = async () => {
     try {
-      const res = await api.get("/users/students");
+      const res = await api.get("/users/students?limit=0");
       setStudents(extractArray(res.data));
     } catch (err) {
       console.error(err);

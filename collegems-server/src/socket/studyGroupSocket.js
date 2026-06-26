@@ -1,6 +1,7 @@
 import ChatMessage from "../models/ChatMessage.model.js";
 import StudyGroup from "../models/StudyGroup.model.js";
 import Workspace from "../models/Workspace.model.js";
+import Notification from "../models/Notification.model.js";
 import * as Y from "yjs";
 
 const activeDocuments = new Map();
@@ -60,6 +61,11 @@ export const initializeStudyGroupSockets = (io) => {
           socket.join(`group_${groupId}`);
           socket.to(`group_${groupId}`).emit("user-joined", { userId });
           
+          // Get all current active users in the room
+          const socketsInRoom = await io.in(`group_${groupId}`).fetchSockets();
+          const activeUserIds = [...new Set(socketsInRoom.map(s => s.user?.id || s.user?._id).filter(id => id))];
+          socket.emit("active-users", activeUserIds);
+
           // Send initial document state
           const ydoc = await getDocument(groupId);
           const stateUpdate = Y.encodeStateAsUpdate(ydoc);
@@ -93,9 +99,40 @@ export const initializeStudyGroupSockets = (io) => {
         const populatedMessage = await message.populate("senderId", "name email");
         
         io.to(`group_${groupId}`).emit("receive-message", populatedMessage);
+
+        // Notify other group members
+        const group = await StudyGroup.findById(groupId);
+        if (group && group.members) {
+          const notificationPromises = [];
+          group.members.forEach(memberId => {
+            if (memberId.toString() !== userId.toString()) {
+              const notification = new Notification({
+                recipient: memberId,
+                type: "study_group",
+                message: `New message in ${group.name} from ${populatedMessage.senderId.name}`,
+              });
+              notificationPromises.push(
+                notification.save().then(savedDoc => {
+                  io.to(`user_${memberId}`).emit("newNotification", savedDoc);
+                })
+              );
+            }
+          });
+          await Promise.all(notificationPromises);
+        }
       } catch (error) {
         console.error("Error sending message:", error);
       }
+    });
+
+    socket.on("typing", (data) => {
+      const { groupId, userName } = data;
+      socket.to(`group_${groupId}`).emit("typing", { userId, userName });
+    });
+
+    socket.on("stop-typing", (data) => {
+      const { groupId, userName } = data;
+      socket.to(`group_${groupId}`).emit("stop-typing", { userId, userName });
     });
 
     // Handle document sync (Yjs update broadcast)

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 import {
   Users, Search, RefreshCw, X, Mail, IdCard, Calendar,
   UserCircle, GraduationCap, BookOpen, ChevronRight, Filter, Clock, MapPin, Wifi,
@@ -7,6 +8,7 @@ import {
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
+import EmptyState from "../components/EmptyState";
 
 interface Teacher {
   _id?: string;
@@ -30,6 +32,7 @@ interface OfficeHourSlot {
 
 const Teachers: React.FC = () => {
   const { darkMode } = useTheme();
+  const navigate = useNavigate();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -228,13 +231,22 @@ const Teachers: React.FC = () => {
           <p className="mt-4 text-gray-500 dark:text-gray-400">Loading teachers...</p>
         </div>
       ) : filteredTeachers.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No teachers found</h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            {searchTerm || filterDepartment !== "all" ? "Try adjusting your search or filters" : "No teachers registered yet"}
-          </p>
-        </div>
+        searchTerm || filterDepartment !== "all" ? (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No teachers found</h3>
+            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={<Users className="w-7 h-7 text-blue-600" />}
+            title="No teachers registered yet"
+            description="Add the first teacher to start building your faculty roster."
+            actionLabel="Register Teacher"
+            onAction={() => navigate("/register")}
+            actionHint="Opens the registration page for a new teacher account."
+          />
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTeachers.map((teacher, index) => (

@@ -26,7 +26,7 @@ export const createEvent = async (req, res) => {
             }
         }
 
-        const event = new Event(req.body);
+        const event = new Event({ ...req.body, createdBy: req.user.id });
         await event.save();
 
         res.status(201).json({
@@ -35,7 +35,8 @@ export const createEvent = async (req, res) => {
             data: event,
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        const statusCode = error.name === "ValidationError" ? 400 : 500;
+        res.status(statusCode).json({ success: false, message: error.message });
     }
 };
 
@@ -114,7 +115,8 @@ export const updateEvent = async (req, res) => {
             data: event,
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        const statusCode = error.name === "ValidationError" ? 400 : 500;
+        res.status(statusCode).json({ success: false, message: error.message });
     }
 };
 

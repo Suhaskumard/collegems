@@ -55,7 +55,10 @@ export const getMyAttendance = async (req, res) => {
 
     const data = await Attendance.find({
       student: studentId,
-    }).populate("course", "name");
+    })
+      .select('student status date course')
+      .populate('course', 'name')
+      .lean();
 
     res.json(data);
   } catch (err) {

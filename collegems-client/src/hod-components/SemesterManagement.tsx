@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   BookOpen,
 } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -394,11 +395,18 @@ const SemesterManagement: React.FC = () => {
         </div>
 
         {semesters.length === 0 ? (
-          <div className="py-16 text-center text-gray-500 dark:text-gray-400">
-            <Calendar size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium">No sessions yet</p>
-            <p className="text-xs mt-1">Create your first academic session above.</p>
-          </div>
+          <EmptyState
+            icon={<Calendar className="w-7 h-7 text-blue-600" />}
+            title="No sessions yet"
+            description="Create your first academic session to get started."
+            actionLabel="Create Session"
+            onAction={() => {
+              const input = document.getElementById("new-session-name");
+              input?.focus();
+              input?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+            actionHint="Focuses the session name input above."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

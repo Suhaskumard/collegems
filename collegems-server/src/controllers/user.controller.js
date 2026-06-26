@@ -49,7 +49,7 @@ export const getMe = async (req, res) => {
 
 export const updateMe = async (req, res) => {
   try {
-    const { name, email, phone, department, teacherId } = req.body;
+    const { name, email, phone, department, teacherId, bio, officeHours } = req.body;
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -78,8 +78,14 @@ export const updateMe = async (req, res) => {
 
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
-    if (department !== undefined) user.department = department;
-    if (teacherId !== undefined) user.teacherId = teacherId;
+    
+    // Teacher specific profile updates
+    if (user.role === 'teacher') {
+      if (department !== undefined) user.department = department;
+      if (teacherId !== undefined) user.teacherId = teacherId;
+      if (bio !== undefined) user.bio = bio;
+      if (officeHours !== undefined) user.officeHours = officeHours;
+    }
 
     user._updatedBy = req.user.id;
     await user.save();
@@ -179,13 +185,17 @@ export const updatePreferences = async (req, res) => {
 export const getStudentProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const student = await User.findOne({ _id: id, role: "student" }).select("-password");
+
+    const student = await User.findOne({
+      _id: id,
+      role: "student",
+    }).select("-password");
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    res.json(student);
+    res.status(200).json(student);
   } catch (error) {
     console.error("Error fetching student profile:", error);
     res.status(500).json({ message: "Server error" });
@@ -197,9 +207,10 @@ export const getStudents = async (req, res) => {
     const result = await getPaginatedData(User, req.query, {
       baseFilter: { role: "student" },
       searchFields: ["name", "email", "studentId"],
-      select: "name email role studentId course semester tags joinedAt lastUpdated",
+      select: "name email role studentId course semester department tags joinedAt lastUpdated",
       defaultSort: { name: 1 },
       defaultLimit: 20,
+      useTextSearch: true,
     });
 
     res.json(result);

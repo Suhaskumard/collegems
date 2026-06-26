@@ -11,6 +11,7 @@ import {
   AlertCircle, ChevronDown, RefreshCw, Eye, EyeOff,
 } from "lucide-react";
 import api from "../api/axios";
+import EmptyState from "../components/EmptyState";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -239,7 +240,7 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
 
 // ── Feedback History ───────────────────────────────────────────────────────────
 
-function FeedbackHistory() {
+function FeedbackHistory({ onSwitchToForm }: { onSwitchToForm?: () => void }) {
   const [items, setItems]     = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
@@ -291,13 +292,14 @@ function FeedbackHistory() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
-        <MessageSquare className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No feedback submitted yet.</p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          Your submissions will appear here after you submit feedback.
-        </p>
-      </div>
+      <EmptyState
+        icon={<MessageSquare className="w-7 h-7 text-blue-600" />}
+        title="No feedback submitted yet"
+        description="Your submissions will appear here after you submit feedback."
+        actionLabel="Submit Feedback"
+        onAction={onSwitchToForm}
+        actionHint="Switches to the feedback submission form."
+      />
     );
   }
 
@@ -391,7 +393,7 @@ export default function StudentFeedback() {
           }}
         />
       ) : (
-        <FeedbackHistory key={historyKey} />
+        <FeedbackHistory key={historyKey} onSwitchToForm={() => setView("form")} />
       )}
     </div>
   );

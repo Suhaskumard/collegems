@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import ClubManagement from "./ClubManagement";
+import EmptyState from "../components/EmptyState";
 
 interface MemberUser { _id: string; name: string; email: string; role: string; }
 interface Member { user: MemberUser; role: string; joinedAt: string; }
@@ -172,7 +173,23 @@ const roleIcon = (role: string) => {
       {loading ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" /><p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading clubs…</p></div>
       ) : list.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center"><Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" /><p className="font-medium text-gray-900 dark:text-white mb-1">{tab === "all" ? "No clubs found" : "You haven't joined any clubs yet"}</p></div>
+        tab === "all" && !search && !category ? (
+          <EmptyState
+            icon={<Building2 className="w-7 h-7 text-blue-600" />}
+            title="No clubs found"
+            description="Be the first to create a club and bring your community together."
+            actionLabel="Create First Club"
+            onAction={() => setShowCreate(true)}
+            actionHint="Opens the club creation form."
+          />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <p className="font-medium text-gray-900 dark:text-white mb-1">
+              {tab === "all" ? "No clubs found" : "You haven't joined any clubs yet"}
+            </p>
+          </div>
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {list.map((club) => {

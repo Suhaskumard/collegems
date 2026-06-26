@@ -6,12 +6,14 @@ export const getPaginatedData = async (Model, query, options = {}) => {
     defaultSort = { createdAt: -1 },
     baseFilter = {},
     defaultLimit = 10,
+    useTextSearch = false, // If true, utilizes MongoDB $text index
   } = options;
 
   // 1. Pagination
   const page = parseInt(query.page, 10) || 1;
-  const limit = parseInt(query.limit, 10) || defaultLimit;
-  const skip = (page - 1) * limit;
+  const isBypassLimit = query.limit === "0" || query.limit === "all";
+  const limit = isBypassLimit ? 0 : (parseInt(query.limit, 10) || defaultLimit);
+  const skip = (page - 1) * (limit === 0 ? 0 : limit);
 
   // 2. Sorting
   let sort = defaultSort;
@@ -29,24 +31,32 @@ export const getPaginatedData = async (Model, query, options = {}) => {
     Object.keys(query.filter).forEach((key) => {
       // Ignore 'all' or empty strings
       if (query.filter[key] !== "all" && query.filter[key] !== "") {
-        // Simple exact match, could be expanded to support $in, etc.
-        filterQuery[key] = query.filter[key];
+        if (query.filter[key] === "unassigned") {
+          filterQuery[key] = { $in: [null, ""] };
+        } else {
+          // Simple exact match, could be expanded to support $in, etc.
+          filterQuery[key] = query.filter[key];
+        }
       }
     });
   }
 
   // 4. Searching
-  if (query.search && searchFields.length > 0) {
-    // If there's an existing $or from baseFilter, we need to handle it carefully. 
-    // In MongoDB, you can use $and to combine multiple conditions.
-    const searchConditions = searchFields.map((field) => ({
-      [field]: { $regex: query.search, $options: "i" },
-    }));
+  if (query.search) {
+    if (useTextSearch) {
+      filterQuery.$text = { $search: query.search };
+      // Optional: When using text search, we could also sort by text score,
+      // but for simplicity we keep the user's sort or default sort.
+    } else if (searchFields.length > 0) {
+      const searchConditions = searchFields.map((field) => ({
+        [field]: { $regex: query.search, $options: "i" },
+      }));
 
-    if (filterQuery.$and) {
-       filterQuery.$and.push({ $or: searchConditions });
-    } else {
-       filterQuery.$and = [{ $or: searchConditions }];
+      if (filterQuery.$and) {
+         filterQuery.$and.push({ $or: searchConditions });
+      } else {
+         filterQuery.$and = [{ $or: searchConditions }];
+      }
     }
   }
 
@@ -61,7 +71,7 @@ export const getPaginatedData = async (Model, query, options = {}) => {
     Model.countDocuments(filterQuery),
   ]);
 
-  const totalPages = Math.ceil(totalRecords / limit);
+  const totalPages = limit === 0 ? 1 : Math.ceil(totalRecords / limit);
 
   return {
     success: true,

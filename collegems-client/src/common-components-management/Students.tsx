@@ -15,7 +15,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useServerDataTable } from "../hooks/useServerDataTable";
 import AdvancedExportButton from "./AdvancedExportButton";
 import EmptyState from "../components/EmptyState";
@@ -32,6 +32,7 @@ interface Student {
   course?: string;
   semester?: number;
   phone?: string;
+  department?: string;
   tags?: string[];
   joinedAt?: string;
   lastUpdated?: string;
@@ -128,13 +129,14 @@ const Students: React.FC = () => {
     });
   };
 
-  const studentHeaders = ["Name", "Email", "Student ID", "Course", "Semester", "Joined Date"];
+  const studentHeaders = ["Name", "Email", "Student ID", "Course", "Semester", "Department", "Joined Date"];
   const studentMapper = (student: Student) => [
     student.name || "N/A",
     student.email || "N/A",
     student.studentId || "N/A",
     student.course || "N/A",
     student.semester?.toString() || "N/A",
+    student.department || "N/A",
     formatDate(student.joinedAt)
   ];
 
@@ -214,7 +216,7 @@ const Students: React.FC = () => {
           {/* Expanded Filters */}
           {showFilters && (
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Course
@@ -246,6 +248,25 @@ const Students: React.FC = () => {
                         Semester {sem}
                       </option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Department
+                  </label>
+                  <select
+                    value={tableState.filters.department || "all"}
+                    onChange={(e) => actions.setFilter("department", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Departments</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Business">Business</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Arts">Arts</option>
+                    <option value="unassigned">Unassigned</option>
                   </select>
                 </div>
                 <div>
@@ -521,6 +542,12 @@ const Students: React.FC = () => {
                         <p className="text-xs text-gray-500 mb-1">Phone</p>
                         <p className="text-sm font-medium text-gray-900">
                           {fullProfile.phone || "N/A"}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Department</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {fullProfile.department || selectedStudent.department || "N/A"}
                         </p>
                       </div>
                       <div className="p-3 bg-gray-50 rounded-lg">

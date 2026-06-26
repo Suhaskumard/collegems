@@ -50,7 +50,7 @@ export default function TeacherAttendance() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/users/students?limit=200");
+      const res = await api.get("/users/students?limit=0");
       setStudents(extractArray(res.data));
 
       // Initialize all students as present by default

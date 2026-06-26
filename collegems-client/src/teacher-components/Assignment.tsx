@@ -17,79 +17,67 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api/axios";
-import { extractArray } from "../utils/apiHelpers";
 import AssignmentComments from "../common-components-management/AssignmentComments";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  fetchTeacherAssignments,
+  createAssignment,
+  evaluateAssignment,
+  clearError
+} from "../store/slices/assignmentSlice";
 
 export default function TeacherAssignments({ courseId }: { courseId: string }) {
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const dispatch = useAppDispatch();
+  const { teacherAssignments, loadingTeacher, loadingAction, error } = useAppSelector((state) => state.assignments);
+
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [description, setDescription] = useState("");
   const [maxMarks, setMaxMarks] = useState("");
   const [submissionType, setSubmissionType] = useState("file");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const [viewingSubmissions, setViewingSubmissions] = useState<any | null>(null);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [editedMarks, setEditedMarks] = useState<Record<string, string>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
   const hasCourseId = Boolean(courseId);
 
-  const fetchAssignments = async () => {
-    setLoadingAssignments(true);
-    try {
-      const res = await api.get("/assignment/teacher"); 
-      
-      const items = Array.isArray(res.data) ? res.data : [];
-      const filtered = courseId
-        ? items.filter((assignment) => {
-            if (!assignment.course) return false;
-            return (
-              assignment.course?._id === courseId ||
-              assignment.course === courseId
-            );
-          })
-        : items;
-      setAssignments(filtered);
-    } catch (fetchError) {
-      console.error("Assignment fetch error:", fetchError);
-    } finally {
-      setLoadingAssignments(false);
-    }
-  };
+  const assignments = courseId
+    ? teacherAssignments.filter((assignment) => {
+        if (!assignment.course) return false;
+        return assignment.course?._id === courseId || assignment.course === courseId;
+      })
+    : teacherAssignments;
 
   useEffect(() => {
-    fetchAssignments();
-  }, [courseId]);
+    dispatch(fetchTeacherAssignments());
+  }, [courseId, dispatch]);
 
-  const createAssignment = async () => {
+  const handleCreateAssignment = async () => {
     if (!hasCourseId) {
-      setError("Select a course before creating an assignment.");
+      setLocalError("Select a course before creating an assignment.");
       return;
     }
     if (!title || !dueDate) {
-      setError("Please fill in all required fields");
+      setLocalError("Please fill in all required fields");
       return;
     }
 
-    if (loading) return;
+    if (loadingAction) return;
 
-    setLoading(true);
-    setError(null);
+    setLocalError(null);
+    dispatch(clearError());
 
     try {
-      const response = await api.post("/assignment/create", {
+      const resultAction = await dispatch(createAssignment({
         title,
         description,
         courseId,
         dueDate,
         maxMarks: maxMarks || undefined,
         submissionType,
-      });
-
-      setAssignments((prev) => [response.data, ...prev]);
+      })).unwrap();
 
       const successMessage = document.createElement("div");
       successMessage.className =
@@ -106,11 +94,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
       resetForm();
       setOpen(false);
       
-      await fetchAssignments();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Error creating assignment");
-    } finally {
-      setLoading(false);
+      setLocalError(err || "Error creating assignment");
     }
   };
 
@@ -119,8 +104,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
     setViewingSubmissions({ _id: assignmentId, loading: true });
     
     try {
-      const res = await api.get("/assignment/teacher");
-      const items = Array.isArray(res.data) ? res.data : [];
+      const resultAction = await dispatch(fetchTeacherAssignments()).unwrap();
+      const items = Array.isArray(resultAction) ? resultAction : [];
       
       const assignmentData = items.find((a: any) => a._id === assignmentId);
       
@@ -157,10 +142,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
     if (marks === undefined || marks === "") return;
     setGradingId(studentId);
     try {
-      await api.post(`/assignment/evaluate/${assignmentId}`, {
-        studentId,
-        marks: Number(marks)
-      });
+      await dispatch(evaluateAssignment({ assignmentId, studentId, marks: Number(marks) })).unwrap();
       const successMessage = document.createElement("div");
       successMessage.className =
         "fixed top-4 right-4 bg-green-50 text-green-800 px-4 py-3 rounded-lg border border-green-200 shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-top-2";
@@ -181,7 +163,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         return { ...prev, submissions: newSubmissions };
       });
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to save grade");
+      alert(err || "Failed to save grade");
     } finally {
       setGradingId(null);
     }
@@ -193,7 +175,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
     setDueDate("");
     setMaxMarks("");
     setSubmissionType("file");
-    setError(null);
+    setLocalError(null);
+    dispatch(clearError());
   };
 
   const submissionTypes = [
@@ -225,7 +208,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
 
   return (
     <div className="space-y-6">
-      {loadingAssignments && (
+      {loadingTeacher && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm text-gray-500">
           Loading assignments...
         </div>
@@ -293,7 +276,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow"
         onClick={() => {
           if (!hasCourseId) {
-            setError("Select a course before creating an assignment.");
+            setLocalError("Select a course before creating an assignment.");
             return;
           }
           setOpen(true);
@@ -316,7 +299,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
-            onClick={() => !loading && setOpen(false)}
+            onClick={() => !loadingAction && setOpen(false)}
           />
 
           {/* Modal Content */}
@@ -333,8 +316,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                   </p>
                 </div>
                 <button
-                  onClick={() => !loading && setOpen(false)}
-                  disabled={loading}
+                  onClick={() => !loadingAction && setOpen(false)}
+                  disabled={loadingAction}
                   className="p-2 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
                 >
                   <X className="w-5 h-5 text-gray-500" />
@@ -345,10 +328,10 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
             {/* Form */}
             <div className="p-6 space-y-5 max-h-[calc(100vh-200px)] overflow-y-auto">
               {/* Error Message */}
-              {error && (
+              {(localError || error) && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                  <span className="text-sm text-red-700">{error}</span>
+                  <span className="text-sm text-red-700">{localError || error}</span>
                 </div>
               )}
 
@@ -362,7 +345,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                   placeholder="e.g., Introduction to Programming"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  disabled={loading}
+                  disabled={loadingAction}
                 />
               </div>
 
@@ -377,7 +360,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  disabled={loading}
+                  disabled={loadingAction}
                 />
               </div>
 
@@ -397,7 +380,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      disabled={loading}
+                      disabled={loadingAction}
                     />
                   </div>
                 </div>
@@ -417,7 +400,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       placeholder="100"
                       value={maxMarks}
                       onChange={(e) => setMaxMarks(e.target.value)}
-                      disabled={loading}
+                      disabled={loadingAction}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                       pts
@@ -440,7 +423,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                         key={type.value}
                         type="button"
                         onClick={() => setSubmissionType(type.value)}
-                        disabled={loading}
+                        disabled={loadingAction}
                         className={`
                           flex items-start gap-3 p-3 rounded-lg border transition-all text-left
                           ${
@@ -487,18 +470,18 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
               <div className="flex justify-end gap-3">
                 <button
-                  onClick={() => !loading && setOpen(false)}
-                  disabled={loading}
+                  onClick={() => !loadingAction && setOpen(false)}
+                  disabled={loadingAction}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={createAssignment}
-                  disabled={loading || !title || !dueDate}
+                  onClick={handleCreateAssignment}
+                  disabled={loadingAction || !title || !dueDate}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed min-w-35 justify-center"
                 >
-                  {loading ? (
+                  {loadingAction ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       Creating...
@@ -526,7 +509,19 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         </div>
         <div className="space-y-3">
           {assignments.length === 0 ? (
-            <p className="text-sm text-gray-500">No assignments yet.</p>
+            <div className="flex flex-col items-center py-6 text-center">
+              <FileText className="w-8 h-8 text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500">No assignments yet</p>
+              {hasCourseId && (
+                <button
+                  onClick={() => setOpen(true)}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Create First Assignment
+                </button>
+              )}
+            </div>
           ) : (
             [...assignments]
               .sort((a, b) => {
