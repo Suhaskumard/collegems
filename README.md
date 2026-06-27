@@ -51,6 +51,7 @@ SCMS is structured around role-based modules, ensuring that every user has a tai
 - **Secure JWT Authentication**: Industry-standard access token structure stored in global state.
 - **Role-Based Access Control (RBAC)**: Fine-grained dashboard view filtering for Students, Teachers, and HODs.
 - **Security Protocols**: Password hashing via BcryptJS, secure API middlewares, and cors configuration.
+- **Password Policy**: Minimum 8 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.
 
 ### 👨‍🎓 Student Module
 
