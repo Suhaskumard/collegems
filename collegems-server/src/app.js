@@ -25,6 +25,7 @@ import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import examFormRoutes from "./routes/examForm.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
+import visitorRoutes from "./routes/visitors.routes.js";
 
 import { authenticate } from "./middlewares/auth.middleware.js";
 
@@ -74,6 +75,7 @@ app.use("/api/examschedule", authenticate, examScheduleRoutes);
 app.use("/api/exam-forms", examFormRoutes);
 app.use("/api/academic-calendar", academicCalendarRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/visitors", visitorRoutes);
 
 // Health check (optional but useful)
 app.get("/", (req, res) => {
