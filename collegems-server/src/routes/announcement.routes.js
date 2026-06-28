@@ -8,6 +8,8 @@ import {
   getAnnouncementById,
   updateAnnouncement,
   deleteAnnouncement,
+  markAnnouncementRead,
+  getAnnouncementReadStats,
 } from "../controllers/announcement.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { allowRoles } from "../middlewares/role.middleware.js";
@@ -28,6 +30,9 @@ router.get(
 );
 
 router.get("/:id", getAnnouncementById);
+
+router.post("/:id/read", markAnnouncementRead);
+router.get("/:id/read-stats", allowRoles("hod", "teacher"), getAnnouncementReadStats);
 
 router.post(
   "/",

@@ -1,4 +1,4 @@
-import PageVisit from '../models/PageVisit.js'; // Added .js extension for ESM!
+import PageVisit from "../models/PageVisit.js";
 
 // Track page visit
 export const trackPageVisit = async (req, res, next) => {

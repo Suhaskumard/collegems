@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["student", "teacher", "parent", "hod", "alumni", "admin"], required: true },
+  role: { type: String, enum: ["student", "teacher", "parent", "hod", "alumni"], required: true },
   phone: { type: String },
 
   // Telemetry & Account Status
@@ -62,6 +62,8 @@ const userSchema = new mongoose.Schema({
 
 
   // Teacher-specific
+  branch: { type: String },
+  section: { type: String },
   teacherId: { type: String },
   department: {
     type: String,
@@ -92,6 +94,16 @@ const userSchema = new mongoose.Schema({
       inApp: { type: Boolean, default: true },
     },
   },
+
+  transferHistory: [
+  {
+    field: { type: String }, // which field changed
+    previousValue: { type: String },
+    newValue: { type: String },
+    changedAt: { type: Date, default: Date.now },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  }
+],
 }, { timestamps: true });
 
 userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "text" });

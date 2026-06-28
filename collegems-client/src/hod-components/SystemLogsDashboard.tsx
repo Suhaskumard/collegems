@@ -93,8 +93,9 @@ export default function SystemLogsDashboard() {
         <h2 className="text-lg font-semibold mb-4">Trace Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Log Level</label>
+            <label htmlFor="log-level" className="block text-sm font-medium text-gray-700 mb-1">Log Level</label>
             <select
+              id="log-level"
               className="w-full border p-2 rounded"
               value={level}
               onChange={(e) => setLevel(e.target.value)}
@@ -106,8 +107,9 @@ export default function SystemLogsDashboard() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correlation ID (Trace ID)</label>
+            <label htmlFor="log-correlation-id" className="block text-sm font-medium text-gray-700 mb-1">Correlation ID (Trace ID)</label>
             <input
+              id="log-correlation-id"
               type="text"
               placeholder="e.g. 550e8400-e29b..."
               className="w-full border p-2 rounded"
@@ -116,8 +118,9 @@ export default function SystemLogsDashboard() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+            <label htmlFor="log-service" className="block text-sm font-medium text-gray-700 mb-1">Service</label>
             <select
+              id="log-service"
               className="w-full border p-2 rounded"
               value={service}
               onChange={(e) => setService(e.target.value)}

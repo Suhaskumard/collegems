@@ -70,6 +70,7 @@ import analyticsRoutes from "./analytics.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
+import trackingRoutes from "./tracking.routes.js";
 
 // Miscellaneous
 import achievementRoutes from "./achievement.routes.js";
@@ -189,6 +190,7 @@ router.use("/restore", restoreRoutes);
 router.use("/achievements", authenticate, achievementRoutes);
 router.use("/announcements", announcementRoutes);
 router.use("/notifications", authenticate, notificationRoutes);
+router.use("/tracking", trackingRoutes);
 router.use("/plagiarism", authenticate, plagiarismRoutes);
 router.use("/workflows", workflowRoutes);
 router.use("/dependencies", dependencyRoutes);

@@ -8,6 +8,43 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
 
+// Auth & Core
+import authRoutes from "./routes/auth.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import userRoutes from "./routes/user.routes.js";
+
+// Student / Teacher
+import attendanceRoutes from "./routes/attendance.routes.js";
+import assignmentRoutes from "./routes/assignment.routes.js";
+import feeRoutes from "./routes/fee.routes.js";
+import examScheduleRoutes from "./routes/examschedule.routes.js";
+import classRoutes from "./routes/class.route.js";
+import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
+import eventRoute from "./routes/event.routes.js";
+import resultsRoutes from "./routes/results.routes.js";
+import libraryRoutes from "./routes/library.routes.js";
+import assessmentRoutes from "./routes/assessment.routes.js";
+
+import courseRoutes from "./routes/course.routes.js";
+import salaryRoutes from "./routes/salary.route.js";
+import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
+import reportRoutes from "./routes/report.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js"; // ← NEW
+import examFormRoutes from "./routes/examForm.routes.js";
+import leaveRoutes from "./routes/leave.routes.js";
+import scholarshipRoutes from "./routes/scholarship.routes.js";
+import idCardRoutes from "./routes/idcard.routes.js";
+import { verifyStudent } from "./controllers/idcard.controller.js";
+import busRouteRoutes from "./routes/busRoute.routes.js";
+import syllabusRoutes from "./routes/syllabus.route.js";
+import officeHoursRoutes from "./routes/officeHours.routes.js";
+import examHallRoutes from "./routes/examHall.routes.js";
+import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
+import auditLogRoutes from "./routes/auditLog.routes.js";
+import resourceRoutes from "./routes/resource.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
+import transferRoutes from "./routes/transfer.routes.js";
+import { authenticate } from "./middlewares/auth.middleware.js";
 // Apply Global Multi-Tenant Plugin
 import tenantPlugin from "./utils/tenantPlugin.js";
 mongoose.plugin(tenantPlugin);
@@ -32,6 +69,7 @@ app.set("query parser", "extended");
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
   : ["http://localhost:5173"];
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -77,7 +115,7 @@ app.use("/api", apiRouter);
 // ========================================
 app.get("/", (_req, res) => {
   log.request("GET", "/", "health-check");
-  res.send("SCMS Backend Running");
+  res.send("SCMS Backend Running 🚀");
 });
 
 // ========================================

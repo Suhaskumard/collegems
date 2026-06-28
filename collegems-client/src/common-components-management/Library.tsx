@@ -21,6 +21,7 @@ import {
   Inbox
 } from "lucide-react";
 import AdvancedExportButton from "./AdvancedExportButton";
+import EmptyState from "../components/EmptyState";
 
 interface Book {
   _id: string;
@@ -510,11 +511,22 @@ export default function Library() {
 
           {/* Books Catalog Grid */}
           {filteredBooks.length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center shadow-sm">
-              <Inbox className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">No books found</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Try modifying your search query or filters</p>
-            </div>
+            books.length === 0 && role !== "student" ? (
+              <EmptyState
+                icon={<BookOpen className="w-7 h-7 text-blue-600" />}
+                title="No books in the catalog"
+                description="Add the first book to start building your library collection."
+                actionLabel="Add First Book"
+                onAction={() => setShowAddModal(true)}
+                actionHint="Opens the add book form."
+              />
+            ) : (
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center shadow-sm">
+                <Inbox className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">No books found</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Try modifying your search query or filters</p>
+              </div>
+            )
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredBooks.map((book) => (

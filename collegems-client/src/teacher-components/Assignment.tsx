@@ -512,7 +512,19 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         </div>
         <div className="space-y-3">
           {assignments.length === 0 ? (
-            <p className="text-sm text-gray-500">No assignments yet.</p>
+            <div className="flex flex-col items-center py-6 text-center">
+              <FileText className="w-8 h-8 text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500">No assignments yet</p>
+              {hasCourseId && (
+                <button
+                  onClick={() => setOpen(true)}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Create First Assignment
+                </button>
+              )}
+            </div>
           ) : (
             [...assignments]
               .sort((a, b) => {

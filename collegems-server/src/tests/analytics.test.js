@@ -52,7 +52,7 @@ describe("Analytics Service Tests", () => {
 
         Results.find = async () => ([
              { internalMarks: 20 },
-             { internalMarks: 25 }
+             { internalMarks: 15 }
         ]);
 
         StudentAnalytics.findOneAndUpdate = async (query, update, options) => {

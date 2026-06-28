@@ -25,18 +25,6 @@ export const authenticate = (req, res, next) => {
 
 export const protect = authenticate;
 
-/**
- * Role-Based Access Control Middleware
- * Restricts access to specific user roles (e.g., 'teacher', 'admin', 'student')
- */
-export const restrictTo = (...roles) => {
-  return (req, res, next) => {
-    // Check if the user exists and if their role is in the allowed roles array
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        message: "Forbidden: You do not have permission to perform this action" 
-      });
-    }
-    next();
-  };
-};
+import { allowRoles } from "./role.middleware.js";
+export const restrictTo = allowRoles;
+

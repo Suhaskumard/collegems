@@ -11,6 +11,7 @@ import {
   Loader2,
   Edit,
   X,
+  Eye,
 } from "lucide-react";
 import api from "../api/axios";
 import AnnouncementForm from "./AnnouncementForm";
@@ -62,8 +63,10 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
   const hasActiveFilters = Boolean(filterRole || filterCourse || filterSemester || filterStatus);
   const showPublishCta = !hasActiveFilters;
 
-  // inline confirm modal state
+// inline confirm modal state
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const [readCounts, setReadCounts] = useState<Record<string, number>>({});
 
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -77,8 +80,24 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
       if (filterStatus) params.status = filterStatus;
 
       const res = await api.get("/announcements", { params });
+      const list: Announcement[] = res.data.data || [];
 
-      setAnnouncements(res.data.data || []);
+      setAnnouncements(list);
+
+      const published = list.filter((a) => a.status !== "draft");
+      const results = await Promise.allSettled(
+        published.map((a) => api.get(`/announcements/${a._id}/read-stats`))
+      );
+
+      setReadCounts((prev) => {
+        const next = { ...prev };
+        results.forEach((result, i) => {
+          if (result.status === "fulfilled") {
+            next[published[i]._id] = result.value.data?.data?.totalReaders ?? 0;
+          }
+        });
+        return next;
+      });
     } catch (err) {
       console.error("Failed to fetch announcements:", err);
     } finally {
@@ -310,6 +329,15 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
                     {a.expiresAt &&
                       ` · Expires ${formatDate(a.expiresAt)}`}
                   </p>
+
+                  {/* Read tracking */}
+                  {a.status !== "draft" && (
+                    <p className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      <Eye className="w-3.5 h-3.5" />
+                      {readCounts[a._id] ?? 0} reader
+                      {(readCounts[a._id] ?? 0) === 1 ? "" : "s"}
+                    </p>
+                  )}
                 </div>
 
                 {/* Action Buttons */}

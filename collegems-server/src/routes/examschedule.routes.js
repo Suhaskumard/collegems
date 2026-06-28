@@ -144,60 +144,14 @@ router.delete(
   })
 );
 
-// Get upcoming exams for a student
-router.get(
-  "/upcoming",
-  protect,
-  allowRoles("student"),
-  asyncHandler(async (req, res) => {
-    const studentCourse = req.user.course;
-
-    if (!studentCourse) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Configurable date range (default 14 days)
-    const days = parseInt(req.query.days) || 14;
-    
-    // Get current date and future date as YYYY-MM-DD strings
-    const today = new Date();
-    const futureDate = new Date(today);
-    futureDate.setDate(today.getDate() + days);
-    
-    // Adjust for timezone differences by taking local date string
-    const formatDate = (d) => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const todayStr = formatDate(today);
-    const futureDateStr = formatDate(futureDate);
-
-    log.request("GET", "/api/examschedule/upcoming", req.user?.id);
-
-    const upcomingExams = await ExamSchedule.find({
-      course: studentCourse,
-      examDate: {
-        $gte: todayStr,
-        $lte: futureDateStr
-      }
-    }).sort({ examDate: 1, startTime: 1 });
-
-    res.json({ success: true, data: upcomingExams });
-  })
-);
-
-// Get all exam schedules
 router.get(
   "/all",
   protect,
   allowRoles("student", "teacher", "admin", "hod", "parent"),
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const examSchedule = await ExamSchedule.find({});
     res.json({ success: true, data: examSchedule });
-  }
+  })
 );
 
 export default router;

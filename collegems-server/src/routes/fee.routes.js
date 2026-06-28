@@ -47,75 +47,63 @@ router.post(
 );
 
 // installment pay
-router.post("/pay", protect, allowRoles("student", "parent"), async (req, res) => {
-  try {
-    const { amount } = req.body;
-    let studentId = req.user.id;
-    if (req.user.role === "parent") {
-      const User = (await import("../models/User.model.js")).default;
-      const parentUser = await User.findById(req.user.id);
-      if (!parentUser || !parentUser.studentId) {
-        return res.status(400).json({ message: "No child linked to this parent account" });
-      }
-      const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
-      if (!studentUser) {
-        return res.status(404).json({ message: "Linked student not found" });
-      }
-      studentId = studentUser._id;
-    }
-
-    if (!amount || amount <= 0) {
-      throw new AppError("Valid amount is required", 400, "INVALID_AMOUNT");
-    }
-
-    const fee = await Fee.findOne({ student: studentId });
-    if (!fee) {
-      throw new AppError("Fee record not found", 404, "NOT_FOUND");
-    }
-
-    fee.installments.push({ amount });
-    fee.paid += amount;
-    await fee.save();
-
-    log.info(`Payment made: ${amount}`, { studentId, feeId: fee._id });
-    res.json({
-      success: true,
-      message: "Payment successful",
-      data: fee,
-    });
-  } catch (error) {
-    console.error("Payment failed:", error);
-    res.status(500).json({ success: false, message: "Failed to process payment" });
+router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0) {
+    throw new AppError("Valid amount is required", 400, "INVALID_AMOUNT");
   }
-});
 
-router.get("/me", protect, allowRoles("student", "parent"), async (req, res) => {
-  try {
-    let studentId = req.user.id;
-    if (req.user.role === "parent") {
-      const User = (await import("../models/User.model.js")).default;
-      const parentUser = await User.findById(req.user.id);
-      if (!parentUser || !parentUser.studentId) {
-        return res.status(400).json({ message: "No child linked to this parent account" });
-      }
-      const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
-      if (!studentUser) {
-        return res.status(404).json({ message: "Linked student not found" });
-      }
-      studentId = studentUser._id;
+  let studentId = req.user.id;
+  if (req.user.role === "parent") {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser || !parentUser.studentId) {
+      throw new AppError("No child linked to this parent account", 400, "NO_CHILD_LINKED");
     }
-
-    const fee = await Fee.findOne({ student: studentId });
-    if (!fee) {
-      throw new AppError("No fee record found", 404, "NOT_FOUND");
+    const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
+    if (!studentUser) {
+      throw new AppError("Linked student not found", 404, "NOT_FOUND");
     }
-
-    res.json({ success: true, data: fee });
-  } catch (error) {
-    console.error("Failed to fetch fee:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch fee record" });
+    studentId = studentUser._id;
   }
-});
+
+  const fee = await Fee.findOne({ student: studentId });
+  if (!fee) {
+    throw new AppError("Fee record not found", 404, "NOT_FOUND");
+  }
+
+  fee.installments.push({ amount });
+  fee.paid += amount;
+  await fee.save();
+
+  log.info(`Payment made: ${amount}`, { studentId, feeId: fee._id });
+  res.json({
+    success: true,
+    message: "Payment successful",
+    data: fee,
+  });
+}));
+
+router.get("/me", protect, allowRoles("student", "parent"), asyncHandler(async (req, res) => {
+  let studentId = req.user.id;
+  if (req.user.role === "parent") {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser || !parentUser.studentId) {
+      throw new AppError("No child linked to this parent account", 400, "NO_CHILD_LINKED");
+    }
+    const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
+    if (!studentUser) {
+      throw new AppError("Linked student not found", 404, "NOT_FOUND");
+    }
+    studentId = studentUser._id;
+  }
+
+  const fee = await Fee.findOne({ student: studentId });
+  if (!fee) {
+    throw new AppError("No fee record found", 404, "NOT_FOUND");
+  }
+
+  res.json({ success: true, data: fee });
+}));
 
 // View all student fees
 router.get(

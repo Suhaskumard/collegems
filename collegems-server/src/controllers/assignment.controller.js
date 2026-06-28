@@ -1,10 +1,12 @@
 // ─── FILE: collegems-server/src/controllers/assignment.controller.js ──────────
 
 import Assignment from "../models/Assignment.model.js";
+import Course from "../models/Course.model.js";
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import { publishEvent } from "../utils/rabbitmq.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 export const createAssignment = async (req, res) => {
   try {
@@ -170,19 +172,51 @@ export const evaluateAssignment = async (req, res) => {
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
-
     if (assignment.course && assignment.course.semester) {
       await checkSemesterFrozen(assignment.course.semester);
+    }
+
+    // Verify assignment ownership
+    if (assignment.teacher.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to evaluate this assignment",
+      });
+    }
+
+    if (!studentId) {
+      return res.status(400).json({
+        success: false,
+        message: "studentId is required",
+      });
     }
 
     const submission = assignment.submissions.find(
       (s) => s.student.toString() === studentId
     );
     if (!submission) {
-      return res.status(404).json({ message: "Submission not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Submission not found",
+      });
     }
 
-    submission.marks = marks;
+    // Validate marks
+    const numericMarks = Number(marks);
+    if (
+      marks === undefined ||
+      marks === null ||
+      isNaN(numericMarks) ||
+      numericMarks < 0 ||
+      (assignment.totalPoints !== undefined && assignment.totalPoints !== null && numericMarks > assignment.totalPoints)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Marks must be between 0 and ${assignment.totalPoints}`,
+      });
+    }
+
+    submission.marks = numericMarks;
     submission.status = "graded";
     await assignment.save();
     res.json({ message: "Assignment evaluated" });

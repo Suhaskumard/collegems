@@ -22,6 +22,7 @@ import EmptyState from "../components/EmptyState";
 import BulkTagModal from "./BulkTagModal";
 import CompareStudentsModal from "./CompareStudentsModal";
 import StudentTimeline from "./StudentTimeline";
+import { trackView } from "../utils/trackView";
 
 interface Student {
   _id?: string;
@@ -90,6 +91,7 @@ const Students: React.FC = () => {
       setProfileError("");
       const res = await api.get(`/users/students/${id}`);
       setFullProfile(res.data);
+      trackView("Student", id);
     } catch (error) {
       console.error("Error fetching full profile:", error);
       setProfileError("Could not fetch student profile. Data unavailable.");

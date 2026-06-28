@@ -7,11 +7,13 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BulkFieldReset from "./hod-components/BulkFieldReset";
 import StudentDashboard from "./pages/StudentDashboard";
-//import TimeTable from "./user-components/TimeTable";
+import StudentTransferHistory from "./hod-components/StudentTransferHistory";
+import TimeTable from "./user-components/TimeTable";
 
 //import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import HodDashboard from "./pages/HODDashboard";
+import ParentDashboard from "./pages/ParentDashboard";
 import MainDashboard from "./pages/MainDashboard";
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";
@@ -23,7 +25,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import SemesterRegistration from "./user-components/SemesterRegistration";
-import TimeTable from "./user-components/TimeTable";
+//import TimeTable from "./user-components/TimeTable";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import LostFoundPortal from "./pages/LostFoundPortal";
@@ -42,7 +44,6 @@ import BookingManagement from "./hod-components/BookingManagement";
 import ResourceManagement from "./hod-components/ResourceManagement";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
-import ParentDashboard from "./pages/ParentDashboard";
 import { PwaManager } from "./components/PwaManager";
 import ToastTest from "./pages/ToastTest";
 
@@ -50,6 +51,7 @@ import ToastTest from "./pages/ToastTest";
 import withRoleGuard from "./hocs/withRoleGuard";
 import { UserRole } from "./constants/role.constants";
 import AccessDenied from "./pages/AccessDenied";
+import RoleRoute from "./routes/RoleRoute";
 
 // Define Guarded Components
 const StudentDashboardGuarded = withRoleGuard(StudentDashboard, { allowedRoles: UserRole.STUDENT });
@@ -184,10 +186,18 @@ export default function App() {
           path="/hod/manage-resources"
           element={<ResourceManagementGuarded />}
         />
+        <Route
+  path="/hod/student-transfer/:studentId"
+  element={
+    <RoleRoute role="hod">
+      <StudentTransferHistory />
+    </RoleRoute>
+  }
+/>
     
         <Route
           path="/hod/bulk-reset"
-          element={<BulkFieldResetGuarded />}
+          element={<BulkFieldResetGuarded />} 
         />
      
 

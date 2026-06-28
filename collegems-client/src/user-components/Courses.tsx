@@ -8,6 +8,7 @@ import {
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { addRecentHistory } from "../api/history";
+import { trackView } from "../utils/trackView";
 
 interface Course {
   _id: string;
@@ -56,6 +57,7 @@ const Courses: React.FC = () => {
   };
 
   const handleViewDetails = (course: Course) => {
+    trackView("Course", course._id);
     addRecentHistory({
       entityType: "Course",
       entityId: course._id,

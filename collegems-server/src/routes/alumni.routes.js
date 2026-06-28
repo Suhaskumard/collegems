@@ -9,6 +9,8 @@ router.use(authenticate);
 
 router.get("/", getAlumni);
 router.put("/me", authorize("alumni"), updateAlumniProfile);
-router.post("/seed", seedAlumni);
+if (process.env.NODE_ENV !== "production") {
+  router.post("/seed", authorize("admin", "hod"), seedAlumni);
+}
 
 export default router;

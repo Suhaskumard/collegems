@@ -42,6 +42,7 @@ import RiskDashboard from "./RiskDashboard";
 // For now, assuming it's in pages based on the previous error logs.
 // import SystemLogsDashboard from "./SystemLogsDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
+import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
 
 type TabType =
@@ -392,6 +393,7 @@ export default function HODDashboard() {
 
             <div className="space-y-6">
               <AttendanceAlertsWidget />
+              <TrackingWidget />
             </div>
           </div>
         </div>

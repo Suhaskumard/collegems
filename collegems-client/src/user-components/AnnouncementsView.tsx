@@ -1,8 +1,7 @@
 // FILE: collegems-client/src/user-components/AnnouncementsView.tsx
-// Students (and parents) use this to read announcements meant for them.
 
 import { useEffect, useState } from "react";
-import { Bell, AlertCircle, Info, AlertTriangle, Zap } from "lucide-react";
+import { Bell, AlertCircle, Info, AlertTriangle, Zap, CheckCheck } from "lucide-react";
 import api from "../api/axios";
 
 interface Announcement {
@@ -16,6 +15,7 @@ interface Announcement {
   expiresAt: string | null;
   createdAt: string;
   postedBy: { name: string; role: string };
+  isRead?: boolean;
 }
 
 const PRIORITY_CONFIG: Record<
@@ -77,6 +77,26 @@ export default function AnnouncementsView() {
     fetch();
   }, []);
 
+// Mark an announcement as read 
+  const handleOpen = (id: string) => {
+    setExpanded((prev) => (prev === id ? null : id));
+
+    const target = announcements.find((a) => a._id === id);
+    if (!target || target.isRead) return;
+
+    setAnnouncements((prev) =>
+      prev.map((a) => (a._id === id ? { ...a, isRead: true } : a))
+    );
+
+    api.post(`/announcements/${id}/read`).catch((err) => {
+      console.error("Failed to mark announcement as read:", err);
+      
+      setAnnouncements((prev) =>
+        prev.map((a) => (a._id === id ? { ...a, isRead: false } : a))
+      );
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-16">
@@ -130,7 +150,7 @@ export default function AnnouncementsView() {
           return (
             <button
               key={a._id}
-              onClick={() => setExpanded(isOpen ? null : a._id)}
+              onClick={() => handleOpen(a._id)}
               className={`w-full text-left bg-white dark:bg-gray-800 rounded-2xl border-2 ${cfg.card} p-4 hover:shadow-md transition-all`}
             >
               <div className="flex items-start gap-3">
@@ -152,6 +172,16 @@ export default function AnnouncementsView() {
                     {a.targetSemester && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300">
                         Sem {a.targetSemester}
+                      </span>
+                    )}
+                    {a.isRead ? (
+                      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                        <CheckCheck className="w-3 h-3" />
+                        Read
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">
+                        Unread
                       </span>
                     )}
                   </div>

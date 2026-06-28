@@ -6,8 +6,7 @@ import path from "path";
 import multer from "multer";
 import { allowRoles } from "../middlewares/role.middleware.js";
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
-import { protect, restrictTo } from '../middlewares/auth.middleware.js';
-import { uploadAssignment } from '../middlewares/upload.middleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
 import log from "../utils/logger.js";
 import Assignment from "../models/Assignment.model.js";
 import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
@@ -18,10 +17,9 @@ import {
   submitAssignment,
   evaluateAssignment,
   downloadAssignmentFile,
+  getUpcomingAssignments,
   getTeacherAssignments,
-  getAssignmentSubmissions,
-  getUpcomingAssignments ,
-  addAssignmentComment
+  addAssignmentComment,
 } from "../controllers/assignment.controller.js";
 
 const router = express.Router();
@@ -141,9 +139,7 @@ router.post(
   allowRoles("teacher"),
   asyncHandler(evaluateAssignment)
 );
-router.post("/:id/comments", protect, asyncHandler(addAssignmentComment));
-
-router.get("/teacher", protect, restrictTo("teacher", "hod"), getTeacherAssignments);
+router.get("/teacher", protect, allowRoles("teacher", "hod"), getTeacherAssignments);
 
 // get assignments for a course
 // Student assignments (course-wise)
@@ -154,9 +150,8 @@ router.get("/student", protect, allowRoles("student","teacher","parent"), async 
       .populate("teacher", "name")
       .populate("comments.user", "name role avatarUrl photo"); 
     res.json({ success: true, data: assignments });
-} catch (error) {
-    console.error("Failed to fetch student assignments:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch assignments" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -197,12 +192,5 @@ router.get(
 
 // The new StackOverflow-style Comments Route!
 router.post("/:id/comments", protect, asyncHandler(addAssignmentComment));
-
-router.get(
-  "/reminders",
-  protect,
-  allowRoles("student"),
-  asyncHandler(getUpcomingAssignments)
-);
 
 export default router;
