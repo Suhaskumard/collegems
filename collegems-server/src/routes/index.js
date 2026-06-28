@@ -6,11 +6,13 @@ import express from "express";
 // IMPORT ALL ROUTES
 // ========================================
 
-// Auth & Core (UNCOMMENTED THESE!)
+// Auth & Core
 import authRoutes from "./auth.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
+import searchRoutes from "./search.routes.js";
+import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
 
 // Academic Routes
 import attendanceRoutes from "./attendance.routes.js";
@@ -67,7 +69,7 @@ import reportRoutes from "./report.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
-
+import restoreRoutes from "./restore.routes.js";
 
 // Miscellaneous
 import achievementRoutes from "./achievement.routes.js";
@@ -82,10 +84,7 @@ import sequenceRoutes from "./sequence.routes.js";
 import ownershipRoutes from "./ownership.routes.js";
 import savedFilterRoutes from "./savedFilter.routes.js";
 import abandonmentRoutes from "./abandonment.routes.js";
-
-// Faculty Assignment (if needed later)
-// import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-import searchRoutes from './search.routes.js';
+import temporaryLinkRoutes from "./temporaryLink.routes.js";
 
 // ========================================
 // MIDDLEWARES
@@ -99,12 +98,12 @@ import { verifyStudent } from "../controllers/idcard.controller.js";
 const router = express.Router();
 
 // ========================================
-// CORE ROUTES (UNCOMMENTED THESE!)
+// CORE ROUTES
 // ========================================
 router.use("/auth", authRoutes);
 router.use("/search", searchRoutes);
 router.use("/dashboard", dashboardRoutes);
-// router.use("/faculty-assignments", facultyAssignmentRoutes);
+router.use("/faculty-assignments", facultyAssignmentRoutes);
 
 // ========================================
 // ACADEMIC ROUTES
@@ -182,7 +181,7 @@ router.use("/reports", reportRoutes);
 router.use("/analytics", authenticate, analyticsRoutes);
 router.use("/audit-logs", authenticate, auditLogRoutes);
 router.use("/system-health", authenticate, systemHealthRoutes);
-
+router.use("/restore", restoreRoutes);
 
 // ========================================
 // MISCELLANEOUS
@@ -199,6 +198,7 @@ router.use("/sequences", sequenceRoutes);
 router.use("/ownership", ownershipRoutes);
 router.use("/saved-filters", savedFilterRoutes);
 router.use("/abandonment", abandonmentRoutes);
+router.use("/temporary-links", temporaryLinkRoutes);
 
 // ========================================
 // EXPORT ROUTER

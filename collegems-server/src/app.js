@@ -22,6 +22,7 @@ import log from "./utils/logger.js";
 import Tenant from "./models/Tenant.model.js";
 
 const app = express();
+app.set("query parser", "extended");
 
 // ========================================
 // MIDDLEWARES

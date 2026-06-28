@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
@@ -225,7 +225,7 @@ export default function HODDashboard() {
   const fetchSearchData = async () => {
     try {
       const [studentsRes, teachersRes, coursesRes] = await Promise.all([
-        api.get("/users/students?limit=200"),
+        api.get("/users/students?limit=0"),
         api.get("/users/teachers"),
         api.get("/courses/all"),
       ]);

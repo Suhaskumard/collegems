@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Mail, Lock, Eye, EyeOff, LogIn, ChevronRight,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resending, setResending] = useState(false);
   const handleLogin = async () => {
     if (!email || !password) {
       toast.warning("Please enter both email and password");
@@ -45,6 +48,11 @@ const res = await api.post("/auth/login", { email, password }, {
       const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
       navigate(routes[role] || "/");
     } catch (err: any) {
+      if (err.response?.status === 403 && err.response?.data?.isEmailVerified === false) {
+        setUnverifiedEmail(err.response.data.email || email);
+      } else {
+        setUnverifiedEmail("");
+      }
       const errorMessage =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";
@@ -68,12 +76,7 @@ const res = await api.post("/auth/login", { email, password }, {
 
       {/* Theme Toggle - top right */}
       <div className="absolute top-4 right-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm"
-        >
-          {darkMode ? <Sun className="w-5 h-5 text-gray-300" /> : <Moon className="w-5 h-5 text-gray-600" />}
-        </button>
+        <ThemeSwitcher />
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -188,7 +191,7 @@ const res = await api.post("/auth/login", { email, password }, {
                   Remember me
                 </label>
               </div>
-              <button type="button" onClick={() => toast.info("Password reset feature coming soon")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
+              <button type="button" onClick={() => navigate("/forgot-password")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
                 Forgot password?
               </button>
             </div>
@@ -204,6 +207,34 @@ const res = await api.post("/auth/login", { email, password }, {
                 <><LogIn className="w-4 h-4" /><span>Sign in</span></>
               )}
             </button>
+
+            {/* Unverified Email Resend Block */}
+            {unverifiedEmail && (
+              <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-200 mb-3 text-center">
+                  Email not verified. You need to verify your email to log in.
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (resending) return;
+                    setResending(true);
+                    try {
+                      await api.post("/auth/resend-verification", { email: unverifiedEmail });
+                      toast.success("Verification email sent! Please check your inbox.");
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.message || "Failed to resend email.");
+                    } finally {
+                      setResending(false);
+                    }
+                  }}
+                  disabled={resending}
+                  className="w-full flex justify-center py-2 px-4 border border-amber-300 dark:border-amber-700 rounded-md shadow-sm text-sm font-medium text-amber-700 dark:text-amber-300 bg-white dark:bg-gray-800 hover:bg-amber-50 dark:hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition-colors"
+                >
+                  {resending ? "Sending..." : "Resend Verification Email"}
+                </button>
+              </div>
+            )}
           </form>
 
           {/* Register Link */}
