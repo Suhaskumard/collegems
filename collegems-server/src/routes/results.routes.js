@@ -6,5 +6,7 @@ const router = express.Router();
 
 router.get("/my", protect, getResults);
 router.post('/create', protect, allowRoles("teacher", "hod"), createResult);
+router.get('/publish-preview', protect, allowRoles("hod"), publishPreview);
 router.put('/:id/publish', protect, allowRoles("hod"), publishResult);
+router.put('/publish-all', protect, allowRoles("hod"), publishAll);
 export default router;

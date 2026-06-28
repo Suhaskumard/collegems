@@ -4,7 +4,8 @@ import {
     getPageVisitMetrics,
     getVisitsByRole
 } from '../controllers/analyticsController.js';
-import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
+import { authorize } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
 

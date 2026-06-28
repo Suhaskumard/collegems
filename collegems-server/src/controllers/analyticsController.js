@@ -1,7 +1,7 @@
-const PageVisit = require('../models/PageVisit');
+import PageVisit from "../models/PageVisit.js";
 
 // Track page visit
-const trackPageVisit = async (req, res, next) => {
+export const trackPageVisit = async (req, res, next) => {
     try {
         const { page, role } = req.body;
         const userId = req.user?._id;
@@ -26,7 +26,7 @@ const trackPageVisit = async (req, res, next) => {
 };
 
 // Get page visit metrics
-const getPageVisitMetrics = async (req, res) => {
+export const getPageVisitMetrics = async (req, res) => {
     try {
         const { days = 30, limit = 20 } = req.query;
 
@@ -87,7 +87,7 @@ const getPageVisitMetrics = async (req, res) => {
 };
 
 // Get visits by role
-const getVisitsByRole = async (req, res) => {
+export const getVisitsByRole = async (req, res) => {
     try {
         const { days = 30 } = req.query;
 
@@ -130,10 +130,4 @@ const getVisitsByRole = async (req, res) => {
             }
         });
     }
-};
-
-module.exports = {
-    trackPageVisit,
-    getPageVisitMetrics,
-    getVisitsByRole
 };

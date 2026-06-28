@@ -65,26 +65,8 @@ export const createResult = async (req, res) => {
         }
 
         const course = await Course.findById(courseId);
-
-        const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
-        }
-
-        // Verify course ownership if user is a teacher
-        if (req.user.role === "teacher" && course.teacher.toString() !== req.user.id) {
-            return res.status(403).json({
-                message: "Not authorized to manage results for this course",
-            });
-        }
-
-        // Verify student eligibility for the course
-        const matchesSem = student.semester && course.semester === Number(student.semester);
-        const matchesDept = student.course && course.department.toLowerCase() === student.course.toLowerCase();
-        if (!matchesSem && !matchesDept) {
-            return res.status(403).json({
-                message: "Not authorized to grade this student (student is not in the course's department or semester)",
-            });
         }
 
         // Verify course ownership if user is a teacher
@@ -165,5 +147,67 @@ export const publishResult = async (req, res) => {
     } catch (error) {
         console.error("Publish Result Error:", error);
         res.status(500).json({ message: "Publish failed" });
+    }
+};
+
+// Preview which draft results would be published for a given course/semester,
+// without changing anything. Lets a HOD review before committing to publishAll.
+export const publishPreview = async (req, res) => {
+    try {
+        const { courseId, semester } = req.query;
+
+        const filter = { status: "draft" };
+        if (courseId) filter.courseId = courseId;
+        if (semester) filter.semester = semester;
+
+        const drafts = await Results.find(filter)
+            .populate("studentId", "name email studentId")
+            .populate("courseId", "name code");
+
+        res.json({
+            success: true,
+            count: drafts.length,
+            data: drafts,
+        });
+    } catch (error) {
+        console.error("Publish Preview Error:", error);
+        res.status(500).json({ message: "Failed to load publish preview" });
+    }
+};
+
+// Bulk-publishes every draft result matching the given course/semester filter.
+// Mirrors publishResult's single-record behaviour, but for many records at once.
+export const publishAll = async (req, res) => {
+    try {
+        const { courseId, semester } = req.body;
+
+        const filter = { status: "draft" };
+        if (courseId) filter.courseId = courseId;
+        if (semester) filter.semester = semester;
+
+        const drafts = await Results.find(filter);
+
+        if (drafts.length === 0) {
+            return res.json({ success: true, message: "No draft results to publish", count: 0 });
+        }
+
+        await Results.updateMany(filter, { $set: { status: "published" } });
+
+        res.json({
+            success: true,
+            message: `Published ${drafts.length} result(s)`,
+            count: drafts.length,
+        });
+
+        // Log bulk publish with rich audit details
+        await logAction(req.user.id, "PUBLISH_ALL_RESULTS", "Result", null, {
+            userRole: req.user.role,
+            filter: { courseId: courseId || null, semester: semester || null },
+            publishedCount: drafts.length,
+            resultIds: drafts.map((r) => r._id),
+        });
+    } catch (error) {
+        console.error("Publish All Error:", error);
+        res.status(500).json({ message: "Bulk publish failed" });
     }
 };

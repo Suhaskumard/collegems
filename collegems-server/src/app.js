@@ -134,11 +134,6 @@ app.use("/api/complaints", complaintRoutes);
 // Health check
 app.get("/", (_req, res) => res.send("SCMS Backend Running 🚀"));
 
-export default app;
-// TODO: Multi-tenancy is not yet supported by the frontend or seeder
-// import tenantResolver from "./middlewares/tenantResolver.js";
-// app.use(tenantResolver);
-
 // ========================================
 // MOUNT ALL ROUTES UNDER /api
 // ========================================

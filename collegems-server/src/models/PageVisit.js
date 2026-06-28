@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const pageVisitSchema = new mongoose.Schema({
     page: {
@@ -28,4 +28,4 @@ const pageVisitSchema = new mongoose.Schema({
 // Create compound index for faster queries
 pageVisitSchema.index({ page: 1, timestamp: -1 });
 
-module.exports = mongoose.model('PageVisit', pageVisitSchema);
+export default mongoose.model('PageVisit', pageVisitSchema);
