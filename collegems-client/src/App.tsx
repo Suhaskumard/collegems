@@ -46,6 +46,7 @@ import BookingManagement from "./hod-components/BookingManagement";
 import ResourceManagement from "./hod-components/ResourceManagement";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
+import FacultyOnboardingWizard from "./hod-components/FacultyOnboardingWizard";
 
 import { PwaManager } from "./components/PwaManager";
 import ToastTest from "./pages/ToastTest";
@@ -101,6 +102,7 @@ export default function App() {
 />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/wizard-test" element={<FacultyOnboardingWizard onClose={() => {}} onSuccess={() => {}} />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />

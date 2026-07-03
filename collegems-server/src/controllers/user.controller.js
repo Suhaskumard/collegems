@@ -374,6 +374,7 @@ export const createTeacher = async (req, res) => {
       department,
       phone,
       dob,
+      bio,
       overrideDuplicates,
     } = req.body || {};
 
@@ -424,6 +425,7 @@ if (!overrideDuplicates) {
       department,
       phone,
       dob,
+      bio,
     });
 
     await logAction(
