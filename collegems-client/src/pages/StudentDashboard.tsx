@@ -65,6 +65,7 @@ import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementsView from "../user-components/AnnouncementsView";
 import SemesterComparison from "../user-components/SemesterComparison";
 import UserWorkflows from "../user-components/UserWorkflows";
+import StudentAnalyticsWidget from "../components/AnalyticsWidgets/StudentAnalyticsWidget";
 
 // HOD Components
 import Teachers from "../hod-components/Teachers";
@@ -692,6 +693,7 @@ export default function StudentDashboard() {
               {activeTab === "book-resources" && <ResourceBooking />}
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
+              {activeTab === "grade-trend" && <StudentAnalyticsWidget studentId={student?._id || ""} />}
 
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">

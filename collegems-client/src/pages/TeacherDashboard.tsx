@@ -43,6 +43,7 @@ import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget
 import UserWorkflows from "../user-components/UserWorkflows";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import TeacherProfile from "../teacher-components/TeacherProfile";
+import TeacherAnalyticsWidget from "../components/AnalyticsWidgets/TeacherAnalyticsWidget";
 
 interface TeacherDashboardProps {
   initialTab?: string;
@@ -130,6 +131,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "book-resources", label: "Book Resources", icon: CalendarDays },
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
+    { id: "class-performance", label: "Class Performance", icon: BarChart3 },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
   ];
@@ -408,6 +410,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "book-resources" && <ResourceBooking />}
           {activeTab === "clubs" && <Clubs />}
           {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
+          {activeTab === "class-performance" && <TeacherAnalyticsWidget />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
           {activeTab === "user-workflows" && <UserWorkflows />}
           {activeTab === "announcements" && (
