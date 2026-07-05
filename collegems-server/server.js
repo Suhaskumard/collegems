@@ -11,7 +11,7 @@ import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "./src/socket/studyGroupSocket.js";
 import { allowedOrigins } from "./src/config/cors.js";
-
+import validateEnv from "./src/config/validateEnv.js";
 const PORT = process.env.PORT || 5000;
 
 const freePort = () => {
@@ -26,20 +26,7 @@ const freePort = () => {
   }
 };
 
-if (!process.env.MONGO_URI) {
-  console.error(
-    "Missing MONGO_URI in .env. Please set MONGO_URI to your MongoDB connection string.",
-  );
-  process.exit(1);
-}
-
-if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
-  console.error(
-    "Missing JWT secrets in .env. Please set both JWT_SECRET and JWT_REFRESH_SECRET.",
-  );
-  process.exit(1);
-}
-
+validateEnv();
 connectDB();
 
 startFeeCronJobs();
