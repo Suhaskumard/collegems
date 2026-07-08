@@ -2,14 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "./src/app.js";
-import { connectDB, disconnectDB } from "./src/config/db.js";
-import {
-  startFeeCronJobs,
-  startAnalyticsCronJobs,
-  startLibraryCronJobs,
-  startAttendanceCronJobs,
-} from "./src/utils/cronJobs.js";
-
+import { connectDB } from "./src/config/db.js";
+import { startFeeCronJobs, startAnalyticsCronJobs, startLibraryCronJobs, startAttendanceCronJobs } from "./src/utils/cronJobs.js";
+import logger from "./src/utils/logger.js"
 import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
@@ -19,7 +14,31 @@ import { allowedOrigins } from "./src/config/cors.js";
 import validateEnv from "./src/config/validateEnv.js";
 const PORT = process.env.PORT || 5000;
 
+const freePort = () => {
+  try {
+    const pid = execSync(`lsof -ti:${PORT}`, { encoding: "utf8", timeout: 2000 }).trim();
+    if (pid) {
+      execSync(`kill -9 ${pid}`, { timeout: 1000 });
+      console.log(`Freed port ${PORT} (killed PID ${pid})`);
+    }
+  } catch {
+    // port is free
+  }
+};
 
+if (!process.env.MONGO_URI) {
+  logger.error(
+    "Missing MONGO_URI in .env. Please set MONGO_URI to your MongoDB connection string.",
+  );
+  process.exit(1);
+}
+
+if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  logger.error(
+    "Missing JWT secrets in .env. Please set both JWT_SECRET and JWT_REFRESH_SECRET.",
+  );
+  process.exit(1);
+}
 
 validateEnv();
 connectDB();
@@ -67,11 +86,11 @@ io.on("connection", (socket) => {
 
   if (userId) {
     socket.join(`user_${userId}`);
-    console.log(`User connected to socket: ${userId}`);
+    logger.info(`User connected to socket: ${userId}`);
   }
 
   socket.on("disconnect", () => {
-    if (userId) console.log(`User disconnected: ${userId}`);
+    if (userId) logger.info(`User disconnected from socket: ${userId}`);
   });
 });
 
@@ -83,16 +102,16 @@ const startServer = (attempt = 0) => {
 
   httpServer.once("error", (err) => {
     if (err.code === "EADDRINUSE" && attempt < 10) {
-      console.log(`Port ${PORT} in use, killing contender and retrying (attempt ${attempt + 1})`);
+      logger.warn(`Port ${PORT} in use, killing contender and retrying (attempt ${attempt + 1})`);
       setTimeout(() => startServer(attempt + 1), 100);
     } else {
-      console.error(`Failed to start server on port ${PORT}:`, err.message);
+      logger.error(`Failed to start server on port ${PORT}:`, err.message);
       process.exit(1);
     }
   });
 
   httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    logger.info(`Server running on port ${PORT}`);
   });
 };
 
