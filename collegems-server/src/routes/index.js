@@ -41,6 +41,7 @@ import officeHoursRoutes from "./officeHours.routes.js";
 
 // Student Services
 import idCardRoutes from "./idcard.routes.js";
+import transferRoutes from "./transfer.routes.js";
 
 // Community & Engagement
 import eventRoute from "./event.routes.js";
@@ -104,16 +105,12 @@ import { verifyStudent } from "../controllers/idcard.controller.js";
 const router = express.Router();
 
 // ========================================
-// CORE ROUTES (Commented out for now)
+// CORE ROUTES
 // ========================================
 router.use("/auth", authRoutes);
 router.use("/search", searchRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/faculty-assignments", facultyAssignmentRoutes);
-// router.use("/auth", authRoutes);
-router.use("/search", searchRoutes);
-// router.use("/dashboard", dashboardRoutes);
-// router.use("/faculty-assignments", facultyAssignmentRoutes);
 
 // ========================================
 // ACADEMIC ROUTES
@@ -157,6 +154,7 @@ router.use("/office-hours", officeHoursRoutes);
 // ========================================
 router.use("/student/idcard", idCardRoutes);
 router.get("/verify/student/:studentId", authenticate, verifyStudent);
+router.use("/transfer", authenticate, transferRoutes);
 
 // ========================================
 // COMMUNITY & ENGAGEMENT
