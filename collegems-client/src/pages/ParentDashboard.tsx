@@ -32,9 +32,36 @@ import EventsStudent from "../user-components/EventsStudent";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
 
+// --- ADDED: Proper TypeScript Interfaces to resolve all 'unknown' and 'property does not exist' errors ---
+interface UserData {
+  name?: string;
+}
+
+interface StudentData {
+  _id?: string;
+  name?: string;
+  studentId?: string;
+  course?: string;
+  semester?: string | number;
+  email?: string;
+}
+
+interface DashboardCard {
+  title: string;
+  value: string | number;
+}
+
+interface DashboardResponse {
+  user?: UserData;
+  student?: StudentData;
+  cards?: DashboardCard[];
+}
+// --------------------------------------------------------------------------------------------------------
+
 export default function ParentDashboard() {
   const navigate = useNavigate();
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  // UPDATED: Use the new DashboardResponse interface instead of Record<string, unknown>
+  const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -356,7 +383,8 @@ export default function ParentDashboard() {
             <div className="space-y-8">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {data.cards?.map((stat: Record<string, unknown>, index: number) => {
+                {/* UPDATED: Removed types from .map() arguments and let TS infer them from the interface */}
+                {data.cards?.map((stat, index) => {
                   const colors = [
                     "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30",
                     "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30",

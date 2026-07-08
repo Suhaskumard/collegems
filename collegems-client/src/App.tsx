@@ -6,11 +6,9 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BulkFieldReset from "./hod-components/BulkFieldReset";
-
-import TimeTable from "./user-components/TimeTable";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentTransferHistory from "./hod-components/StudentTransferHistory";
-//import TimeTable from "./user-components/TimeTable";
+import TimeTable from "./user-components/TimeTable";
 
 //import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
@@ -47,7 +45,6 @@ import BookingManagement from "./hod-components/BookingManagement";
 import ResourceManagement from "./hod-components/ResourceManagement";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
-
 import { PwaManager } from "./components/PwaManager";
 import ToastTest from "./pages/ToastTest";
 

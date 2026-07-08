@@ -8,6 +8,7 @@ import Attendance from "../models/Attendance.model.js";
 import Results from "../models/Results.model.js";
 import crypto from "crypto";
 import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
+
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
   return {
@@ -396,24 +397,24 @@ export const createTeacher = async (req, res) => {
 
     let duplicates = [];
 
-if (!overrideDuplicates) {
-  duplicates = await checkPotentialDuplicates({
-    name,
-    email,
-    teacherId,
-    department,
-    phone,
-    dob,
-    role: "teacher",
-  });
+    if (!overrideDuplicates) {
+      duplicates = await checkPotentialDuplicates({
+        name,
+        email,
+        teacherId,
+        department,
+        phone,
+        dob,
+        role: "teacher",
+      });
 
-  if (duplicates.length > 0) {
-    return res.status(409).json({
-      isDuplicateWarning: true,
-      matches: duplicates,
-    });
-  }
-}
+      if (duplicates.length > 0) {
+        return res.status(409).json({
+          isDuplicateWarning: true,
+          matches: duplicates,
+        });
+      }
+    }
 
     const teacher = await User.create({
       name,
