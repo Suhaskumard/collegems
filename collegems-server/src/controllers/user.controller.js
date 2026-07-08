@@ -383,6 +383,7 @@ export const createTeacher = async (req, res) => {
       department,
       phone,
       dob,
+      bio,
       overrideDuplicates,
     } = req.body || {};
 
@@ -433,6 +434,7 @@ export const createTeacher = async (req, res) => {
       department,
       phone,
       dob,
+      bio,
     });
 
     await logAction(
