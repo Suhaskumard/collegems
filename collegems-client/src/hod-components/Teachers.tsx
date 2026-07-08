@@ -9,6 +9,7 @@ import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
 import EmptyState from "../components/EmptyState";
+import { FacultyOnboardingWizard } from "./FacultyOnboardingWizard";
 
 interface Teacher {
   _id?: string;
@@ -44,17 +45,6 @@ const Teachers: React.FC = () => {
   const [officeHours, setOfficeHours] = useState<{ slots: OfficeHourSlot[]; notes: string } | null>(null);
   const [officeHoursLoading, setOfficeHoursLoading] = useState(false);
   const [showAddTeacher, setShowAddTeacher] = useState(false);
-
-const [teacherForm, setTeacherForm] = useState({
-  name: "",
-  email: "",
-  password: "",
-  teacherId: "",
-  department: "",
-  phone: "",
-});
-
-const [creatingTeacher, setCreatingTeacher] = useState(false);
 
   useEffect(() => { fetchTeachers(); }, []);
 
@@ -106,32 +96,6 @@ const [creatingTeacher, setCreatingTeacher] = useState(false);
       setLoading(false);
     }
   };
-const createTeacher = async () => {
-  try {
-    setCreatingTeacher(true);
-
-    await api.post("/users/teachers", teacherForm);
-
-    alert("Teacher created successfully!");
-
-    setShowAddTeacher(false);
-
-    setTeacherForm({
-      name: "",
-      email: "",
-      password: "",
-      teacherId: "",
-      department: "",
-      phone: "",
-    });
-
-    fetchTeachers();
-  } catch (err: any) {
-    alert(err.response?.data?.message || "Failed to create teacher");
-  } finally {
-    setCreatingTeacher(false);
-  }
-};
   const getInitials = (name: string) =>
     name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
@@ -357,107 +321,14 @@ const createTeacher = async () => {
         </div>
       )}
       {showAddTeacher && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-          Add New Teacher
-        </h2>
-
-        <button onClick={() => setShowAddTeacher(false)}>
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="space-y-4">
-
-        <input
-          className={inputCls}
-          placeholder="Full Name"
-          value={teacherForm.name}
-          onChange={(e) =>
-            setTeacherForm({ ...teacherForm, name: e.target.value })
-          }
+        <FacultyOnboardingWizard 
+          onClose={() => setShowAddTeacher(false)} 
+          onSuccess={() => {
+            setShowAddTeacher(false);
+            fetchTeachers();
+          }} 
         />
-
-        <input
-          className={inputCls}
-          placeholder="Email"
-          value={teacherForm.email}
-          onChange={(e) =>
-            setTeacherForm({ ...teacherForm, email: e.target.value })
-          }
-        />
-
-        <input
-          className={inputCls}
-          type="password"
-          placeholder="Password"
-          value={teacherForm.password}
-          onChange={(e) =>
-            setTeacherForm({ ...teacherForm, password: e.target.value })
-          }
-        />
-
-        <input
-          className={inputCls}
-          placeholder="Teacher ID"
-          value={teacherForm.teacherId}
-          onChange={(e) =>
-            setTeacherForm({
-              ...teacherForm,
-              teacherId: e.target.value,
-            })
-          }
-        />
-
-        <input
-          className={inputCls}
-          placeholder="Department"
-          value={teacherForm.department}
-          onChange={(e) =>
-            setTeacherForm({
-              ...teacherForm,
-              department: e.target.value,
-            })
-          }
-        />
-
-        <input
-          className={inputCls}
-          placeholder="Phone"
-          value={teacherForm.phone}
-          onChange={(e) =>
-            setTeacherForm({
-              ...teacherForm,
-              phone: e.target.value,
-            })
-          }
-        />
-
-      </div>
-
-      <div className="flex justify-end gap-3 mt-6">
-
-        <button
-          onClick={() => setShowAddTeacher(false)}
-          className="px-4 py-2 rounded-lg border"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={createTeacher}
-          disabled={creatingTeacher}
-          className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {creatingTeacher ? "Creating..." : "Create Teacher"}
-        </button>
-
-      </div>
-    </div>
-  </div>
-)}
+      )}
       {/* Teacher Detail Modal */}
       {selectedTeacher && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
