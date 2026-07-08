@@ -11,6 +11,8 @@ import authRoutes from "./auth.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
+import searchRoutes from "./search.routes.js";
+import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
 
 // Academic Routes
 import attendanceRoutes from "./attendance.routes.js";
@@ -71,7 +73,6 @@ import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
 import trackingRoutes from "./tracking.routes.js";
 
-
 // Miscellaneous
 import achievementRoutes from "./achievement.routes.js";
 import announcementRoutes from "./announcement.routes.js";
@@ -87,12 +88,6 @@ import savedFilterRoutes from "./savedFilter.routes.js";
 import abandonmentRoutes from "./abandonment.routes.js";
 import temporaryLinkRoutes from "./temporaryLink.routes.js";
 
-// Faculty Assignment (if needed later)
-import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-
-// import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-import searchRoutes from './search.routes.js';
-
 // ========================================
 // MIDDLEWARES
 // ========================================
@@ -105,16 +100,12 @@ import { verifyStudent } from "../controllers/idcard.controller.js";
 const router = express.Router();
 
 // ========================================
-// CORE ROUTES (Commented out for now)
+// CORE ROUTES
 // ========================================
 router.use("/auth", authRoutes);
 router.use("/search", searchRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/faculty-assignments", facultyAssignmentRoutes);
-// router.use("/auth", authRoutes);
-router.use("/search", searchRoutes);
-// router.use("/dashboard", dashboardRoutes);
-// router.use("/faculty-assignments", facultyAssignmentRoutes);
 
 // ========================================
 // ACADEMIC ROUTES
@@ -194,7 +185,6 @@ router.use("/quizzes", authenticate, quizRoutes);
 router.use("/audit-logs", authenticate, auditLogRoutes);
 router.use("/system-health", authenticate, systemHealthRoutes);
 router.use("/restore", restoreRoutes);
-
 
 // ========================================
 // MISCELLANEOUS

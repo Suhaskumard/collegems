@@ -6,11 +6,9 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BulkFieldReset from "./hod-components/BulkFieldReset";
-
-import TimeTable from "./user-components/TimeTable";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentTransferHistory from "./hod-components/StudentTransferHistory";
-//import TimeTable from "./user-components/TimeTable";
+import TimeTable from "./user-components/TimeTable";
 
 //import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
@@ -33,6 +31,7 @@ import SemesterRegistration from "./user-components/SemesterRegistration";
 //import TimeTable from "./user-components/TimeTable";
 import DashboardLayout from "./layouts/DashboardLayout";
 
+import DashboardLayout from "./layouts/DashboardLayout";
 import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
 import RiskDashboard from "./pages/RiskDashboard";
@@ -49,6 +48,7 @@ import BookingManagement from "./hod-components/BookingManagement";
 import ResourceManagement from "./hod-components/ResourceManagement";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
+import DataTableDemo from "./pages/DataTableDemo";
 
 import { PwaManager } from "./components/PwaManager";
 import ToastTest from "./pages/ToastTest";
@@ -104,6 +104,7 @@ export default function App() {
 />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/datatable-demo" element={<DataTableDemo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -119,12 +120,11 @@ export default function App() {
           <Route path="/timetable" element={ <TimeTable /> } />
         </Route>
 
-        {/* Student Routes */}
+        {/* Role-based dashboards */}
         <Route
           path="/student/dashboard"
           element={<StudentDashboardGuarded />}
         />
-
         <Route
           path="/student/exam-form"
           element={<ExaminationFormPageGuarded />}
@@ -165,17 +165,15 @@ export default function App() {
           path="/hod/dashboard"
           element={<HodDashboardGuarded />}
         />
-
         <Route
           path="/hod/reports"
-          element={<ReportGeneratorGuarded />}
-        />
+      element={<ReportGeneratorGuarded />}
+    />
 
+    <Route
+      path="/hod/exam-halls"
+      element={<ExamHallsGuarded />}
 
-
-        <Route
-          path="/hod/exam-halls"
-          element={<ExamHallsGuarded />}
         />
 
         <Route

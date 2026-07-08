@@ -23,3 +23,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# User-uploaded files (never commit user data). The runtime creates these
+# directories on demand; the .gitkeep files preserve the empty folders.
+uploads/*
+!uploads/.gitkeep
+secure-uploads/*
+!secure-uploads/.gitkeep
+
+# Local developer scratch space
+scratch/
