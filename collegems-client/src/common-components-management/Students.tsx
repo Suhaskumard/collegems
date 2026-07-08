@@ -20,7 +20,7 @@ import { useServerDataTable } from "../hooks/useServerDataTable";
 import AdvancedExportButton from "./AdvancedExportButton";
 import EmptyState from "../components/EmptyState";
 import BulkTagModal from "./BulkTagModal";
-import CompareStudentsModal, { type Student as CompareStudent } from "./CompareStudentsModal";
+import CompareStudentsModal from "./CompareStudentsModal";
 import StudentTimeline from "./StudentTimeline";
 import { trackView } from "../utils/trackView";
 
@@ -439,7 +439,6 @@ const Students: React.FC = () => {
                   <span className="sr-only">Previous</span>
                   <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
-                {/* Simplified page numbers, could be expanded for many pages */}
                 <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
                   {meta.currentPage}
                 </span>
@@ -639,7 +638,7 @@ const Students: React.FC = () => {
       )}
 
       {showCompareModal && (
-        <CompareStudentsModal students={selectedForCompare as CompareStudent[]} onClose={() => setShowCompareModal(false)} />
+        <CompareStudentsModal students={selectedForCompare as any} onClose={() => setShowCompareModal(false)} />
       )}
 
       {showTagModal && (
@@ -657,4 +656,3 @@ const Students: React.FC = () => {
 };
 
 export default Students;
-

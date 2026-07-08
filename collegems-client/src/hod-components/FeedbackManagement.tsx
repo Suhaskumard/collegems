@@ -1,5 +1,4 @@
 // FILE: collegems-client/src/hod-components/FeedbackManagement.tsx
-// NEW FILE — HOD sees all feedback, analytics, and can respond
 
 import { useEffect, useState } from "react";
 import {
@@ -26,6 +25,10 @@ interface FeedbackItem {
   adminResponse?: string;
   sentiment: string;
   sentimentScore: number;
+  // ✨ NEW AI FIELDS ✨
+  keyPhrases?: string[];
+  isUrgent?: boolean;
+  
   student?: { name: string; email: string; studentId?: string };
   course?: { name: string; code: string };
   teacher?: { name: string };
@@ -181,8 +184,8 @@ function FeedbackCard({
     switch (sentiment) {
       case "Positive": return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "Negative": return "bg-rose-100 text-rose-700 border-rose-200";
-      case "Neutral": return "bg-amber-100 text-amber-700 border-amber-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "Neutral":  return "bg-amber-100 text-amber-700 border-amber-200";
+      default:         return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
@@ -196,15 +199,17 @@ function FeedbackCard({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className={`rounded-xl border overflow-hidden transition-all duration-200 ${
+      item.isUrgent ? 'border-rose-300 bg-rose-50/30 shadow-sm' : 'bg-white border-gray-200'
+    }`}>
       {/* Card header */}
       <div
-        className="flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50"
+        className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50/80 ${item.isUrgent ? 'hover:bg-rose-50/60' : ''}`}
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200/60">
               {CATEGORY_LABELS[item.category]}
             </span>
             {item.isAnonymous && (
@@ -218,9 +223,18 @@ function FeedbackCard({
             <span className={`text-xs px-2 py-0.5 rounded font-semibold border ${getSentimentColor(item.sentiment)}`}>
               {item.sentiment} {item.sentimentScore ? `(${(item.sentimentScore > 0 ? '+' : '')}${item.sentimentScore})` : ''}
             </span>
+            
+            {/* ✨ AI Urgency Warning Badge ✨ */}
+            {item.isUrgent && (
+              <span className="px-2 py-0.5 bg-red-600 text-white text-[11px] font-bold rounded flex items-center gap-1 animate-pulse shadow-sm">
+                🚨 Critical Issue
+              </span>
+            )}
           </div>
+
           <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          
+          <p className="text-xs text-gray-500 mt-1">
             {item.isAnonymous ? "Anonymous" : item.student?.name || "Unknown"}
             {item.student?.studentId && ` · ${item.student.studentId}`}
             {" · "}
@@ -228,7 +242,20 @@ function FeedbackCard({
               day: "numeric", month: "short", year: "numeric",
             })}
           </p>
+
+          {/* ✨ AI Key Phrases ✨ */}
+          {item.keyPhrases && item.keyPhrases.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1 mt-2.5">
+              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mr-1">AI Keywords:</span>
+              {item.keyPhrases.map((phrase, idx) => (
+                <span key={idx} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100/50 rounded-full text-[10px] font-medium lowercase">
+                  #{phrase}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
+        
         {item.rating && (
           <div className="flex gap-0.5 flex-shrink-0">
             {[1,2,3,4,5].map((s) => (
@@ -240,8 +267,10 @@ function FeedbackCard({
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-4">
-          <p className="text-sm text-gray-700 leading-relaxed">{item.message}</p>
+        <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-4 bg-white/50">
+          <p className="text-sm text-gray-700 leading-relaxed bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+            {item.message}
+          </p>
 
           {/* Status change */}
           <div className="flex items-center gap-3">
@@ -409,7 +438,7 @@ export default function FeedbackManagement() {
           {/* List */}
           {loading ? (
             <div className="space-y-3">
-              {[1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-gray-100 animate-pulse" />)}
+              {[1,2,3].map((i) => <div key={i} className="h-24 rounded-xl bg-gray-100 animate-pulse" />)}
             </div>
           ) : items.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
