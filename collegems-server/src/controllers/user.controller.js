@@ -3,11 +3,13 @@ import User from "../models/User.model.js";
 import StudentTimelineEvent from "../models/StudentTimelineEvent.model.js";
 import { logAction } from "../utils/auditService.js";
 import { getPaginatedData } from "../utils/pagination.util.js";
+import { revokeAllSessions } from "../utils/session.service.js";
 import calculateProfileCompletion from "../utils/profileCompletion.js";
 import Attendance from "../models/Attendance.model.js";
 import Results from "../models/Results.model.js";
 import crypto from "crypto";
 import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
+
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
   return {
@@ -126,6 +128,13 @@ export const updatePassword = async (req, res) => {
     user.password = await hashPassword(newPassword, 8);
     user._updatedBy = req.user.id;
     await user.save();
+
+    await revokeAllSessions(req.user.id);
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
     res.json({ message: "Password updated successfully" });
 
@@ -397,24 +406,24 @@ export const createTeacher = async (req, res) => {
 
     let duplicates = [];
 
-if (!overrideDuplicates) {
-  duplicates = await checkPotentialDuplicates({
-    name,
-    email,
-    teacherId,
-    department,
-    phone,
-    dob,
-    role: "teacher",
-  });
+    if (!overrideDuplicates) {
+      duplicates = await checkPotentialDuplicates({
+        name,
+        email,
+        teacherId,
+        department,
+        phone,
+        dob,
+        role: "teacher",
+      });
 
-  if (duplicates.length > 0) {
-    return res.status(409).json({
-      isDuplicateWarning: true,
-      matches: duplicates,
-    });
-  }
-}
+      if (duplicates.length > 0) {
+        return res.status(409).json({
+          isDuplicateWarning: true,
+          matches: duplicates,
+        });
+      }
+    }
 
     const teacher = await User.create({
       name,
