@@ -34,6 +34,21 @@ import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
 import { trackView } from "../utils/trackView";
 
+// Import Skeleton Components
+import {
+  SkeletonText,
+  SkeletonCard,
+  SkeletonStatsCard,
+  SkeletonAttendanceCard,
+  SkeletonAssignment,
+  SkeletonChart,
+  SkeletonList,
+  SkeletonActivityFeed,
+} from "../common-components-management/SkeletonLoader";
+
+// Import Loading Hook
+import useLoading from "../hooks/useLoading";
+
 // Common Components
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import AssignmentReminder from "../common-components-management/AssignmentReminder";
@@ -141,6 +156,9 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Use our custom loading hook
+  const { isLoading, withLoading } = useLoading(true);
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -159,15 +177,16 @@ export default function StudentDashboard() {
   }, []);
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/dashboard");
-      setData(res.data);
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
+    await withLoading(async () => {
+      try {
+        const res = await api.get("/dashboard");
+        setData(res.data);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const handleSignOut = () => {
@@ -189,22 +208,26 @@ export default function StudentDashboard() {
     return "Good evening";
   };
 
-  if (loading) {
+  // Enhanced Skeleton Loading State
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
-        {/* Skeleton Sidebar (Hidden on mobile, visible on desktop) */}
+        {/* Skeleton Sidebar */}
         <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
-            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-            <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse h-16"></div>
+            <SkeletonText lines={1} width={140} height={24} />
+            <SkeletonText lines={1} width={100} height={16} className="mt-1" />
+            <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <SkeletonText lines={1} width={120} height={20} />
+              <SkeletonText lines={1} width={80} height={14} className="mt-1" />
+            </div>
           </div>
           <div className="flex-1 p-4 space-y-3">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-11 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
-              ></div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                <SkeletonText lines={1} width={100} height={16} />
+              </div>
             ))}
           </div>
         </aside>
@@ -225,33 +248,63 @@ export default function StudentDashboard() {
           <main className="p-4 sm:p-6 lg:p-8 flex-1">
             {/* Title Area */}
             <div className="mb-8">
-              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-3"></div>
-              <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+              <SkeletonText lines={1} width={280} height={32} />
+              <SkeletonText lines={1} width={200} height={16} className="mt-2" />
             </div>
 
-            {/* Stats Grid Cards Skeleton */}
+            {/* Stats Grid Cards with Enhanced Skeletons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-36"
-                >
-                  <div className="flex justify-between items-start animate-pulse">
-                    <div className="space-y-3">
-                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                      <div className="h-7 w-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                    </div>
-                    <div className="h-11 w-11 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>
-                  </div>
-                  <div className="mt-6 h-4 w-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
-                </div>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonStatsCard key={i} />
               ))}
             </div>
 
-            {/* Quick Actions & Schedule Skeleton */}
+            {/* Quick Actions & Schedule Skeletons */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-64 animate-pulse"></div>
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 h-64 animate-pulse"></div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <SkeletonText lines={1} width={140} height={24} />
+                <div className="mt-4 space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                      <div className="flex-1">
+                        <SkeletonText lines={1} width={120} height={18} />
+                        <SkeletonText lines={1} width={160} height={14} className="mt-1" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <SkeletonText lines={1} width={140} height={24} />
+                  <SkeletonText lines={1} width={60} height={16} />
+                </div>
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <SkeletonText lines={1} width={50} height={16} />
+                      <div className="flex-1">
+                        <SkeletonText lines={1} width={100} height={18} />
+                        <SkeletonText lines={1} width={140} height={14} className="mt-1" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Upcoming Exams & Achievements Skeletons */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <SkeletonText lines={1} width={160} height={24} />
+                <SkeletonList items={3} itemHeight={50} />
+              </div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <SkeletonText lines={1} width={160} height={24} />
+                <SkeletonActivityFeed items={4} />
+              </div>
             </div>
           </main>
         </div>
@@ -283,6 +336,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
+      {/* Sidebar Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
@@ -290,6 +344,7 @@ export default function StudentDashboard() {
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -301,7 +356,6 @@ export default function StudentDashboard() {
                   Student Portal
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {" "}
                   {studentProgram}
                 </p>
               </div>
@@ -334,10 +388,16 @@ export default function StudentDashboard() {
                       setActiveTab(item.id);
                       setSidebarOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
                   >
                     <Icon
-                      className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500"}`}
+                      className={`w-5 h-5 ${
+                        isActive ? "text-blue-600" : "text-gray-500"
+                      }`}
                     />
                     <span>{item.label}</span>
                     {isActive && (
@@ -366,6 +426,7 @@ export default function StudentDashboard() {
         </div>
       </aside>
 
+      {/* Main Content */}
       <div className="flex-1 min-w-0">
         <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
           <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -399,7 +460,9 @@ export default function StudentDashboard() {
                 : navigationItems.find((item) => item.id === activeTab)?.label}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Here's what's happening with your academic progress.
+              {activeTab === "overview"
+                ? "Here's what's happening with your academic progress."
+                : `Manage your ${activeTab.replace("-", " ")}`}
             </p>
           </div>
 
@@ -430,7 +493,7 @@ export default function StudentDashboard() {
                     title: "Pending Assignments",
                     value:
                       data?.cards?.find(
-                        (c: any) => c.title === "Pending Assignments",
+                        (c: any) => c.title === "Pending Assignments"
                       )?.value || "0",
                     icon: FileText,
                     color: "amber",
@@ -508,7 +571,6 @@ export default function StudentDashboard() {
               <AssignmentReminder />
 
               {/* Quick Actions */}
-
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Quick Actions
@@ -551,7 +613,7 @@ export default function StudentDashboard() {
                         key={index}
                         onClick={action.onClick}
                         className={`flex items-start gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700
-            transition-all duration-200 text-left ${colorClasses} hover:shadow-md`}
+                          transition-all duration-200 text-left ${colorClasses} hover:shadow-md`}
                       >
                         <div className="p-2 rounded-lg bg-white dark:bg-gray-900">
                           <Icon className="w-5 h-5" />
@@ -603,7 +665,7 @@ export default function StudentDashboard() {
                           now.getHours() * 60 + now.getMinutes();
                         const isUpcoming =
                           data.todayClasses.findIndex(
-                            (c: any) => parseTime(c.time) >= currentMinutes,
+                            (c: any) => parseTime(c.time) >= currentMinutes
                           ) === index;
 
                         return (
@@ -626,12 +688,20 @@ export default function StudentDashboard() {
                             </div>
                             <div className="flex-1">
                               <p
-                                className={`font-medium ${isUpcoming ? "text-blue-900 dark:text-blue-300" : "text-gray-900 dark:text-white"}`}
+                                className={`font-medium ${
+                                  isUpcoming
+                                    ? "text-blue-900 dark:text-blue-300"
+                                    : "text-gray-900 dark:text-white"
+                                }`}
                               >
                                 {class_.subject}
                               </p>
                               <p
-                                className={`text-sm ${isUpcoming ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                                className={`text-sm ${
+                                  isUpcoming
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-500 dark:text-gray-400"
+                                }`}
                               >
                                 {class_.faculty} • {class_.room} • {class_.type}
                               </p>
@@ -666,7 +736,6 @@ export default function StudentDashboard() {
                   : "bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
               }
             >
-              {/* Cleaned up duplicate render blocks */}
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "assignments" && <Assignment />}
               {activeTab === "fees" && <Fees />}

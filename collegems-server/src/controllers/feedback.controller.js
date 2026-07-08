@@ -5,7 +5,7 @@
 
 import Feedback from "../models/Feedback.model.js";
 import { analyzeFeedbackSentiment } from "../services/analytics.service.js";
-
+import { analyzeFeedback } from "../services/ai.service.js";
 // ── Student: submit feedback ──────────────────────────────────────────────────
 // POST /api/feedback
 export const submitFeedback = async (req, res) => {
@@ -13,14 +13,14 @@ export const submitFeedback = async (req, res) => {
     const { category, title, message, rating, isAnonymous, courseId, teacherId } = req.body;
 
     if (!category || !title || !message) {
-      return res
-        .status(400)
-        .json({ message: "Category, title and message are required." });
+      return res.status(400).json({ message: "Category, title and message are required." });
     }
 
+    // ✨ Run AI Analysis on the combined title + message
+    const fullText = `${title}. ${message}`;
+    const aiInsights = analyzeFeedback(fullText);
+
     const feedback = await Feedback.create({
-      // Always store the real student id so the student can fetch their own
-      // submissions. isAnonymous just controls whether HOD can see the name.
       student: req.user.id,
       category,
       title,
@@ -29,14 +29,12 @@ export const submitFeedback = async (req, res) => {
       isAnonymous: Boolean(isAnonymous),
       course: courseId || null,
       teacher: teacherId || null,
+      // Save AI Data
+      sentiment: aiInsights.sentiment,
+      sentimentScore: aiInsights.score,
+      keyPhrases: aiInsights.keyPhrases,
+      isUrgent: aiInsights.isUrgent
     });
-
-    // Run sentiment analysis asynchronously without blocking the response
-    analyzeFeedbackSentiment(feedback._id, feedback.message).then(async (result) => {
-        feedback.sentiment = result.sentiment;
-        feedback.sentimentScore = result.sentiment_score;
-        await feedback.save();
-    }).catch(err => console.error("Error analyzing sentiment post-creation:", err));
 
     res.status(201).json({ message: "Feedback submitted successfully.", feedback });
   } catch (error) {
@@ -44,7 +42,6 @@ export const submitFeedback = async (req, res) => {
     res.status(500).json({ message: "Failed to submit feedback." });
   }
 };
-
 // ── Student: get their own feedback history ───────────────────────────────────
 // GET /api/feedback/my
 export const getMyFeedback = async (req, res) => {

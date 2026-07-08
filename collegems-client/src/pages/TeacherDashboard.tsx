@@ -45,6 +45,18 @@ import ThemeSwitcher from "../components/ThemeSwitcher";
 import TeacherProfile from "../teacher-components/TeacherProfile";
 import TeacherAnalyticsWidget from "../components/AnalyticsWidgets/TeacherAnalyticsWidget";
 
+// Import Skeleton Components
+import {
+  SkeletonText,
+  SkeletonCard,
+  SkeletonStatsCard,
+  SkeletonList,
+  SkeletonActivityFeed,
+} from "../common-components-management/SkeletonLoader";
+
+// Import Loading Hook
+import useLoading from "../hooks/useLoading";
+
 interface TeacherDashboardProps {
   initialTab?: string;
 }
@@ -61,6 +73,9 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
   const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
 
+  // Use our custom loading hook
+  const { isLoading, withLoading } = useLoading(true);
+
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -71,37 +86,39 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
   useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [dashboardRes, coursesRes] = await Promise.all([
-        api.get("/dashboard"),
-        api.get("/courses/all"),
-      ]);
-      setData(dashboardRes.data);
-      
-      // --- NEW SAFTEY CHECK FOR COURSES ---
-      const fetchedCourses = coursesRes.data;
-      if (Array.isArray(fetchedCourses)) {
-        setCourses(fetchedCourses);
-      } else if (fetchedCourses && Array.isArray(fetchedCourses.data)) {
-        setCourses(fetchedCourses.data);
-      } else if (fetchedCourses && Array.isArray(fetchedCourses.courses)) {
-        setCourses(fetchedCourses.courses);
-      } else {
-        setCourses([]); // Fallback to an empty array to prevent crashes
-      }
-      // ------------------------------------
+    await withLoading(async () => {
+      try {
+        setLoading(true);
+        const [dashboardRes, coursesRes] = await Promise.all([
+          api.get("/dashboard"),
+          api.get("/courses/all"),
+        ]);
+        setData(dashboardRes.data);
+        
+        // --- NEW SAFETY CHECK FOR COURSES ---
+        const fetchedCourses = coursesRes.data;
+        if (Array.isArray(fetchedCourses)) {
+          setCourses(fetchedCourses);
+        } else if (fetchedCourses && Array.isArray(fetchedCourses.data)) {
+          setCourses(fetchedCourses.data);
+        } else if (fetchedCourses && Array.isArray(fetchedCourses.courses)) {
+          setCourses(fetchedCourses.courses);
+        } else {
+          setCourses([]); // Fallback to an empty array to prevent crashes
+        }
+        // ------------------------------------
 
-      setUpcomingClasses([
-        { id: 1, course: "Mathematics 101", time: "10:00 AM", room: "Room 301", status: "upcoming", students: 28 },
-        { id: 2, course: "Physics 201", time: "2:00 PM", room: "Lab 204", status: "upcoming", students: 24 },
-        { id: 3, course: "Computer Science 301", time: "4:00 PM", room: "Room 105", status: "completed", students: 32 },
-      ]);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
+        setUpcomingClasses([
+          { id: 1, course: "Mathematics 101", time: "10:00 AM", room: "Room 301", status: "upcoming", students: 28 },
+          { id: 2, course: "Physics 201", time: "2:00 PM", room: "Lab 204", status: "upcoming", students: 24 },
+          { id: 3, course: "Computer Science 301", time: "4:00 PM", room: "Room 105", status: "completed", students: 32 },
+        ]);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const navigationItems = [
@@ -157,12 +174,134 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     }
   };
 
-  if (loading) {
+  // Enhanced Skeleton Loading State
+  if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
+        {/* Skeleton Sidebar */}
+        <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <SkeletonText lines={1} width={140} height={24} />
+            <SkeletonText lines={1} width={120} height={16} className="mt-1" />
+            
+            <div className="mt-4 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+              <div className="flex-1">
+                <SkeletonText lines={1} width={120} height={18} />
+                <SkeletonText lines={1} width={160} height={14} className="mt-1" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 p-4 space-y-1">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                <SkeletonText lines={1} width={120} height={16} />
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+              <SkeletonText lines={1} width={60} height={16} />
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+              <SkeletonText lines={1} width={60} height={16} />
+            </div>
+          </div>
+        </aside>
+
+        {/* Skeleton Main Layout */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Skeleton Header */}
+          <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 lg:px-8">
+            <div className="h-8 w-8 lg:hidden bg-gray-200 dark:bg-gray-800 rounded animate-pulse mr-4"></div>
+            <div className="h-9 w-80 hidden sm:block bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            <div className="ml-auto flex gap-3">
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            </div>
+          </header>
+
+          {/* Skeleton Dashboard Content */}
+          <main className="p-4 sm:p-6 lg:p-8 flex-1">
+            {/* Title Area */}
+            <div className="mb-8">
+              <SkeletonText lines={1} width={280} height={32} />
+              <SkeletonText lines={1} width={350} height={16} className="mt-2" />
+            </div>
+
+            {/* Stats Grid Cards Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonStatsCard key={i} />
+              ))}
+            </div>
+
+            {/* Courses and Schedule Skeletons */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* My Courses Skeleton */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <SkeletonText lines={1} width={120} height={24} />
+                    <SkeletonText lines={1} width={80} height={16} />
+                  </div>
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                          <div>
+                            <SkeletonText lines={1} width={120} height={18} />
+                            <SkeletonText lines={1} width={80} height={14} className="mt-1" />
+                          </div>
+                        </div>
+                        <SkeletonText lines={1} width={80} height={14} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* Today's Schedule Skeleton */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <SkeletonText lines={1} width={140} height={24} className="mb-4" />
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <SkeletonText lines={1} width={100} height={18} />
+                          <SkeletonText lines={1} width={60} height={14} />
+                        </div>
+                        <SkeletonText lines={1} width={160} height={14} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notifications Skeleton */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <SkeletonText lines={1} width={120} height={24} />
+                    <SkeletonText lines={1} width={60} height={20} />
+                  </div>
+                  <SkeletonActivityFeed items={3} />
+                </div>
+
+                {/* Attendance Alerts Widget Skeleton */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <SkeletonText lines={1} width={160} height={24} className="mb-4" />
+                  <SkeletonList items={2} itemHeight={40} />
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -249,7 +388,6 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Theme Toggle */}
                 <ThemeSwitcher />
                 <button onClick={() => navigate("/teacher/announcements")} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative" title="Go to announcements">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
