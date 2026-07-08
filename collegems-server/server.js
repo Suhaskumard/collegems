@@ -16,7 +16,7 @@ import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "./src/socket/studyGroupSocket.js";
 import { allowedOrigins } from "./src/config/cors.js";
-
+import validateEnv from "./src/config/validateEnv.js";
 const PORT = process.env.PORT || 5000;
 
 const freePort = () => {
@@ -33,6 +33,7 @@ const freePort = () => {
   } catch {}
 };
 
+validateEnv();
 connectDB();
 
 startFeeCronJobs();
