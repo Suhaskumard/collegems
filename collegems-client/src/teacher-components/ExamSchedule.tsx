@@ -6,6 +6,7 @@ import {
   FileText, Building2,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface ExamSchedule {
   _id: string;
@@ -21,8 +22,6 @@ interface ExamSchedule {
 }
 
 const ExamSchedule: React.FC = () => {
-  useTheme();
-
   const [examName, setExamName] = useState("");
   const [course, setCourse] = useState("");
   const [examDate, setExamDate] = useState("");
@@ -59,7 +58,7 @@ const ExamSchedule: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get("/examschedule/all");
-      setExamSchedules(response.data || []);
+      setExamSchedules(extractArray(response.data));
       setMessage(null);
     } catch (err: any) {
       setMessage({ type: "error", text: err?.response?.data?.message || "Failed to fetch exam schedules" });
@@ -136,7 +135,7 @@ const ExamSchedule: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "short", year: "numeric", month: "short", day: "numeric",
+      weekday: "short", year: "numeric", month: "short", day: "numeric", timeZone: "UTC"
     });
   };
 
@@ -147,7 +146,7 @@ const ExamSchedule: React.FC = () => {
     return `${Math.floor(dur / 60)}h ${dur % 60}m`;
   };
 
-  const isUpcoming = (date: string) => new Date(date) > new Date();
+  const isUpcoming = (date: string) => date > new Date().toLocaleDateString('en-CA');
 
   const stats = {
     total: examSchedules.length,

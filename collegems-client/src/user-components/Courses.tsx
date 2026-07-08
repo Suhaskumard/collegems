@@ -6,6 +6,9 @@ import {
   Grid3x3, List, Download,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
+import { addRecentHistory } from "../api/history";
+import { trackView } from "../utils/trackView";
 
 interface Course {
   _id: string;
@@ -29,14 +32,13 @@ const Courses: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  useTheme();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
         const response = await api.get("/courses/all");
-        setCourses(response.data);
+        setCourses(extractArray(response.data));
       } catch (error) {
         console.error("Error fetching courses:", error);
       } finally {
@@ -52,6 +54,17 @@ const Courses: React.FC = () => {
     if (course.teacher && typeof course.teacher === 'object') return course.teacher.name;
     if (course.teacher && typeof course.teacher === 'string') return course.teacher;
     return "";
+  };
+
+  const handleViewDetails = (course: Course) => {
+    trackView("Course", course._id);
+    addRecentHistory({
+      entityType: "Course",
+      entityId: course._id,
+      displayName: course.name,
+      url: `/courses` // Update this to actual course route if it exists, like `/courses/${course._id}`
+    }).catch(console.error);
+    // You could also navigate or open modal here
   };
 
   // Filter and search courses
@@ -340,7 +353,7 @@ const Courses: React.FC = () => {
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                  <button className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <button onClick={() => handleViewDetails(course)} className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     <Eye className="w-4 h-4 mr-1" />
                     Details
                   </button>
@@ -388,7 +401,7 @@ const Courses: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm">
+                      <button onClick={() => handleViewDetails(course)} className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm">
                         View
                       </button>
                     </td>

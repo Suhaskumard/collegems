@@ -6,8 +6,13 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  config.headers["x-tenant-id"] = "collegems";
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  
+  // Attach Correlation ID for distributed tracing
+  config.headers["X-Correlation-ID"] = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+  
   return config;
 });
 

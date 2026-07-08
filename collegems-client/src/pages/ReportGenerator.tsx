@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Calendar,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { jsPDF } from "jspdf";
+import { extractArray } from "../utils/apiHelpers";
 
 // Type definitions matching backend report schema
 interface CourseInfo {

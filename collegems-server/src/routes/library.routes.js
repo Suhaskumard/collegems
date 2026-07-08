@@ -7,6 +7,8 @@ import {
   issueBook,
   returnBook,
   getIssueRecords,
+  getUserFines,
+  payLibraryFine,
 } from "../controllers/library.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { allowRoles } from "../middlewares/role.middleware.js";
@@ -23,5 +25,9 @@ router.put("/books/:id", protect, allowRoles("hod", "teacher"), updateBook);
 router.delete("/books/:id", protect, allowRoles("hod", "teacher"), deleteBook);
 router.post("/issue", protect, allowRoles("hod", "teacher"), issueBook);
 router.post("/return/:issueId", protect, allowRoles("hod", "teacher"), returnBook);
+
+// Fine Management Routes
+router.get("/fines", protect, getUserFines);
+router.post("/fines/:fineId/pay", protect, payLibraryFine);
 
 export default router;

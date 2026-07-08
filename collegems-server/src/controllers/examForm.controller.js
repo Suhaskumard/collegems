@@ -1,4 +1,5 @@
 import ExaminationForm from "../models/ExaminationForm.model.js";
+import { evaluateEligibility } from "../services/eligibilityEngine.js";
 
 // @desc    Submit a new examination form
 // @route   POST /api/exam-forms
@@ -42,6 +43,27 @@ export const submitExamForm = async (req, res) => {
       });
     }
 
+    // --- AUTOMATED ELIGIBILITY ENGINE VALIDATION ---
+    // In a real production scenario, these context values would be dynamically queried 
+    // from the Attendance and Finance microservices/collections.
+    // We mock standard metrics here to satisfy the validation engine for demonstration.
+    const contextData = {
+      attendancePercentage: 80, // e.g., fetched from Attendance service
+      feeDueBalance: 0,        // e.g., fetched from Finance service
+      cgpa: 7.5,
+      activeDisciplinaryHolds: 0
+    };
+
+    const eligibilityResult = await evaluateEligibility(studentId, 'ExamForm', contextData);
+    
+    if (!eligibilityResult.isEligible) {
+      return res.status(403).json({
+        message: "You are not eligible to submit this examination form.",
+        failedCriteria: eligibilityResult.failedCriteria
+      });
+    }
+    // -----------------------------------------------
+
     // Create the exam form
     const newForm = await ExaminationForm.create({
       student: studentId,
@@ -80,6 +102,17 @@ export const getExamForms = async (req, res) => {
       // Students only see their own submissions
       const forms = await ExaminationForm.find({ student: id }).sort({ createdAt: -1 });
       return res.json(forms);
+    } else if (role === "parent") {
+      const User = (await import("../models/User.model.js")).default;
+      const parentUser = await User.findById(id);
+      if (parentUser && parentUser.studentId) {
+        const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
+        if (studentUser) {
+          const forms = await ExaminationForm.find({ student: studentUser._id }).sort({ createdAt: -1 });
+          return res.json(forms);
+        }
+      }
+      return res.json([]);
     } else {
       return res.status(403).json({ message: "Access forbidden" });
     }

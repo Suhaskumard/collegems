@@ -51,6 +51,7 @@ SCMS is structured around role-based modules, ensuring that every user has a tai
 - **Secure JWT Authentication**: Industry-standard access token structure stored in global state.
 - **Role-Based Access Control (RBAC)**: Fine-grained dashboard view filtering for Students, Teachers, and HODs.
 - **Security Protocols**: Password hashing via BcryptJS, secure API middlewares, and cors configuration.
+- **Password Policy**: Minimum 8 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.
 
 ### 👨‍🎓 Student Module
 
@@ -73,9 +74,16 @@ SCMS is structured around role-based modules, ensuring that every user has a tai
 - **Financial Registry**: Manage tuition fees, salaries, and system-wide transactions.
 - **Approval Workflows**: Review leave requests, enrollment approvals, and administrative actions.
 
+### 👨‍👩‍👧 Parent Portal Module
+
+- **Secure Login & Verification**: Verification matching for parent/guardian logins.
+- **Student Progress Monitoring**: Real-time view of child's attendance stats, leave history, and academic results.
+- **Financial Access**: View and track children's tuition fees and pending balances.
+
 ### 📊 Analytics & Reports
 
 - **Visual Dashboards**: High-fidelity charts for tracking campus performance, outstanding fees, and monthly attendance rates.
+- **Predictive Analytics (AI/ML)**: Identifies at-risk students through machine learning algorithms analyzing historical and ongoing student data to provide timely interventions.
 - **Exporting Tools**: Download financial, academic, and attendance reports as PDF or Excel spreadsheets.
 
 ### ⚡ Real-Time & AI Features
@@ -110,6 +118,13 @@ A reliable, scalable REST API built using the robust Node.js ecosystem:
 - **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) (ODM)
 - **Security & Encryption**: BcryptJS & JSON Web Tokens (JWT)
 - **Utilities**: Nodemailer (Email integration) & Multer (Multi-part file uploads)
+
+### Machine Learning Service
+
+A dedicated microservice for intelligent student analytics and risk prediction:
+
+- **Runtime**: [Python](https://www.python.org/)
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (high performance API framework)
 
 ---
 
@@ -172,6 +187,30 @@ sequenceDiagram
     F-->>U: Redirect to Dashboard
 ```
 
+### 🔑 Persistent Session & Refresh Token Lifecycle
+
+With the implementation of persistent refresh token storage and token rotation:
+
+1. **Login/Register**:
+   - Creates a unique `RefreshToken` document in the MongoDB session store.
+   - The document tracks the user, SHA-256 hashed refresh token, device metadata (parsed from `User-Agent`), IP address, and token expiry.
+   - The plain refresh token is sent to the client via an HTTP-Only, Secure, `sameSite: strict` cookie.
+2. **Access Token Refresh (Token Rotation)**:
+   - When the client's short-lived Access Token expires, it calls `POST /api/auth/refresh` sending the cookie.
+   - The backend verifies the JWT, hashes it, checks the session in the DB, and verifies that it is active (not revoked or expired).
+   - If valid, a new Access Token and a new Refresh Token are generated. The old session is marked as revoked/used, and a new session is saved (Token Rotation).
+3. **Token Reuse Detection (Automatic Compromise Recovery)**:
+   - If an attacker intercepts a refresh token and attempts to reuse it, the backend identifies that the token hash matches a revoked/rotated session.
+   - Immediately, **all sessions** for that user are deleted/revoked, forcing a complete logout across all devices to prevent unauthorized access.
+4. **Device Detection**:
+   - A dedicated session middleware extracts device type (Desktop, Mobile, Tablet), browser, and OS from the request's `User-Agent` header and stores this information.
+5. **Session Management APIs**:
+   - `GET /api/auth/sessions`: Returns a list of all active sessions for the current user, flagging which one is the current browser session (`isCurrent: true`).
+   - `POST /api/auth/logout-all`: Revokes all sessions for the user and forces logouts everywhere.
+   - `DELETE /api/auth/sessions/:id`: Revokes a specific session (e.g., log out a specific remote device).
+6. **Password Change Security**:
+   - When a user updates their password, all active sessions and refresh tokens are immediately deleted, forcing a re-login on all devices.
+
 ---
 
 ## ⚙️ Local Setup Guide
@@ -183,6 +222,7 @@ Follow these steps to run a copy of the project locally on your machine.
 - **Node.js** (v18.x or above recommended)
 - **MongoDB** (Local instance or MongoDB Atlas cluster URI)
 - **NPM** or **Yarn**
+- **Python** (v3.10+ for the Machine Learning service)
 
 ### 1. Backend Setup
 
@@ -206,7 +246,7 @@ Follow these steps to run a copy of the project locally on your machine.
    ```
 5. Start the backend server in development mode:
    ```bash
-   npm run start
+   npm run dev
    ```
    _The server will start running on_ `http://localhost:5000`
 
@@ -234,9 +274,25 @@ Follow these steps to run a copy of the project locally on your machine.
    ```
    _The client app will compile and start running on_ `http://localhost:5173` _(or your local Vite default port)_
 
-### 3. Database Seeding (Dummy Users)
+### 3. Machine Learning Service Setup
 
-To help developers quickly populate the database with sample data for local development and testing, a seed script is included.
+1. Open a new terminal and navigate to the ML service directory:
+   ```bash
+   cd collegems-ml-service
+   ```
+2. Install the required Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI server:
+   ```bash
+   python main.py
+   ```
+   _The ML service will start running on_ `http://localhost:8000`
+
+### 3. Database Seeding & Demo Data
+
+To help contributors quickly test the application locally without manually creating records, a comprehensive demo dataset is provided. This dataset populates Users, Courses, Attendance, Assignments, Results, Leaves, and Salaries.
 
 1. Ensure your local MongoDB instance is running.
 2. Verify that your `.env` file in the `collegems-server` directory contains your correct `MONGO_URI`.
@@ -244,17 +300,22 @@ To help developers quickly populate the database with sample data for local deve
    ```bash
    npm run seed
    ```
+   _(Note: You can run this command anytime to reset/refresh the database with the baseline demo data.)_
 
-**Available Dummy Accounts:**
+**🔑 Available Demo Accounts:**
 _All accounts share the default password:_ `password123`
 
-- **Student:** student@example.com
-- **Teacher:** teacher@example.com
-- **HOD:** hod@college.edu
+| Role            | Name                | Email                       |
+| :-------------- | :------------------ | :-------------------------- |
+| **HOD / Admin** | Dr. Alice Vance     | `hod@college.edu`           |
+| **Teacher**     | Dr. David Evans     | `david.evans@college.edu`   |
+| **Teacher**     | Prof. Sarah Jenkins | `sarah.jenkins@college.edu` |
+| **Student**     | Alice Johnson       | `alice.johnson@college.edu` |
+| **Student**     | Bob Smith           | `bob.smith@college.edu`     |
 
-````
+**🧪 Testing the Setup:**
+Once seeded, you can log in as **Alice Johnson** (Student) to verify that you can see published results, upcoming assignments (like the _Socket Programming Project_), and past attendance records. You can then log in as **Dr. David Evans** (Teacher) to test grading submissions, managing leaves, and viewing salary records.
 
----
 
 ## 📁 Project Directory Structure
 
@@ -289,6 +350,9 @@ collegems/
 │   │   └── utils/             # Mailers and helper scripts
 │   ├── server.js              # Server entry point
 │   └── package.json
+├── collegems-ml-service/      # Python FastAPI Microservice
+│   ├── main.py                # ML service entry point
+│   └── requirements.txt       # Python dependencies
 └── README.md
 ````
 

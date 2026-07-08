@@ -1,7 +1,12 @@
+// FILE: collegems-server/src/app.js
+
 import express from "express";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import path from "path";
+import mongoose from "mongoose";
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import httpContext from "express-http-context";
+import { v4 as uuidv4 } from "uuid";
 
 // Auth & Core
 import authRoutes from "./routes/auth.routes.js";
@@ -18,68 +23,155 @@ import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
 import eventRoute from "./routes/event.routes.js";
 import resultsRoutes from "./routes/results.routes.js";
 import libraryRoutes from "./routes/library.routes.js";
+import assessmentRoutes from "./routes/assessment.routes.js";
 
 import courseRoutes from "./routes/course.routes.js";
 import salaryRoutes from "./routes/salary.route.js";
 import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js"; // ← NEW
 import examFormRoutes from "./routes/examForm.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
 import visitorRoutes from "./routes/visitors.routes.js";
 
 import { authenticate } from "./middlewares/auth.middleware.js";
+// Apply Global Multi-Tenant Plugin
+import tenantPlugin from "./utils/tenantPlugin.js";
+mongoose.plugin(tenantPlugin);
+
+// Import Centralized Router
+import apiRouter from "./routes/index.js";
+
+// Middlewares & Utilities
+import { errorHandler } from "./middlewares/errorHandler.middleware.js";
+import tenantResolver from "./middlewares/tenantResolver.js";
+import log from "./utils/logger.js";
+import cookieParser from "cookie-parser";
+import { allowedOrigins } from "./config/cors.js";
 
 const app = express();
+app.set("query parser", "extended");
+
+app.use(cookieParser());
 
 // Middlewares
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:5555"];
-
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (same-origin, mobile apps, curl, etc.)
     if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-    callback(null, true);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  // Just add "x-tenant-id" to the end of this list!
+  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID", "x-tenant-id"]
 }));
+
 app.use(express.json());
-app.use(cookieParser());
+
+// Correlation ID Tracking & Request Logging
+app.use(httpContext.middleware);
+app.use((req, res, next) => {
+  const correlationId = req.headers['x-correlation-id'] || uuidv4();
+  httpContext.set('correlationId', correlationId);
+  res.setHeader('X-Correlation-ID', correlationId);
+  log.request(req.method, req.originalUrl, req.user?.id || "anonymous");
+  next();
+});
+
+// Static Files
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth",      authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-app.use("/api/attendance", authenticate, attendanceRoutes);
-app.use("/api/assignment", authenticate, assignmentRoutes);
+app.use("/api/attendance",        authenticate, attendanceRoutes);
+app.use("/api/assignment",        authenticate, assignmentRoutes);
 app.use("/api/teacher-attendance", teacherAttendanceRoutes);
-app.use("/api/events", eventRoute);
-app.use("/api/results", authenticate, resultsRoutes);
-app.use("/api/library", libraryRoutes);
+app.use("/api/events",            eventRoute);
+app.use("/api/results",           authenticate, resultsRoutes);
+app.use("/api/library",           libraryRoutes);
+app.use("/api/assessments", authenticate, assessmentRoutes);
 
-app.use("/api/courses", courseRoutes);
-app.use("/api/classes", classRoutes);
+app.use("/api/resources", authenticate, resourceRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
 
-app.use("/api/fee", authenticate, feeRoutes);
+app.use("/api/courses",  courseRoutes);
+app.use("/api/classes",  classRoutes);
+
+app.use("/api/fee",    authenticate, feeRoutes);
 app.use("/api/salary", authenticate, salaryRoutes);
 
 app.use("/api/users", authenticate, userRoutes);
+import mentorshipRoutes from "./routes/mentorship.routes.js";
+import complaintRoutes from "./routes/complaint.routes.js";
+app.use("/api/transfer", authenticate, transferRoutes);
 app.use("/api/leaves", authenticate, leaveRoutes);
+app.use("/api/scholarships", authenticate, scholarshipRoutes);
 app.use("/api/examschedule", authenticate, examScheduleRoutes);
 app.use("/api/exam-forms", examFormRoutes);
 app.use("/api/academic-calendar", academicCalendarRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/visitors", visitorRoutes);
 
-// Health check (optional but useful)
-app.get("/", (req, res) => {
+// TODO: Multi-tenancy is not yet supported by the frontend or seeder
+// import tenantResolver from "./middlewares/tenantResolver.js";
+// app.use(tenantResolver);
+
+// ========================================
+// MOUNT ALL ROUTES UNDER /api
+// ========================================
+// Fixed ReferenceError: changed 'router.use' to 'app.use'
+app.use('/analytics', analyticsRoutes);
+app.use("/api", apiRouter);
+
+// ========================================
+// HEALTH CHECK
+// ========================================
+app.get("/", (_req, res) => {
+  log.request("GET", "/", "health-check");
   res.send("SCMS Backend Running 🚀");
+});
+
+// ========================================
+// ERROR HANDLING
+// ========================================
+
+// 404 handler
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+    errorCode: "ROUTE_NOT_FOUND",
+  });
+});
+
+// Global error handler (must be last)
+app.use(errorHandler);
+
+// ========================================
+// AUTO-SEED DEFAULT TENANT
+// ========================================
+mongoose.connection.once('open', async () => {
+  try {
+    const tenantCount = await Tenant.countDocuments();
+    if (tenantCount === 0) {
+      console.log("⚠️ No tenants found in database. Creating a default one...");
+      const newTenant = await Tenant.create({
+        name: "Local Development College",
+        slug: "collegems",           
+        domain: "collegems",
+        adminEmail: "admin@collegems.local", 
+        status: "active"
+      });
+      console.log(`Default Tenant successfully created! ID: ${newTenant._id}`);
+    }
+  } catch (err) {
+    console.log("Error creating default tenant:", err.message);
+  }
 });
 
 export default app;

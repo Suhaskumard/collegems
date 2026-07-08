@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import {
   Plus,
   Search,
@@ -14,6 +16,8 @@ import {
   ChevronDown,
   Award,
 } from "lucide-react";
+import { RecordOwnership } from "../common-components-management/RecordOwnership";
+import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
 
 interface Course {
   _id: string;
@@ -44,6 +48,8 @@ export default function HODCourses() {
   const [filter, setFilter] = useState("all");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<{id: string, name: string} | null>(null);
 
   // Form states
   const [name, setName] = useState("");
@@ -54,6 +60,11 @@ export default function HODCourses() {
   const [description, setDescription] = useState("");
   const [maxStudents, setMaxStudents] = useState("");
   const [assignedTeacher, setAssignedTeacher] = useState("");
+
+  const handleApplySavedFilter = (savedFilters: any) => {
+    if (savedFilters.search !== undefined) setSearch(savedFilters.search);
+    if (savedFilters.filter !== undefined) setFilter(savedFilters.filter);
+  };
 
   const departments = [
     "Computer Science",
@@ -71,7 +82,7 @@ export default function HODCourses() {
     try {
       setLoading(true);
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
       alert("Failed to load courses");
@@ -83,23 +94,30 @@ export default function HODCourses() {
   const fetchTeachers = async () => {
     try {
       const response = await api.get("/users/teachers");
-      setTeachersList(response.data);
+      setTeachersList(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching teachers:", error);
     }
   };
 
-  const deleteCourse = async (courseId: string) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
-    try {
-      await api.delete(`/courses/delete/${courseId}`);
-      alert("Course deleted successfully");
-      fetchCourses();
-    } catch (error) {
-      console.log(error);
-      alert("Failed to delete course");
-    }
-  };
+  
+const handleDeleteClick = (courseId: string, courseName: string) => {
+  setCourseToDelete({ id: courseId, name: courseName });
+  setDeleteModalOpen(true);
+};
+
+const deleteCourse = async () => {
+  if (!courseToDelete) return;
+  try {
+    await api.delete(`/courses/delete/${courseToDelete.id}`);
+    setCourses(prev => prev.filter(c => c._id !== courseToDelete.id));
+    setDeleteModalOpen(false);
+    setCourseToDelete(null);
+  } catch (err) {
+    console.error("Failed to delete course", err);
+    setDeleteModalOpen(false);
+  }
+};
 
   useEffect(() => {
     fetchCourses();
@@ -284,6 +302,11 @@ export default function HODCourses() {
               className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
             />
           </button>
+          <SavedFiltersMenu 
+            dashboardName="HODCourses" 
+            currentFilters={{ search, filter }} 
+            onApplyFilter={handleApplySavedFilter} 
+          />
           <div className="flex items-center gap-3">
             <button
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -394,7 +417,7 @@ export default function HODCourses() {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => deleteCourse(course._id)}
+                        onClick={() => handleDeleteClick(course._id, course.name)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete course"
                       >
@@ -585,6 +608,17 @@ export default function HODCourses() {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
+              
+              {/* Record Ownership - Only show when editing an existing course */}
+              {editingCourse && (
+                <div className="mt-6">
+                  <RecordOwnership 
+                    modelName="Course" 
+                    recordId={editingCourse._id} 
+                    onTransferSuccess={fetchCourses}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
@@ -611,6 +645,12 @@ export default function HODCourses() {
           </div>
         </div>
       )}
+          <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onConfirm={deleteCourse}
+        onCancel={() => { setDeleteModalOpen(false); setCourseToDelete(null); }}
+        itemName={courseToDelete?.name}
+          />
     </div>
   );
 }

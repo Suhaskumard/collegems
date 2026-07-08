@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
   Award, Calendar, BookOpen, CalendarDays, CalendarCheck, Users,
@@ -79,6 +79,18 @@ const allItems = [
     route: "/faculty",
     category: "Campus Life",
   },
+  {
+    label: "Resource Booking",
+    description: "Check real-time classroom availability and book resources for events or study sessions",
+    icon: CalendarCheck,
+    badge: "Available Now",
+    badgeColor: "text-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    iconColor: "text-indigo-600",
+    route: "/student/book-resources",
+    category: "Campus Life",
+  },
 ];
 
 const categories = ["All", "Academics", "Campus Life"];
@@ -130,10 +142,10 @@ export default function QuickAccessAll() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quick Access</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Quick Access</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
             All your academic resources and campus services in one place —{" "}
             <span className="font-medium text-gray-700 dark:text-gray-300">{allItems.length} modules</span>
@@ -200,10 +212,10 @@ export default function QuickAccessAll() {
                     </div>
                     <div className="mb-4">
                       <h3 className="font-semibold text-gray-900 dark:text-white text-base mb-1">{item.label}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{item.description}</p>
+                      <p className="text-md text-gray-500 dark:text-gray-400 leading-relaxed">{item.description}</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{item.category}</span>
+                      <span className="text-md text-gray-400 dark:text-gray-500 font-medium">{item.category}</span>
                       <div className={`flex items-center gap-1 text-xs font-medium ${item.iconColor} opacity-0 group-hover:opacity-100 transition-opacity`}>
                         Open <ChevronRight className="w-3 h-3" />
                       </div>

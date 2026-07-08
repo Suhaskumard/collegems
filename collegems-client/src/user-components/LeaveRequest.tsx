@@ -4,6 +4,9 @@ import {
   ArrowRight, RefreshCw, X, Send, Trash2, MessageSquare,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
+import { scrollToFirstError } from "../utils/formHelpers";
+import useFormTracker from "../hooks/useFormTracker";
 
 interface LeaveData {
   _id: string;
@@ -25,6 +28,8 @@ const LeaveRequest: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const { trackField, markSubmitted } = useFormTracker({ formId: "leave_request" });
+
   // Form state
   const [subject, setSubject] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -44,7 +49,7 @@ const LeaveRequest: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get("/leaves/me");
-      setLeaves(res.data || []);
+      setLeaves(extractArray(res.data));
     } catch (err) {
       console.error("Error fetching leaves:", err);
     } finally {
@@ -62,14 +67,18 @@ const LeaveRequest: React.FC = () => {
     if (!reason.trim()) newErrors.reason = "Reason is required";
     else if (reason.trim().length < 10) newErrors.reason = "Please provide at least 10 characters";
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError("");
     setSubmitSuccess(false);
-    if (!validateForm()) return;
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+      return;
+    }
     try {
       setSubmitting(true);
       await api.post("/leaves", {
@@ -79,6 +88,7 @@ const LeaveRequest: React.FC = () => {
         type: leaveType,
       });
       setSubmitSuccess(true);
+      markSubmitted();
       setSubject(""); setStartDate(""); setEndDate(""); setReason(""); setLeaveType("Casual");
       setShowForm(false);
       fetchLeaves();
@@ -192,8 +202,9 @@ const LeaveRequest: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
-              <input type="text" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
+              <label htmlFor="leave-subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
+              <input id="leave-subject" type="text" name="subject" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
+                onBlur={() => trackField("subject", 5)}
                 placeholder="e.g. Family event leave" className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.subject ? "border-red-400" : "border-gray-300"}`} />
               {errors.subject && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.subject}</p>}
             </div>
@@ -203,7 +214,7 @@ const LeaveRequest: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Type</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {["Sick", "Casual", "Duty", "Other"].map(type => (
-                  <button key={type} type="button" onClick={() => setLeaveType(type)}
+                  <button key={type} type="button" onClick={() => { setLeaveType(type); trackField("leaveType", 5); }}
                     className={`px-4 py-3 rounded-xl border text-xs font-semibold transition-all ${leaveType === type ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-500/20" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"}`}>
                     {type}
                   </button>
@@ -214,18 +225,20 @@ const LeaveRequest: React.FC = () => {
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                <label htmlFor="leave-start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> Start Date
                 </label>
-                <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
+                <input id="leave-start-date" type="date" name="startDate" value={startDate} onChange={e => { setStartDate(e.target.value); if (errors.startDate) setErrors(p => ({...p, startDate: ""})); }}
+                  onBlur={() => trackField("startDate", 5)}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.startDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.startDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.startDate}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                <label htmlFor="leave-end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" /> End Date
                 </label>
-                <input type="date" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
+                <input id="leave-end-date" type="date" name="endDate" value={endDate} min={startDate} onChange={e => { setEndDate(e.target.value); if (errors.endDate) setErrors(p => ({...p, endDate: ""})); }}
+                  onBlur={() => trackField("endDate", 5)}
                   className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.endDate ? "border-red-400" : "border-gray-300"}`} />
                 {errors.endDate && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.endDate}</p>}
               </div>
@@ -233,8 +246,9 @@ const LeaveRequest: React.FC = () => {
 
             {/* Reason */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
-              <textarea rows={4} value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
+              <label htmlFor="leave-reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+              <textarea id="leave-reason" rows={4} name="reason" value={reason} onChange={e => { setReason(e.target.value); if (errors.reason) setErrors(p => ({...p, reason: ""})); }}
+                onBlur={() => trackField("reason", 5)}
                 placeholder="Describe the reason for your leave..."
                 className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none ${errors.reason ? "border-red-400" : "border-gray-300"}`} />
               {errors.reason && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.reason}</p>}

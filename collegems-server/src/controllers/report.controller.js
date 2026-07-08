@@ -67,51 +67,126 @@ export const generateReport = async (req, res) => {
         "name email phone studentId course semester"
       );
 
+      const studentIds = students.map((s) => s._id);
+      const studentSemesters = [...new Set(students.map((s) => Number(s.semester)).filter((s) => !isNaN(s)))];
+      const studentCoursesList = [...new Set(students.map((s) => s.course).filter(Boolean))];
+
+      // 1. Batch Course fetching
+      const allCourses = await Course.find({
+        $or: [
+          { semester: { $in: studentSemesters } },
+          { department: { $in: studentCoursesList } },
+        ],
+      }).populate("teacher", "name email");
+
+      // 2. Batch Attendance fetching
+      const attQuery = { student: { $in: studentIds } };
+      if (startDate || endDate) {
+        attQuery.date = {};
+        if (startDate) attQuery.date.$gte = startDate;
+        if (endDate) attQuery.date.$lte = endDate;
+      }
+      const allAttendance = await Attendance.find(attQuery).populate("course", "name code");
+
+      // Group Attendance by student ID
+      const attendanceMap = new Map();
+      for (const att of allAttendance) {
+        if (att.student) {
+          const sId = att.student.toString();
+          if (!attendanceMap.has(sId)) {
+            attendanceMap.set(sId, []);
+          }
+          attendanceMap.get(sId).push(att);
+        }
+      }
+
+      // 3. Batch Results fetching
+      const allResults = await Results.find({ studentId: { $in: studentIds } }).populate("courseId", "name code department");
+
+      // Group Results by student ID
+      const resultsMap = new Map();
+      for (const r of allResults) {
+        if (r.studentId) {
+          const sId = r.studentId.toString();
+          if (!resultsMap.has(sId)) {
+            resultsMap.set(sId, []);
+          }
+          resultsMap.get(sId).push(r);
+        }
+      }
+
+      // 4. Batch Leaves fetching
+      const leaveQuery = { user: { $in: studentIds } };
+      if (startDate || endDate) {
+        leaveQuery.startDate = {};
+        if (startDate) leaveQuery.startDate.$gte = new Date(startDate);
+        if (endDate) leaveQuery.startDate.$lte = new Date(endDate);
+      }
+      const allLeaves = await Leave.find(leaveQuery);
+
+      // Group Leaves by user (student) ID
+      const leavesMap = new Map();
+      for (const l of allLeaves) {
+        if (l.user) {
+          const uId = l.user.toString();
+          if (!leavesMap.has(uId)) {
+            leavesMap.set(uId, []);
+          }
+          leavesMap.get(uId).push(l);
+        }
+      }
+
+      // 5. Batch Assignment/Submissions fetching
+      const allAssignments = await Assignment.find({
+        "submissions.student": { $in: studentIds },
+      }).populate("course", "name code");
+
+      // Group Assignment records by student ID
+      const assignmentsMap = new Map();
+      const studentIdStrings = new Set(studentIds.map((id) => id.toString()));
+      for (const assign of allAssignments) {
+        for (const sub of assign.submissions) {
+          if (sub.student) {
+            const sId = sub.student.toString();
+            if (studentIdStrings.has(sId)) {
+              if (!assignmentsMap.has(sId)) {
+                assignmentsMap.set(sId, []);
+              }
+              assignmentsMap.get(sId).push(assign);
+            }
+          }
+        }
+      }
+
       const reportData = [];
 
       for (const student of students) {
-        // 1. Courses
-        const studentCourses = await Course.find({
-          $or: [
-            { semester: student.semester },
-            { department: student.course },
-          ]
-        }).populate("teacher", "name email");
+        // Filter student courses in-memory
+        const studentCourses = allCourses.filter((c) => {
+          const matchesSem = student.semester && c.semester === Number(student.semester);
+          const matchesDept = student.course && c.department.toLowerCase() === student.course.toLowerCase();
+          return matchesSem || matchesDept;
+        });
 
-        // 2. Attendance
-        const attQuery = { student: student._id };
-        if (startDate || endDate) {
-          attQuery.date = {};
-          if (startDate) attQuery.date.$gte = startDate;
-          if (endDate) attQuery.date.$lte = endDate;
-        }
-        const attendance = await Attendance.find(attQuery).populate("course", "name code");
+        // Fetch student attendance records from Map
+        const attendance = attendanceMap.get(student._id.toString()) || [];
         const totalClasses = attendance.length;
         const presentClasses = attendance.filter((a) => a.status === "present").length;
         const absentClasses = totalClasses - presentClasses;
         const attendancePercentage = totalClasses > 0 ? Math.round((presentClasses / totalClasses) * 100) : 0;
 
-        // 3. Results (Performance)
-        const results = await Results.find({ studentId: student._id }).populate("courseId", "name code department");
+        // Fetch student results records from Map
+        const results = resultsMap.get(student._id.toString()) || [];
 
-        // 4. Leaves
-        const leaveQuery = { user: student._id };
-        if (startDate || endDate) {
-          leaveQuery.startDate = {};
-          if (startDate) leaveQuery.startDate.$gte = new Date(startDate);
-          if (endDate) leaveQuery.startDate.$lte = new Date(endDate);
-        }
-        const leaves = await Leave.find(leaveQuery);
+        // Fetch student leaves records from Map
+        const leaves = leavesMap.get(student._id.toString()) || [];
 
-        // 5. Academic Details / Assignment Submissions
-        const assignments = await Assignment.find({
-          "submissions.student": student._id,
-        }).populate("course", "name code");
-
+        // Fetch student assignment submissions from Map
+        const assignments = assignmentsMap.get(student._id.toString()) || [];
         const submissions = [];
         for (const assign of assignments) {
           const sub = assign.submissions.find(
-            (s) => s.student.toString() === student._id.toString()
+            (s) => s.student && s.student.toString() === student._id.toString()
           );
           if (sub) {
             submissions.push({
@@ -185,20 +260,78 @@ export const generateReport = async (req, res) => {
         "name email phone teacherId department"
       );
 
+      const teacherIds = teachers.map((t) => t._id);
+
+      // 1. Batch Courses taught fetching
+      const allTaughtCourses = await Course.find({ teacher: { $in: teacherIds } });
+      const taughtCoursesMap = new Map();
+      for (const course of allTaughtCourses) {
+        if (course.teacher) {
+          const tId = course.teacher.toString();
+          if (!taughtCoursesMap.has(tId)) {
+            taughtCoursesMap.set(tId, []);
+          }
+          taughtCoursesMap.get(tId).push(course);
+        }
+      }
+
+      // 2. Batch Teacher Attendance fetching
+      const teacherAttQuery = { teacher: { $in: teacherIds } };
+      if (startDate || endDate) {
+        teacherAttQuery.date = {};
+        if (startDate) teacherAttQuery.date.$gte = new Date(startDate);
+        if (endDate) teacherAttQuery.date.$lte = new Date(endDate);
+      }
+      const allTeacherAttendance = await TeacherAttendance.find(teacherAttQuery);
+      const teacherAttendanceMap = new Map();
+      for (const att of allTeacherAttendance) {
+        if (att.teacher) {
+          const tId = att.teacher.toString();
+          if (!teacherAttendanceMap.has(tId)) {
+            teacherAttendanceMap.set(tId, []);
+          }
+          teacherAttendanceMap.get(tId).push(att);
+        }
+      }
+
+      // 3. Batch Leaves fetching
+      const teacherLeaveQuery = { user: { $in: teacherIds } };
+      if (startDate || endDate) {
+        teacherLeaveQuery.startDate = {};
+        if (startDate) teacherLeaveQuery.startDate.$gte = new Date(startDate);
+        if (endDate) teacherLeaveQuery.startDate.$lte = new Date(endDate);
+      }
+      const allTeacherLeaves = await Leave.find(teacherLeaveQuery);
+      const teacherLeavesMap = new Map();
+      for (const leave of allTeacherLeaves) {
+        if (leave.user) {
+          const uId = leave.user.toString();
+          if (!teacherLeavesMap.has(uId)) {
+            teacherLeavesMap.set(uId, []);
+          }
+          teacherLeavesMap.get(uId).push(leave);
+        }
+      }
+
+      // 4. Batch Salary fetching
+      const allSalaries = await Salary.find({ staff: { $in: teacherIds } });
+      const salariesMap = new Map();
+      for (const sal of allSalaries) {
+        if (sal.staff) {
+          const sId = sal.staff.toString();
+          if (!salariesMap.has(sId)) {
+            salariesMap.set(sId, []);
+          }
+          salariesMap.get(sId).push(sal);
+        }
+      }
+
       const reportData = [];
 
       for (const teacher of teachers) {
-        // 1. Courses taught
-        const taughtCourses = await Course.find({ teacher: teacher._id });
+        const taughtCourses = taughtCoursesMap.get(teacher._id.toString()) || [];
 
-        // 2. Attendance
-        const attQuery = { teacher: teacher._id };
-        if (startDate || endDate) {
-          attQuery.date = {};
-          if (startDate) attQuery.date.$gte = new Date(startDate);
-          if (endDate) attQuery.date.$lte = new Date(endDate);
-        }
-        const attendance = await TeacherAttendance.find(attQuery);
+        const attendance = teacherAttendanceMap.get(teacher._id.toString()) || [];
         const totalDays = attendance.length;
         const presentDays = attendance.filter((a) => a.status === "Present").length;
         const absentDays = attendance.filter((a) => a.status === "Absent").length;
@@ -206,17 +339,9 @@ export const generateReport = async (req, res) => {
         // count late as half present
         const attendancePercentage = totalDays > 0 ? Math.round(((presentDays + lateDays * 0.5) / totalDays) * 100) : 0;
 
-        // 3. Leaves
-        const leaveQuery = { user: teacher._id };
-        if (startDate || endDate) {
-          leaveQuery.startDate = {};
-          if (startDate) leaveQuery.startDate.$gte = new Date(startDate);
-          if (endDate) leaveQuery.startDate.$lte = new Date(endDate);
-        }
-        const leaves = await Leave.find(leaveQuery);
+        const leaves = teacherLeavesMap.get(teacher._id.toString()) || [];
 
-        // 4. Salary
-        const salaries = await Salary.find({ staff: teacher._id });
+        const salaries = salariesMap.get(teacher._id.toString()) || [];
 
         reportData.push({
           id: teacher._id,

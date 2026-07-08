@@ -1,6 +1,8 @@
 import Book from "../models/Book.model.js";
 import BookIssue from "../models/BookIssue.model.js";
 import User from "../models/User.model.js";
+import LibraryFine from "../models/LibraryFine.model.js";
+import Notification from "../models/Notification.model.js";
 
 // GET ALL BOOKS
 export const getAllBooks = async (req, res) => {
@@ -207,6 +209,18 @@ export const getIssueRecords = async (req, res) => {
 
     if (role === "student") {
       query.user = id;
+    } else if (role === "parent") {
+      const parentUser = await User.findById(id);
+      if (parentUser && parentUser.studentId) {
+        const studentUser = await User.findOne({ studentId: parentUser.studentId, role: "student" });
+        if (studentUser) {
+          query.user = studentUser._id;
+        } else {
+          query.user = null;
+        }
+      } else {
+        query.user = null;
+      }
     }
 
     // Update overdue statuses dynamically
@@ -226,6 +240,63 @@ export const getIssueRecords = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json({ success: true, issues });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET USER FINES
+export const getUserFines = async (req, res) => {
+  try {
+    const { role, id } = req.user;
+    let query = {};
+
+    if (role === "student") {
+      query.student = id;
+    }
+
+    const fines = await LibraryFine.find(query)
+      .populate({
+        path: "issue",
+        populate: { path: "book", select: "title" }
+      })
+      .populate("student", "name email studentId")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, fines });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PAY LIBRARY FINE (MOCK PAYMENT)
+export const payLibraryFine = async (req, res) => {
+  try {
+    const { fineId } = req.params;
+
+    const fine = await LibraryFine.findById(fineId).populate("student");
+    if (!fine) {
+      return res.status(404).json({ success: false, message: "Fine not found" });
+    }
+
+    if (fine.status === "Paid") {
+      return res.status(400).json({ success: false, message: "Fine is already paid" });
+    }
+
+    // Mocking successful payment
+    fine.status = "Paid";
+    fine.paidOn = new Date();
+    await fine.save();
+
+    // Create Notification for successful payment
+    const notification = new Notification({
+      recipient: fine.student._id,
+      type: "library",
+      message: `Payment of ₹${fine.amount} for your library fine was successful.`,
+    });
+    await notification.save();
+
+    res.json({ success: true, message: "Fine paid successfully", fine });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
