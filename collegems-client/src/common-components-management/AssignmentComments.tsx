@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Send, MessageSquare, Loader2 } from "lucide-react";
 import api from "../api/axios";
 import { useAutoSave } from "../hooks/useAutoSave";
+import RichTextEditor from "./RichTExtEditor";
 
 export interface CommentUser {
   _id: string;
@@ -35,11 +36,14 @@ export default function AssignmentComments({ assignmentId, initialComments = [] 
   // CRITICAL SAFETY CHECK: Ensures we ALWAYS have a string, even if localStorage loads garbage/objects
   const safeComment = typeof newComment === "string" ? newComment : "";
 
+  // Validation: Strips HTML tags to see if the comment is actually empty
+  const isCommentEmpty = !safeComment || safeComment === '<p><br></p>' || safeComment.replace(/<[^>]*>?/gm, '').trim() === '';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Safely check the string
-    if (!safeComment.trim()) return;
+    if (isCommentEmpty) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -135,13 +139,15 @@ export default function AssignmentComments({ assignmentId, initialComments = [] 
                       {formatDate(comment.createdAt)}
                     </span>
                   </div>
-                  <div className={`p-3 rounded-lg text-sm inline-block w-full break-words ${
-                    isTeacher 
-                      ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 border border-blue-100 dark:border-blue-800' 
-                      : 'bg-gray-50 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700'
-                  }`}>
-                    {comment.text}
-                  </div>
+                  {/* DangerouslySetInnerHTML is used to render the rich text (bold, lists, etc) */}
+                  <div 
+                    className={`p-3 rounded-lg text-sm inline-block w-full break-words [&>p]:last:mb-0 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:ml-4 [&_ol]:ml-4 [&_a]:text-blue-600 [&_a]:underline ${
+                      isTeacher 
+                        ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 border border-blue-100 dark:border-blue-800' 
+                        : 'bg-gray-50 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: comment.text }}
+                  />
                 </div>
               </div>
             );
@@ -150,30 +156,35 @@ export default function AssignmentComments({ assignmentId, initialComments = [] 
       </div>
 
       {/* Input Area */}
-      <form onSubmit={handleSubmit} className="relative shrink-0 mt-auto">
+      <form onSubmit={handleSubmit} className="relative shrink-0 mt-auto flex flex-col gap-3">
         {error && (
-          <div className="mb-2 text-xs text-red-600 dark:text-red-400 font-medium">
+          <div className="text-xs text-red-600 dark:text-red-400 font-medium">
             {error}
           </div>
         )}
-        <div className="relative flex items-end gap-2">
-          <textarea
-            value={safeComment} // Uses the safely parsed string
-            onChange={(e) => setNewComment(e.target.value)}
+        <div className="flex-1">
+          <RichTextEditor
+            value={safeComment}
+            onChange={(val) => {
+              const cleanVal = val === '<p><br></p>' ? '' : val;
+              setNewComment(cleanVal);
+            }}
             placeholder="Ask a question or add a clarification..."
-            className="w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            rows={2}
-            disabled={isSubmitting}
           />
+        </div>
+        <div className="flex justify-end">
           <button
             type="submit"
-            disabled={!safeComment.trim() || isSubmitting} // Safely checks the string
-            className="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+            disabled={isCommentEmpty || isSubmitting}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center gap-2 font-medium"
           >
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <>
+                <span>Send</span>
+                <Send className="w-4 h-4" />
+              </>
             )}
           </button>
         </div>

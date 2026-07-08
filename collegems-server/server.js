@@ -8,10 +8,10 @@ import logger from "./src/utils/logger.js"
 import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import { execSync } from "child_process";
+import freePort from "./src/config/portCleanup.js";
 import { initializeStudyGroupSockets } from "./src/socket/studyGroupSocket.js";
 import { allowedOrigins } from "./src/config/cors.js";
-
+import validateEnv from "./src/config/validateEnv.js";
 const PORT = process.env.PORT || 5000;
 
 const freePort = () => {
@@ -40,6 +40,7 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
   process.exit(1);
 }
 
+validateEnv();
 connectDB();
 
 startFeeCronJobs();
@@ -48,7 +49,7 @@ startLibraryCronJobs();
 startAttendanceCronJobs();
 
 const httpServer = createServer(app);
-
+freePort(PORT);
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, callback) => {
@@ -66,21 +67,23 @@ const io = new Server(httpServer, {
 app.set("io", io);
 
 io.use((socket, next) => {
-  const token = socket.handshake.auth.token || socket.handshake.query.token;
-  if (!token) {
-    return next(new Error("Authentication error"));
-  }
+  const token =
+    socket.handshake.auth.token || socket.handshake.query.token;
+
+  if (!token) return next(new Error("Authentication error"));
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.user = decoded;
     next();
-  } catch (err) {
+  } catch {
     next(new Error("Authentication error"));
   }
 });
 
 io.on("connection", (socket) => {
   const userId = socket.user?.id || socket.user?._id;
+
   if (userId) {
     socket.join(`user_${userId}`);
     logger.info(`User connected to socket: ${userId}`);
@@ -93,10 +96,9 @@ io.on("connection", (socket) => {
 
 initializeStudyGroupSockets(io);
 
-freePort();
 
 const startServer = (attempt = 0) => {
-  if (attempt > 0) freePort();
+  if (attempt > 0) freePort(PORT);
 
   httpServer.once("error", (err) => {
     if (err.code === "EADDRINUSE" && attempt < 10) {
@@ -113,4 +115,40 @@ const startServer = (attempt = 0) => {
   });
 };
 
-setTimeout(() => startServer(), 200);
+const gracefulShutdown = async (signal) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+  try {
+    await new Promise((resolve, reject) => {
+      httpServer.close((err) => {
+        if (err) return reject(err);
+        console.log("HTTP server closed");
+        resolve();
+      });
+    });
+
+    io.disconnectSockets(true);
+
+    await new Promise((resolve) => {
+      io.close(() => {
+        console.log("Socket.IO server closed");
+        resolve();
+      });
+    });
+
+    await disconnectDB();
+
+    console.log("MongoDB connection closed");
+    console.log("Graceful shutdown completed");
+
+    process.exit(0);
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    process.exit(1);
+  }
+};
+
+setTimeout(startServer, 200);
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
