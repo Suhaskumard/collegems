@@ -117,7 +117,7 @@ export default function ResetPassword() {
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="reset-new-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 New Password
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -125,6 +125,7 @@ export default function ResetPassword() {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
+                  id="reset-new-password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
@@ -156,7 +157,7 @@ export default function ResetPassword() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="reset-confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Confirm Password
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -164,6 +165,7 @@ export default function ResetPassword() {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
+                  id="reset-confirm-password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={confirmPassword}
