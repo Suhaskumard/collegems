@@ -1,3 +1,5 @@
+// collegems-server/src/bootstrap/index.js
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,6 +13,12 @@ import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "../socket/studyGroupSocket.js";
 import { allowedOrigins } from "../config/cors.js";
+
+// ✅ IMPORT PROCESS ERROR HANDLERS
+import { registerProcessErrorHandlers } from "../utils/processErrorHandlers.js";
+
+// ✅ REGISTER ERROR HANDLERS - SABSE PEHLE
+registerProcessErrorHandlers();
 
 const PORT = process.env.PORT || 5000;
 
