@@ -3,6 +3,7 @@ import User from "../models/User.model.js";
 import StudentTimelineEvent from "../models/StudentTimelineEvent.model.js";
 import { logAction } from "../utils/auditService.js";
 import { getPaginatedData } from "../utils/pagination.util.js";
+import { revokeAllSessions } from "../utils/session.service.js";
 import calculateProfileCompletion from "../utils/profileCompletion.js";
 import Attendance from "../models/Attendance.model.js";
 import Results from "../models/Results.model.js";
@@ -127,6 +128,13 @@ export const updatePassword = async (req, res) => {
     user.password = await hashPassword(newPassword, 8);
     user._updatedBy = req.user.id;
     await user.save();
+
+    await revokeAllSessions(req.user.id);
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
     res.json({ message: "Password updated successfully" });
 
