@@ -69,6 +69,7 @@ const res = await api.post("/auth/login", { email, password }, {
     { role: "Teacher", icon: BookOpen, color: "amber" },
     { role: "Parent", icon: Users, color: "purple" },
     { role: "HOD", icon: Shield, color: "emerald" },
+    
   ];
 
   return (
