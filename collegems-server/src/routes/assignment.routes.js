@@ -6,7 +6,7 @@ import path from "path";
 import multer from "multer";
 import { allowRoles } from "../middlewares/role.middleware.js";
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, authenticateFileDownload } from '../middlewares/auth.middleware.js';
 import log from "../utils/logger.js";
 import Assignment from "../models/Assignment.model.js";
 import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
@@ -131,7 +131,7 @@ router.post(
   submitAssignment
 );
 
-router.get("/download/:filename", protect, downloadAssignmentFile);
+router.get("/download/:filename", authenticateFileDownload, downloadAssignmentFile);
 
 router.post(
   "/evaluate/:id",

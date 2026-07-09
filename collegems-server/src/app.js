@@ -94,7 +94,7 @@ app.use("/api/auth",      authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/attendance",        authenticate, attendanceRoutes);
-app.use("/api/assignment",        authenticate, assignmentRoutes);
+app.use("/api/assignment",        assignmentRoutes);
 app.use("/api/teacher-attendance", teacherAttendanceRoutes);
 app.use("/api/events",            eventRoute);
 app.use("/api/results",           authenticate, resultsRoutes);
