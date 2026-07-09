@@ -2,6 +2,7 @@ import AssessmentConfig from "../models/AssessmentConfig.model.js";
 import InternalAssessment from "../models/InternalAssessment.model.js";
 import Course from "../models/Course.model.js";
 import User from "../models/User.model.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 // 1. Get Assessment Config for a Course
 export const getAssessmentConfig = async (req, res) => {
@@ -27,9 +28,7 @@ export const saveAssessmentConfig = async (req, res) => {
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
-        if (req.user.role === "teacher" && course.teacher.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized to manage assessments for this course" });
-        }
+        await checkSemesterFrozen(course.semester);
 
         const totalWeightage = components.reduce((sum, comp) => sum + Number(comp.weightage), 0);
         if (totalWeightage !== 100) {
@@ -46,6 +45,7 @@ export const saveAssessmentConfig = async (req, res) => {
 
         res.status(200).json({ message: "Assessment config saved successfully", config });
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         console.error("Save config error:", error);
         res.status(500).json({ message: "Error saving assessment config", error: error.message, stack: error.stack });
     }
@@ -72,9 +72,7 @@ export const saveInternalAssessment = async (req, res) => {
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
-        if (req.user.role === "teacher" && course.teacher.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized to manage assessments for this course" });
-        }
+        await checkSemesterFrozen(course.semester);
 
         const config = await AssessmentConfig.findOne({ courseId });
         if (!config) {
@@ -119,6 +117,7 @@ export const saveInternalAssessment = async (req, res) => {
 
         res.status(200).json({ message: "Internal assessment saved successfully", assessment });
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         res.status(500).json({ message: "Error saving internal assessment", error: error.message });
     }
 };

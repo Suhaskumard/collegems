@@ -2,6 +2,7 @@ import Results from "../models/Results.model.js";
 import Student from "../models/User.model.js";
 import Course from "../models/Course.model.js";
 import { logAction } from "../utils/auditService.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 const MAX_COMPONENT_MARKS = 100;
 
@@ -99,10 +100,13 @@ export const createResult = async (req, res) => {
             });
         }
 
+        const effectiveSemester = semester || student.semester;
+        await checkSemesterFrozen(effectiveSemester);
+
         const result = await Results.create({
             studentId,
             courseId,
-            semester: semester || student.semester,
+            semester: effectiveSemester,
             internalMarks,
             externalMarks,
             practicalMarks,
@@ -120,7 +124,7 @@ export const createResult = async (req, res) => {
             newValue: {
                 studentId,
                 courseId,
-                semester: semester || student.semester,
+                semester: effectiveSemester,
                 internalMarks,
                 externalMarks,
                 practicalMarks,
@@ -145,6 +149,8 @@ export const publishResult = async (req, res) => {
             return res.status(404).json({ message: "Result record not found" });
         }
 
+        await checkSemesterFrozen(result.semester);
+
         const previousValue = { status: result.status };
         result.status = "published";
         await result.save();
@@ -159,6 +165,7 @@ export const publishResult = async (req, res) => {
 
         res.json(result);
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         console.error("Publish Result Error:", error);
         if (error.name === "ValidationError") {
             return res.status(400).json({ message: "Cannot publish a result with invalid marks", error: error.message });
@@ -208,12 +215,12 @@ export const publishAll = async (req, res) => {
             return res.json({ success: true, message: "No draft results to publish", count: 0 });
         }
 
-        const publishable = drafts.filter((d) =>
-            isValidComponentMark(d.internalMarks) &&
-            isValidComponentMark(d.externalMarks) &&
-            isValidComponentMark(d.practicalMarks)
-        );
-        const skipped = drafts.length - publishable.length;
+        const affectedSemesters = [...new Set(drafts.map((r) => r.semester))];
+        for (const sem of affectedSemesters) {
+            await checkSemesterFrozen(sem);
+        }
+
+        await Results.updateMany(filter, { $set: { status: "published" } });
 
         if (publishable.length === 0) {
             return res.json({ success: true, message: "No draft results with valid marks to publish", count: 0, skipped });
@@ -238,6 +245,7 @@ export const publishAll = async (req, res) => {
             count: drafts.length,
         });
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         console.error("Publish All Error:", error);
         res.status(500).json({ message: "Bulk publish failed" });
     }
