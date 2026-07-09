@@ -17,6 +17,8 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api/axios";
+
+const BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
 import AssignmentComments from "../common-components-management/AssignmentComments";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -690,7 +692,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                       href={
                                         sub.file.url.startsWith("http") 
                                           ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
-                                          : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`
+                                          : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`
                                       } 
                                       target="_blank" 
                                       rel="noreferrer" 
