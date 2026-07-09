@@ -112,7 +112,7 @@ router.use("/faculty-assignments", facultyAssignmentRoutes);
 // ACADEMIC ROUTES
 // ========================================
 router.use("/attendance", authenticate, attendanceRoutes);
-router.use("/assignment", authenticate, assignmentRoutes);
+router.use("/assignment", assignmentRoutes);
 router.use("/results", authenticate, resultsRoutes);
 router.use("/assessments", authenticate, assessmentRoutes);
 router.use("/courses", courseRoutes);

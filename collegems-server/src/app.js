@@ -57,6 +57,51 @@ app.use((req, res, next) => {
 // Static Files
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+// Routes
+app.use("/api/auth",      authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
+app.use("/api/attendance",        authenticate, attendanceRoutes);
+app.use("/api/assignment",        assignmentRoutes);
+app.use("/api/teacher-attendance", teacherAttendanceRoutes);
+app.use("/api/events",            eventRoute);
+app.use("/api/results",           authenticate, resultsRoutes);
+app.use("/api/library",           libraryRoutes);
+app.use("/api/assessments", authenticate, assessmentRoutes);
+
+app.use("/api/resources", authenticate, resourceRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
+
+app.use("/api/courses",  courseRoutes);
+app.use("/api/classes",  classRoutes);
+
+app.use("/api/fee",    authenticate, feeRoutes);
+app.use("/api/salary", authenticate, salaryRoutes);
+
+app.use("/api/users", authenticate, userRoutes);
+import mentorshipRoutes from "./routes/mentorship.routes.js";
+import complaintRoutes from "./routes/complaint.routes.js";
+app.use("/api/transfer", authenticate, transferRoutes);
+app.use("/api/leaves", authenticate, leaveRoutes);
+app.use("/api/scholarships", authenticate, scholarshipRoutes);
+app.use("/api/examschedule", authenticate, examScheduleRoutes);
+app.use("/api/exam-forms", examFormRoutes);
+app.use("/api/academic-calendar", academicCalendarRoutes);
+app.use("/api/syllabus", authenticate, syllabusRoutes);
+app.use("/api/reports",         reportRoutes);
+app.use("/api/feedback",        authenticate, feedbackRoutes);
+app.use("/api/student/idcard", idCardRoutes);
+app.get("/api/verify/student/:studentId", verifyStudent);
+app.use("/api/bus-routes", authenticate, busRouteRoutes);
+app.use("/api/office-hours", officeHoursRoutes);
+app.use("/api/exam-halls", authenticate, examHallRoutes);
+app.use("/api/hall-allocations", authenticate, hallAllocationRoutes);
+app.use("/api/mentorships", mentorshipRoutes);
+app.use("/api/complaints", complaintRoutes);
+
+// Health check
+app.get("/", (_req, res) => res.send("SCMS Backend Running 🚀"));
+
 // ========================================
 // MOUNT ALL ROUTES UNDER /api
 // ========================================
