@@ -3,6 +3,13 @@ import Course from "../models/Course.model.js";
 import Announcement from "../models/Announcement.model.js";
 import Assignment from "../models/Assignment.model.js";
 
+// Escape user input so it is treated as a literal string in a RegExp,
+// preventing regex injection and ReDoS via crafted patterns.
+const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Cap query length to avoid pathological/expensive searches.
+const MAX_QUERY_LENGTH = 100;
+
 const getMatchReason = (doc, query, fields) => {
   const q = query.toLowerCase();
   for (const field of fields) {
@@ -22,8 +29,14 @@ const getMatchReason = (doc, query, fields) => {
 export const globalSearch = async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q) {
+    if (!q || typeof q !== "string" || !q.trim()) {
       return res.status(400).json({ success: false, message: "Search query is required" });
+    }
+    if (q.length > MAX_QUERY_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        message: `Search query must be at most ${MAX_QUERY_LENGTH} characters`,
+      });
     }
 
     const user = req.user; // from auth middleware
@@ -32,8 +45,9 @@ export const globalSearch = async (req, res) => {
     // We limit results for performance
     const LIMIT = 5;
 
-    // Build base regex for case-insensitive search
-    const regex = new RegExp(q, 'i');
+    // Build base regex for case-insensitive search.
+    // Escape the input so it is matched literally (no regex injection / ReDoS).
+    const regex = new RegExp(escapeRegExp(q), 'i');
 
     // 1. Search Users (Students/Faculty)
     // RBAC: Students can only search faculty/teachers. Teachers/Admins can search anyone.

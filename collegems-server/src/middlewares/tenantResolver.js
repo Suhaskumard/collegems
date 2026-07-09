@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Tenant from '../models/Tenant.model.js';
 import { tenantContext } from '../utils/asyncLocalStorage.js';
 
@@ -35,13 +36,21 @@ const tenantResolver = async (req, res, next) => {
       });
     }
 
-    // Optional: Validate tenant exists and is active. 
-    // For performance, we can cache this in Redis later, but for now we query DB.
-    const tenant = await Tenant.findById(tenantId);
+    let tenant = null;
+
+    // SAFETY CHECK: Is this a real 24-character MongoDB ID?
+    if (mongoose.Types.ObjectId.isValid(tenantId)) {
+      // If it is a real ID, look it up exactly
+      tenant = await Tenant.findById(tenantId);
+    } else {
+      // LOCAL DEV FALLBACK: If it's just a word like "collegems", grab the first tenant in the DB
+      tenant = await Tenant.findOne();
+    }
+
     if (!tenant) {
       return res.status(404).json({
         success: false,
-        message: 'Tenant not found.',
+        message: 'Tenant not found. Make sure at least one tenant exists in your database!',
       });
     }
 

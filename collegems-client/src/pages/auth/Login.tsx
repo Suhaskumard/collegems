@@ -30,7 +30,11 @@ export default function Login() {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { email, password });
+const res = await api.post("/auth/login", { email, password }, {
+  headers: {
+    "x-tenant-id": "collegems" // Replace "collegems" with your actual tenant ID if it's different!
+  }
+});
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("userId", res.data.user.id);

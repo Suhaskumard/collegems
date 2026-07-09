@@ -1,0 +1,28 @@
+# Query: process.env
+
+14 results - 6 files
+
+collegems\collegems-server\src\app.js:
+  34 const allowedOrigins = process.env.ALLOWED_ORIGINS
+  35:   ? process.env.ALLOWED_ORIGINS.split(",")
+
+collegems\collegems-server\src\seedDemoData.js:
+  12:     await mongoose.connect(process.env.MONGO_URI);
+
+collegems\collegems-server\src\config\db.js:
+  5:     await mongoose.connect(process.env.MONGO_URI);
+
+collegems\collegems-server\src\controllers\auth.controller.js:
+   21:   jwt.sign({ id: String(user._id), role: user.role }, process.env.JWT_SECRET, {
+   28:     process.env.JWT_REFRESH_SECRET,
+  108:       secure: process.env.NODE_ENV === "production",
+  146:     if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  156:       secure: process.env.NODE_ENV === "production",
+  192:       process.env.JWT_REFRESH_SECRET,
+  217:       secure: process.env.NODE_ENV === "production",
+
+collegems\collegems-server\src\middlewares\auth.middleware.js:
+  13:     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+collegems\collegems-server\src\utils\seeder.js:
+  20:     const mongoUri = process.env.MONGO_URI;
