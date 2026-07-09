@@ -46,6 +46,7 @@ import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
 import ResourceManagement from "./hod-components/ResourceManagement";
+import FeePaymentApprovals from "./hod-components/FeePaymentApprovals";
 import AnnouncementForm from "./common-components-management/AnnouncementForm";
 import AnnouncementManage from "./common-components-management/AnnouncementManage";
 import DataTableDemo from "./pages/DataTableDemo";
@@ -76,6 +77,7 @@ const HallAllocationGuarded = withRoleGuard(HallAllocation, { allowedRoles: User
 const AuditLogsGuarded = withRoleGuard(AuditLogs, { allowedRoles: UserRole.HOD });
 const BookingManagementGuarded = withRoleGuard(BookingManagement, { allowedRoles: UserRole.HOD });
 const ResourceManagementGuarded = withRoleGuard(ResourceManagement, { allowedRoles: UserRole.HOD });
+const FeePaymentApprovalsGuarded = withRoleGuard(FeePaymentApprovals, { allowedRoles: UserRole.HOD });
 const BulkFieldResetGuarded = withRoleGuard(BulkFieldReset, { allowedRoles: UserRole.HOD });
 
 const ParentDashboardGuarded = withRoleGuard(ParentDashboard, { allowedRoles: UserRole.PARENT });
@@ -194,6 +196,10 @@ export default function App() {
         <Route
           path="/hod/manage-resources"
           element={<ResourceManagementGuarded />}
+        />
+        <Route
+          path="/hod/fee-approvals"
+          element={<FeePaymentApprovalsGuarded />}
         />
         <Route
   path="/hod/student-transfer/:studentId"

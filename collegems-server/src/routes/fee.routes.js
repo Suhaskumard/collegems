@@ -46,7 +46,11 @@ router.post(
   })
 );
 
-// installment pay
+// Submit a payment claim. This does NOT mark the fee as paid - there is no
+// payment-gateway integration, so a self-reported amount from the paying
+// party can't be trusted on its own. It records a "pending" installment that
+// a staff member (hod) must confirm via /installments/:feeId/:installmentId/confirm
+// before it counts toward the balance.
 router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async (req, res) => {
   const { amount } = req.body;
   if (!amount || amount <= 0) {
@@ -71,17 +75,109 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
     throw new AppError("Fee record not found", 404, "NOT_FOUND");
   }
 
-  fee.installments.push({ amount });
-  fee.paid += amount;
+  if (amount > fee.total - fee.paid) {
+    throw new AppError("Amount cannot exceed the remaining balance", 400, "INVALID_AMOUNT");
+  }
+
+  fee.installments.push({ amount, status: "pending", requestedBy: req.user.id });
   await fee.save();
 
-  log.info(`Payment made: ${amount}`, { studentId, feeId: fee._id });
+  await logAction(req.user.id, "REQUEST_FEE_PAYMENT", "Fee", fee._id, { studentId, amount });
+
+  log.info(`Payment claim submitted: ${amount}`, { studentId, feeId: fee._id });
   res.json({
     success: true,
-    message: "Payment successful",
+    message: "Payment submitted and is pending confirmation by the finance team",
     data: fee,
   });
 }));
+
+// List every fee with at least one payment awaiting confirmation.
+router.get(
+  "/pending",
+  protect,
+  allowRoles("hod"),
+  asyncHandler(async (req, res) => {
+    const fees = await Fee.find({ "installments.status": "pending" })
+      .populate("student", "name email studentId")
+      .populate("installments.requestedBy", "name email");
+    res.json({ success: true, data: fees });
+  })
+);
+
+// Confirm a pending payment claim: only now does it count toward the balance.
+router.post(
+  "/installments/:feeId/:installmentId/confirm",
+  protect,
+  allowRoles("hod"),
+  asyncHandler(async (req, res) => {
+    const { feeId, installmentId } = req.params;
+    const fee = await Fee.findById(feeId);
+    if (!fee) {
+      throw new AppError("Fee record not found", 404, "NOT_FOUND");
+    }
+
+    const installment = fee.installments.id(installmentId);
+    if (!installment) {
+      throw new AppError("Payment not found", 404, "NOT_FOUND");
+    }
+    if (installment.status !== "pending") {
+      throw new AppError("This payment has already been reviewed", 409, "ALREADY_REVIEWED");
+    }
+
+    installment.status = "confirmed";
+    installment.confirmedBy = req.user.id;
+    installment.confirmedAt = new Date();
+    fee.paid += installment.amount;
+    await fee.save();
+
+    await logAction(req.user.id, "CONFIRM_FEE_PAYMENT", "Fee", fee._id, {
+      installmentId,
+      amount: installment.amount,
+      studentId: fee.student,
+    });
+
+    log.info(`Payment confirmed: ${installment.amount}`, { feeId: fee._id, installmentId });
+    res.json({ success: true, message: "Payment confirmed", data: fee });
+  })
+);
+
+// Reject a pending payment claim (e.g. a bogus/duplicate self-report).
+// No balance change - just marks it so it's no longer awaiting review.
+router.post(
+  "/installments/:feeId/:installmentId/reject",
+  protect,
+  allowRoles("hod"),
+  asyncHandler(async (req, res) => {
+    const { feeId, installmentId } = req.params;
+    const fee = await Fee.findById(feeId);
+    if (!fee) {
+      throw new AppError("Fee record not found", 404, "NOT_FOUND");
+    }
+
+    const installment = fee.installments.id(installmentId);
+    if (!installment) {
+      throw new AppError("Payment not found", 404, "NOT_FOUND");
+    }
+    if (installment.status !== "pending") {
+      throw new AppError("This payment has already been reviewed", 409, "ALREADY_REVIEWED");
+    }
+
+    installment.status = "rejected";
+    installment.confirmedBy = req.user.id;
+    installment.confirmedAt = new Date();
+    await fee.save();
+
+    await logAction(req.user.id, "REJECT_FEE_PAYMENT", "Fee", fee._id, {
+      installmentId,
+      amount: installment.amount,
+      studentId: fee.student,
+    });
+
+    log.info(`Payment rejected`, { feeId: fee._id, installmentId });
+    res.json({ success: true, message: "Payment rejected", data: fee });
+  })
+);
 
 router.get("/me", protect, allowRoles("student", "parent"), asyncHandler(async (req, res) => {
   let studentId = req.user.id;

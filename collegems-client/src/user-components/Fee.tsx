@@ -21,10 +21,10 @@ import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 
 interface Installment {
+  _id?: string;
   amount: number;
   paidOn: string;
-  transactionId?: string;
-  paymentMethod?: string;
+  status?: "pending" | "confirmed" | "rejected";
 }
 
 interface Fee {
@@ -52,8 +52,8 @@ export default function StudentFee() {
   const fetchFee = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/fee/me");
-      setFee(res.data);
+      const res = await api.get<{ data: Fee }>("/fee/me");
+      setFee(res.data.data);
       setMessage(null);
     } catch {
       setMessage({
@@ -90,7 +90,7 @@ export default function StudentFee() {
     setMessage(null);
 
     try {
-      const res = await api.post<{ fee: Fee; transactionId: string }>(
+      const res = await api.post<{ message: string; data: Fee }>(
         "/fee/pay",
         {
           amount: Number(amount),
@@ -98,11 +98,11 @@ export default function StudentFee() {
         },
       );
 
-      setFee(res.data.fee);
+      setFee(res.data.data);
       setAmount("");
       setMessage({
-        type: "success",
-        text: `Payment of ₹${amount} successful! Transaction ID: ${res.data.transactionId}`,
+        type: "info",
+        text: res.data.message,
       });
 
       setTimeout(() => {
@@ -493,7 +493,7 @@ export default function StudentFee() {
                   <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <Shield className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
-                      Secure payment powered by Razorpay
+                      Payments are reviewed and confirmed by the finance team before being applied to your balance.
                     </span>
                   </div>
 
@@ -549,7 +549,7 @@ export default function StudentFee() {
                 fee.installments
                   .slice(0, showPaymentHistory ? undefined : 5)
                   .map((installment, index) => (
-                    <div key={index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <div key={installment._id || index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
@@ -564,25 +564,23 @@ export default function StudentFee() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          {installment.transactionId && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
-                              ID: {installment.transactionId.slice(0, 8)}...
-                            </span>
-                          )}
+                        {installment.status === "pending" ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Pending confirmation
+                          </span>
+                        ) : installment.status === "rejected" ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Rejected
+                          </span>
+                        ) : (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            Success
+                            Confirmed
                           </span>
-                        </div>
+                        )}
                       </div>
-                      {installment.paymentMethod && (
-                        <div className="mt-2 ml-12">
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
-                            Paid via {installment.paymentMethod}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   ))
               ) : (
