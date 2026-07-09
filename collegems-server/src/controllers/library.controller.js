@@ -223,23 +223,24 @@ export const getIssueRecords = async (req, res) => {
       }
     }
 
-    // Update overdue statuses dynamically
-    const activeIssues = await BookIssue.find({
-      status: "issued",
-      dueDate: { $lt: new Date() },
-    });
-
-    for (let issue of activeIssues) {
-      issue.status = "overdue";
-      await issue.save();
-    }
-
+    // GET must be side-effect free, so we do not persist status changes here.
+    // The "issued" -> "overdue" transition (and its fines/notifications) is
+    // owned by the daily processLibraryFines cron job. We only derive the
+    // overdue status at read time so the response stays accurate between runs.
+    const now = new Date();
     const issues = await BookIssue.find(query)
       .populate("book", "title author category")
       .populate("user", "name email role studentId teacherId")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ success: true, issues });
+    const issuesWithDerivedStatus = issues.map((issue) =>
+      issue.status === "issued" && issue.dueDate < now
+        ? { ...issue, status: "overdue" }
+        : issue
+    );
+
+    res.json({ success: true, issues: issuesWithDerivedStatus });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
