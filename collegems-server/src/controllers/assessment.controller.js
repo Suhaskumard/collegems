@@ -2,6 +2,7 @@ import AssessmentConfig from "../models/AssessmentConfig.model.js";
 import InternalAssessment from "../models/InternalAssessment.model.js";
 import Course from "../models/Course.model.js";
 import User from "../models/User.model.js";
+import { checkSemesterFrozen } from "../services/semesterService.js";
 
 // 1. Get Assessment Config for a Course
 export const getAssessmentConfig = async (req, res) => {
@@ -23,6 +24,12 @@ export const saveAssessmentConfig = async (req, res) => {
         const { courseId } = req.params;
         const { components } = req.body;
 
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+        await checkSemesterFrozen(course.semester);
+
         const totalWeightage = components.reduce((sum, comp) => sum + Number(comp.weightage), 0);
         if (totalWeightage !== 100) {
             return res.status(400).json({ message: "Total weightage must be exactly 100%" });
@@ -38,6 +45,7 @@ export const saveAssessmentConfig = async (req, res) => {
 
         res.status(200).json({ message: "Assessment config saved successfully", config });
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         console.error("Save config error:", error);
         res.status(500).json({ message: "Error saving assessment config", error: error.message, stack: error.stack });
     }
@@ -60,20 +68,37 @@ export const saveInternalAssessment = async (req, res) => {
         const { courseId, studentId } = req.params;
         const { scores } = req.body; // Array of { componentName, score }
 
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+        await checkSemesterFrozen(course.semester);
+
         const config = await AssessmentConfig.findOne({ courseId });
         if (!config) {
             return res.status(400).json({ message: "Assessment configuration not set for this course." });
+        }
+
+        // Validate scores against configured components before computing totals
+        for (const s of scores) {
+            const compConfig = config.components.find(c => c.name === s.componentName);
+            if (!compConfig) {
+                return res.status(400).json({ message: `Unknown assessment component: ${s.componentName}` });
+            }
+            if (s.score < 0 || s.score > compConfig.maxMarks) {
+                return res.status(400).json({
+                    message: `Score for ${s.componentName} must be between 0 and ${compConfig.maxMarks}`
+                });
+            }
         }
 
         // Calculate total internal marks
         let totalInternalMarks = 0;
         for (const s of scores) {
             const compConfig = config.components.find(c => c.name === s.componentName);
-            if (compConfig) {
-                // Formula: (score / maxMarks) * weightage
-                const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
-                totalInternalMarks += computedMark;
-            }
+            // Formula: (score / maxMarks) * weightage
+            const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
+            totalInternalMarks += computedMark;
         }
 
         let assessment = await InternalAssessment.findOne({ courseId, studentId });
@@ -92,6 +117,7 @@ export const saveInternalAssessment = async (req, res) => {
 
         res.status(200).json({ message: "Internal assessment saved successfully", assessment });
     } catch (error) {
+        if (error.status === 403) return res.status(403).json({ message: error.message });
         res.status(500).json({ message: "Error saving internal assessment", error: error.message });
     }
 };

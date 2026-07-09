@@ -32,7 +32,7 @@ const populateClub = (query) =>
 export const createClub = async (req, res) => {
   try {
     const { name, description, category, logo, maxMembers } = req.body;
-    const userId = req.user._id || req.user.id; // FIXED: fallback to ensure valid ID
+    const userId = req.user.id;
 
     if (!name || !description) {
       return res.status(400).json({ message: "Name and description are required" });
@@ -93,7 +93,7 @@ export const getClubById = async (req, res) => {
 // ─── Get clubs current user belongs to (member or admin) ──────────────────────────
 export const getMyClubs = async (req, res) => {
   try {
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
     const clubs = await populateClub(
       Club.find({ "members.user": userId }).sort({ createdAt: -1 })
     );
@@ -108,7 +108,7 @@ export const getMyClubs = async (req, res) => {
 export const updateClub = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
     
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -140,7 +140,7 @@ export const updateClub = async (req, res) => {
 export const deleteClub = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -160,7 +160,7 @@ export const deleteClub = async (req, res) => {
 export const requestToJoin = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const userId = req.user._id || req.user.id; // FIXED: Guarantees a valid ID
+    const userId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -195,7 +195,7 @@ export const requestToJoin = async (req, res) => {
 export const getPendingRequests = async (req, res) => {
   try {
     const club = await populateClub(Club.findById(req.params.id));
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -214,7 +214,7 @@ export const getPendingRequests = async (req, res) => {
 export const approveRequest = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -250,7 +250,7 @@ export const approveRequest = async (req, res) => {
 export const rejectRequest = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -279,7 +279,7 @@ export const rejectRequest = async (req, res) => {
 export const removeMember = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -312,7 +312,7 @@ export const removeMember = async (req, res) => {
 export const updateMemberRole = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -354,7 +354,7 @@ export const updateMemberRole = async (req, res) => {
 export const linkEventToClub = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -391,7 +391,7 @@ export const linkEventToClub = async (req, res) => {
 export const unlinkEventFromClub = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const adminId = req.user._id || req.user.id;
+    const adminId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -431,7 +431,7 @@ export const getClubEvents = async (req, res) => {
 export const addAnnouncement = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 
@@ -463,7 +463,7 @@ export const addAnnouncement = async (req, res) => {
 export const deleteAnnouncement = async (req, res) => {
   try {
     const club = await Club.findById(req.params.id);
-    const userId = req.user._id || req.user.id;
+    const userId = req.user.id;
 
     if (!club) return res.status(404).json({ message: "Club not found" });
 

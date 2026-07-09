@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PlusCircle, Trash2 } from "lucide-react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+
 interface Resource {
   _id: string;
   name: string;
@@ -31,7 +33,7 @@ const ResourceManagement: React.FC = () => {
 
   const fetchResources = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/resources", {
+      const { data } = await axios.get(`${BACKEND_URL}/resources`, {
         withCredentials: true,
       });
       setResources(data);
@@ -46,7 +48,7 @@ const ResourceManagement: React.FC = () => {
     e.preventDefault();
     try {
       await axios.post(
-        "http://localhost:5000/api/resources",
+        `${BACKEND_URL}/resources`,
         {
           name,
           type,
@@ -68,7 +70,7 @@ const ResourceManagement: React.FC = () => {
   const deleteResource = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this resource?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/resources/${id}`, { withCredentials: true });
+      await axios.delete(`${BACKEND_URL}/resources/${id}`, { withCredentials: true });
       fetchResources();
     } catch (error: any) {
       alert(error.response?.data?.message || "Failed to delete resource");

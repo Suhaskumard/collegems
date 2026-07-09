@@ -1,19 +1,53 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
 import TemporaryLink from "../models/TemporaryLink.model.js";
+import Course from "../models/Course.model.js";
+import User from "../models/User.model.js";
 
 // Configured valid resource types for security
 export const SUPPORTED_RESOURCE_TYPES = ["Resource", "Book", "ExamSchedule", "Assignment"];
 
 /**
+ * Verify the requesting user actually has a legitimate relationship to the
+ * resource before a shareable link is minted for it. Staff (hod/admin)
+ * always pass. Per resource type:
+ *  - Assignment: the assignment's own teacher, or a student enrolled in its
+ *    course (matched the same way results.controller.js checks eligibility).
+ *  - Resource/Book/ExamSchedule: none of these carry a per-user ownership or
+ *    enrollment relationship in their schema, so only staff may share them.
+ */
+const authorizeResourceAccess = async (resourceType, resource, requestingUser) => {
+  if (requestingUser.role === "hod" || requestingUser.role === "admin") {
+    return;
+  }
+
+  if (resourceType === "Assignment") {
+    if (requestingUser.role === "teacher" && resource.teacher && resource.teacher.toString() === requestingUser.id) {
+      return;
+    }
+    if (requestingUser.role === "student" && resource.course) {
+      const course = await Course.findById(resource.course);
+      const student = await User.findById(requestingUser.id);
+      const matchesSem = course && student?.semester && course.semester === Number(student.semester);
+      const matchesDept = course && student?.course && course.department?.toLowerCase() === student.course.toLowerCase();
+      if (matchesSem || matchesDept) {
+        return;
+      }
+    }
+  }
+
+  throw new Error("Not authorized to share a link to this resource");
+};
+
+/**
  * Generate a new temporary link
- * @param {string} resourceType 
- * @param {string} resourceId 
- * @param {string} createdBy 
- * @param {number} expiresInMinutes 
+ * @param {string} resourceType
+ * @param {string} resourceId
+ * @param {Object} requestingUser
+ * @param {number} expiresInMinutes
  * @returns {Object} The created link
  */
-export const generateLink = async (resourceType, resourceId, createdBy, expiresInMinutes = 60) => {
+export const generateLink = async (resourceType, resourceId, requestingUser, expiresInMinutes = 60) => {
   if (!SUPPORTED_RESOURCE_TYPES.includes(resourceType)) {
     throw new Error(`Unsupported resource type: ${resourceType}`);
   }
@@ -29,6 +63,9 @@ export const generateLink = async (resourceType, resourceId, createdBy, expiresI
     throw new Error(`${resourceType} with ID ${resourceId} not found`);
   }
 
+  await authorizeResourceAccess(resourceType, resource, requestingUser);
+
+  const createdBy = requestingUser.id;
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 

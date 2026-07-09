@@ -9,6 +9,19 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 
+// Import Skeleton Components
+import {
+  SkeletonText,
+  SkeletonCard,
+  SkeletonStatsCard,
+  SkeletonList,
+  SkeletonActivityFeed,
+  SkeletonDashboardGrid,
+} from "../common-components-management/SkeletonLoader";
+
+// Import Loading Hook
+import useLoading from "../hooks/useLoading";
+
 // Management & HOD Components
 import Scholarships from "../common-components-management/Scholarships";
 import HODExamForms from "../hod-components/ExamForms";
@@ -38,12 +51,10 @@ import WorkflowApprovals from "../hod-components/WorkflowApprovals";
 
 // Pages
 import RiskDashboard from "./RiskDashboard";
-// If SystemLogsDashboard is in another folder, update this path accordingly. 
-// For now, assuming it's in pages based on the previous error logs.
-// import SystemLogsDashboard from "./SystemLogsDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
+import HodAnalyticsWidget from "../components/AnalyticsWidgets/HodAnalyticsWidget";
 
 type TabType =
   | "overview"
@@ -79,6 +90,7 @@ type TabType =
   | "data-locks"
   | "sequence-repair"
   | "form-insights"
+  | "department-analytics"
   | "workflow-admin"
   | "workflow-approvals";
 
@@ -126,6 +138,9 @@ export default function HODDashboard() {
     courses: [],
   });
 
+  // Use our custom loading hook
+  const { isLoading, withLoading } = useLoading(true);
+
   // Navigation items
   const navigationItems = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutGrid },
@@ -161,6 +176,7 @@ export default function HODDashboard() {
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
     { id: "workflow-admin" as TabType, label: "Workflow Builder", icon: Settings },
     { id: "workflow-approvals" as TabType, label: "Pending Approvals", icon: Activity },
+    { id: "department-analytics" as TabType, label: "Department Analytics", icon: LayoutGrid },
   ];
 
   // Fetch data on mount
@@ -178,15 +194,17 @@ export default function HODDashboard() {
   };
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/dashboard");
-      setData(res.data);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
+    await withLoading(async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/dashboard");
+        setData(res.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const fetchProfileData = async () => {
@@ -231,8 +249,6 @@ export default function HODDashboard() {
         api.get("/courses/all"),
       ]);
       setSearchData({
-        // The students endpoint now returns a paginated envelope { success, data, meta };
-        // fall back to the raw value for any future format changes.
         students: studentsRes.data?.data || studentsRes.data || [],
         teachers: teachersRes.data || [],
         courses: coursesRes.data || [],
@@ -285,6 +301,122 @@ export default function HODDashboard() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "H";
+
+  // Enhanced Skeleton Loading State
+  if (isLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex overflow-hidden">
+        {/* Skeleton Sidebar */}
+        <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <SkeletonText lines={1} width={120} height={24} />
+            <SkeletonText lines={1} width={160} height={16} className="mt-1" />
+          </div>
+
+          <div className="flex-1 p-4 space-y-1">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                <SkeletonText lines={1} width={140} height={16} />
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+              <SkeletonText lines={1} width={60} height={16} />
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+              <SkeletonText lines={1} width={60} height={16} />
+            </div>
+          </div>
+        </aside>
+
+        {/* Skeleton Main Layout */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Skeleton Header */}
+          <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 lg:px-8">
+            <div className="h-8 w-8 lg:hidden bg-gray-200 dark:bg-gray-800 rounded animate-pulse mr-4"></div>
+            <div className="h-9 w-80 hidden sm:block bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            <div className="ml-auto flex gap-3">
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+            </div>
+          </header>
+
+          {/* Skeleton Dashboard Content */}
+          <main className="p-4 sm:p-6 lg:p-8 flex-1">
+            {/* Title Area */}
+            <div className="mb-8">
+              <SkeletonText lines={1} width={280} height={32} />
+              <SkeletonText lines={1} width={380} height={16} className="mt-2" />
+            </div>
+
+            {/* Profile Card Skeleton */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                  <div>
+                    <SkeletonText lines={1} width={160} height={24} />
+                    <SkeletonText lines={1} width={140} height={16} className="mt-1" />
+                    <SkeletonText lines={1} width={200} height={16} className="mt-3" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[320px]">
+                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4">
+                    <SkeletonText lines={1} width={80} height={14} />
+                    <SkeletonText lines={1} width={120} height={18} className="mt-1" />
+                  </div>
+                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4">
+                    <SkeletonText lines={1} width={80} height={14} />
+                    <SkeletonText lines={1} width={100} height={18} className="mt-1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonStatsCard key={i} />
+              ))}
+            </div>
+
+            {/* Quick Actions & Widgets Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <SkeletonText lines={1} width={140} height={24} className="mb-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                      <SkeletonText lines={1} width={100} height={18} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <SkeletonText lines={1} width={160} height={24} className="mb-4" />
+                  <SkeletonList items={2} itemHeight={40} />
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <SkeletonText lines={1} width={140} height={24} className="mb-4" />
+                  <SkeletonActivityFeed items={3} />
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   // Render tab content (non-overview tabs only; overview is rendered inline above)
   const renderTab = () => {
@@ -405,7 +537,7 @@ export default function HODDashboard() {
       fees: "Fee management is not connected on this dashboard yet.",
       examSchedule: "Use the exam schedule route to manage exam schedules.",
       events: "Event management is not connected on this dashboard yet.",
-      "system-logs": "System Logs dashboard is currently under development.", // <-- Add this line
+      "system-logs": "System Logs dashboard is currently under development.",
     };
 
     if (placeholders[activeTab]) {
@@ -436,7 +568,6 @@ export default function HODDashboard() {
         {activeTab === "exam-halls" && <ExamHalls />}
         {activeTab === "hall-allocation" && <HallAllocation />}
         {activeTab === "audit-logs" && <AuditLogs />}
-        {/* {activeTab === "system-logs" && <SystemLogsDashboard />} */}
         {activeTab === "system-health" && <SystemHealthDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
         { activeTab === "manage-resources" && <ResourceManagement /> }
@@ -447,21 +578,10 @@ export default function HODDashboard() {
         { activeTab === "risk-dashboard" && <RiskDashboard /> }
         { activeTab === "workflow-admin" && <WorkflowAdmin /> }
         { activeTab === "workflow-approvals" && <WorkflowApprovals /> }
+        { activeTab === "department-analytics" && <HodAnalyticsWidget /> }
       </>
     );
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Main render
   return (

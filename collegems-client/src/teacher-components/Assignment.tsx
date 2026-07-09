@@ -17,7 +17,11 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api/axios";
+
+const BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
 import AssignmentComments from "../common-components-management/AssignmentComments";
+import RichTextEditor from "../common-components-management/RichTExtEditor";
+import DocumentViewerModal from "../common-components-management/DocumentViewerModal"; // <-- ADDED THIS
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   fetchTeacherAssignments,
@@ -41,6 +45,18 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [editedMarks, setEditedMarks] = useState<Record<string, string>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
+  
+  // <-- ADDED THIS: State for the document viewer modal
+  const [viewerData, setViewerData] = useState<{
+    isOpen: boolean;
+    url: string;
+    studentName: string;
+  }>({
+    isOpen: false,
+    url: "",
+    studentName: "",
+  });
+
   const hasCourseId = Boolean(courseId);
 
   const assignments = courseId
@@ -354,14 +370,16 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Description
                 </label>
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow resize-none"
-                  placeholder="Provide detailed instructions for the assignment (optional)"
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={loadingAction}
-                />
+                <div className={loadingAction ? "opacity-50 pointer-events-none" : ""}>
+                  <RichTextEditor
+                    value={description}
+                    onChange={(val) => {
+                      const cleanVal = val === '<p><br></p>' ? '' : val;
+                      setDescription(cleanVal);
+                    }}
+                    placeholder="Provide detailed instructions for the assignment (optional)"
+                  />
+                </div>
               </div>
 
               {/* Due Date and Max Marks Row */}
@@ -584,7 +602,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
       </div>
 
       {/* ========================================================================
-        NEW UPDATED MODAL CODE: SPLIT LAYOUT WITH COMMENTS INTEGRATION 
+        SPLIT LAYOUT WITH COMMENTS INTEGRATION 
         ======================================================================== 
       */}
       {(viewingSubmissions || loadingSubmissions) && (
@@ -595,7 +613,6 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
             onClick={() => setViewingSubmissions(null)}
           />
 
-          {/* UPDATED: Changed to max-w-6xl and added md:flex-row to create two columns */}
           <div className="relative w-full max-w-6xl bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col md:flex-row max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95">
             
             {loadingSubmissions ? (
@@ -636,7 +653,17 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {viewingSubmissions.submissions.map((sub: any, idx: number) => (
+                        {viewingSubmissions.submissions.map((sub: any, idx: number) => {
+                          
+                          // Helper to construct secure file URL
+                          const getFileUrl = () => {
+                            if (!sub.file || !sub.file.url) return "";
+                            return sub.file.url.startsWith("http") 
+                                ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+                                : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`;
+                          };
+
+                          return (
                           <div key={idx} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
                             <div className="flex items-start justify-between flex-wrap gap-4">
                               <div className="flex items-center gap-4 min-w-[200px]">
@@ -646,9 +673,9 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                   ) : sub.student?.name?.charAt(0).toUpperCase() || "S"}
                                 </div>
                                 <div>
-                             <p className="font-semibold text-gray-900 flex items-center">
-                         {sub.student?.name || "Unknown Student"}
-                            </p>
+                                 <p className="font-semibold text-gray-900 flex items-center">
+                                 {sub.student?.name || "Unknown Student"}
+                                    </p>
                                   <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
                                 </div>
                               </div>
@@ -677,6 +704,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                 </div>
                               )}
                               
+                              {/* ---------- UPDATED FILE SUBMISSION UI ---------- */}
                               {sub.file && sub.file.url && (
                                 <div className="bg-gray-50 rounded-lg p-3">
                                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">File Submission</h4>
@@ -690,7 +718,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                       href={
                                         sub.file.url.startsWith("http") 
                                           ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
-                                          : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`
+                                          : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`
                                       } 
                                       target="_blank" 
                                       rel="noreferrer" 
@@ -727,7 +755,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                               </button> 
                             </div>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     )}
                   </div>
@@ -745,6 +773,14 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
           </div>
         </div>
       )} 
+      
+      {/* ---------- ADDED: THE NEW IN-BROWSER DOCUMENT VIEWER MODAL ---------- */}
+      <DocumentViewerModal 
+        isOpen={viewerData.isOpen}
+        fileUrl={viewerData.url}
+        studentName={viewerData.studentName}
+        onClose={() => setViewerData({ ...viewerData, isOpen: false })}
+      />
     </div>
   );
 }

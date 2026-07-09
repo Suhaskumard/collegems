@@ -4,46 +4,10 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import mongoose from "mongoose";
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
 
-// Auth & Core
-import authRoutes from "./routes/auth.routes.js";
-import dashboardRoutes from "./routes/dashboard.routes.js";
-import userRoutes from "./routes/user.routes.js";
-
-// Student / Teacher
-import attendanceRoutes from "./routes/attendance.routes.js";
-import assignmentRoutes from "./routes/assignment.routes.js";
-import feeRoutes from "./routes/fee.routes.js";
-import examScheduleRoutes from "./routes/examschedule.routes.js";
-import classRoutes from "./routes/class.route.js";
-import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
-import eventRoute from "./routes/event.routes.js";
-import resultsRoutes from "./routes/results.routes.js";
-import libraryRoutes from "./routes/library.routes.js";
-import assessmentRoutes from "./routes/assessment.routes.js";
-
-import courseRoutes from "./routes/course.routes.js";
-import salaryRoutes from "./routes/salary.route.js";
-import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
-import reportRoutes from "./routes/report.routes.js";
-import feedbackRoutes from "./routes/feedback.routes.js"; // ← NEW
-import examFormRoutes from "./routes/examForm.routes.js";
-import leaveRoutes from "./routes/leave.routes.js";
-import scholarshipRoutes from "./routes/scholarship.routes.js";
-import idCardRoutes from "./routes/idcard.routes.js";
-import { verifyStudent } from "./controllers/idcard.controller.js";
-import busRouteRoutes from "./routes/busRoute.routes.js";
-import syllabusRoutes from "./routes/syllabus.route.js";
-import officeHoursRoutes from "./routes/officeHours.routes.js";
-import examHallRoutes from "./routes/examHall.routes.js";
-import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
-import auditLogRoutes from "./routes/auditLog.routes.js";
-import resourceRoutes from "./routes/resource.routes.js";
-import bookingRoutes from "./routes/booking.routes.js";
-import transferRoutes from "./routes/transfer.routes.js";
-import { authenticate } from "./middlewares/auth.middleware.js";
 // Apply Global Multi-Tenant Plugin
 import tenantPlugin from "./utils/tenantPlugin.js";
 mongoose.plugin(tenantPlugin);
@@ -55,10 +19,13 @@ import apiRouter from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import tenantResolver from "./middlewares/tenantResolver.js";
 import log from "./utils/logger.js";
+import cookieParser from "cookie-parser";
 import { allowedOrigins } from "./config/cors.js";
 
 const app = express();
 app.set("query parser", "extended");
+
+app.use(cookieParser());
 
 // Middlewares
 app.use(cors({
@@ -71,7 +38,8 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID"]
+  // Just add "x-tenant-id" to the end of this list!
+  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID", "x-tenant-id"]
 }));
 
 app.use(express.json());
@@ -94,7 +62,7 @@ app.use("/api/auth",      authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/attendance",        authenticate, attendanceRoutes);
-app.use("/api/assignment",        authenticate, assignmentRoutes);
+app.use("/api/assignment",        assignmentRoutes);
 app.use("/api/teacher-attendance", teacherAttendanceRoutes);
 app.use("/api/events",            eventRoute);
 app.use("/api/results",           authenticate, resultsRoutes);
@@ -137,6 +105,8 @@ app.get("/", (_req, res) => res.send("SCMS Backend Running 🚀"));
 // ========================================
 // MOUNT ALL ROUTES UNDER /api
 // ========================================
+// Fixed ReferenceError: changed 'router.use' to 'app.use'
+app.use('/analytics', analyticsRoutes);
 app.use("/api", apiRouter);
 
 // ========================================
@@ -144,7 +114,7 @@ app.use("/api", apiRouter);
 // ========================================
 app.get("/", (_req, res) => {
   log.request("GET", "/", "health-check");
-  res.send("SCMS Backend Running");
+  res.send("SCMS Backend Running 🚀");
 });
 
 // ========================================
@@ -162,5 +132,27 @@ app.use((_req, res) => {
 
 // Global error handler (must be last)
 app.use(errorHandler);
+
+// ========================================
+// AUTO-SEED DEFAULT TENANT
+// ========================================
+mongoose.connection.once('open', async () => {
+  try {
+    const tenantCount = await Tenant.countDocuments();
+    if (tenantCount === 0) {
+      console.log("⚠️ No tenants found in database. Creating a default one...");
+      const newTenant = await Tenant.create({
+        name: "Local Development College",
+        slug: "collegems",           
+        domain: "collegems",
+        adminEmail: "admin@collegems.local", 
+        status: "active"
+      });
+      console.log(`Default Tenant successfully created! ID: ${newTenant._id}`);
+    }
+  } catch (err) {
+    console.log("Error creating default tenant:", err.message);
+  }
+});
 
 export default app;

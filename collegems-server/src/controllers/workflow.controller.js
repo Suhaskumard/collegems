@@ -13,7 +13,7 @@ export const createFormTemplate = async (req, res) => {
       name,
       description,
       fields,
-      createdBy: req.user._id, // Assuming req.user is populated by auth middleware
+      createdBy: req.user.id, // Assuming req.user is populated by auth middleware
     });
     res.status(201).json({ success: true, data: form });
   } catch (error) {
@@ -29,7 +29,7 @@ export const createWorkflowDef = async (req, res) => {
       category,
       description,
       formTemplate,
-      createdBy: req.user._id,
+      createdBy: req.user.id,
     });
     res.status(201).json({ success: true, data: workflowDef });
   } catch (error) {
@@ -76,7 +76,7 @@ export const getAvailableWorkflows = async (req, res) => {
 export const submitWorkflowRequest = async (req, res) => {
   try {
     const { workflowDefId, formData } = req.body;
-    const instance = await WorkflowEngine.startWorkflow(workflowDefId, req.user._id, formData);
+    const instance = await WorkflowEngine.startWorkflow(workflowDefId, req.user.id, formData);
     res.status(201).json({ success: true, data: instance });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -85,7 +85,7 @@ export const submitWorkflowRequest = async (req, res) => {
 
 export const getMyRequests = async (req, res) => {
   try {
-    const requests = await WorkflowInstance.find({ requester: req.user._id })
+    const requests = await WorkflowInstance.find({ requester: req.user.id })
       .populate("workflowDef")
       .populate("currentStep");
     res.status(200).json({ success: true, data: requests });
@@ -123,7 +123,7 @@ export const processWorkflowAction = async (req, res) => {
     const { instanceId } = req.params;
     const { action, comments } = req.body; // "Approved" or "Rejected"
 
-    const instance = await WorkflowEngine.processAction(instanceId, req.user._id, action, comments);
+    const instance = await WorkflowEngine.processAction(instanceId, req.user.id, action, comments);
     res.status(200).json({ success: true, data: instance });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });

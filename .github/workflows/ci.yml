@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+# Cancel superseded runs for the same PR/branch when new commits are pushed.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server-tests:
+    name: Server tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: collegems-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: collegems-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Tests run on every PR via the in-process mongodb-memory-server (no
+      # external DB needed). Marked advisory for now because master currently
+      # carries a backlog of pre-existing failing tests; results are surfaced
+      # so regressions are visible. Remove `continue-on-error` to make this a
+      # hard merge gate once the existing failures are fixed.
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+
+  client-lint:
+    name: Client lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: collegems-client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: collegems-client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Advisory for now: the client carries a backlog of pre-existing ESLint
+      # errors. Results are surfaced on every PR; remove `continue-on-error` to
+      # make lint a hard merge gate once the existing violations are fixed.
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true

@@ -304,4 +304,56 @@ test("Exam Results Authorization & Integrity API Tests", async (t) => {
     assert.ok(result.semester !== undefined);
     assert.ok(result.courseId !== null);
   });
+
+  await t.test("POST /create should reject a negative internalMarks value", async () => {
+    const res = await request(app)
+      .post("/api/results/create")
+      .set("Authorization", `Bearer ${teacher1Token}`)
+      .send({
+        studentId: studentUser._id,
+        courseId: course1._id,
+        semester: "3",
+        internalMarks: -20,
+        externalMarks: 50,
+        grade: "A++",
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.match(res.body.message, /between 0 and 100/i);
+  });
+
+  await t.test("POST /create should reject a component mark above 100", async () => {
+    const res = await request(app)
+      .post("/api/results/create")
+      .set("Authorization", `Bearer ${teacher1Token}`)
+      .send({
+        studentId: studentUser._id,
+        courseId: course1._id,
+        semester: "3",
+        internalMarks: 20,
+        externalMarks: 9999,
+        grade: "A++",
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.match(res.body.message, /between 0 and 100/i);
+  });
+
+  await t.test("POST /create should ignore a client-supplied totalMarks and recompute it server-side", async () => {
+    const res = await request(app)
+      .post("/api/results/create")
+      .set("Authorization", `Bearer ${teacher1Token}`)
+      .send({
+        studentId: studentUser._id,
+        courseId: course1._id,
+        semester: "3",
+        internalMarks: 20,
+        externalMarks: 50,
+        totalMarks: 9999,
+        grade: "B",
+      });
+
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.totalMarks, 70);
+  });
 });

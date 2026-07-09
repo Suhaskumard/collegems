@@ -12,9 +12,9 @@ export const generateLink = async (req, res) => {
     }
 
     const link = await tempLinkService.generateLink(
-      resourceType, 
-      resourceId, 
-      req.user.id, 
+      resourceType,
+      resourceId,
+      req.user,
       expiresInMinutes || 60
     );
 
@@ -32,6 +32,9 @@ export const generateLink = async (req, res) => {
       }
     });
   } catch (error) {
+    if (error.message === "Not authorized to share a link to this resource") {
+      return res.status(403).json({ message: error.message });
+    }
     if (error.message.includes("Unsupported resource type") || error.message.includes("not found")) {
       return res.status(400).json({ message: error.message });
     }
