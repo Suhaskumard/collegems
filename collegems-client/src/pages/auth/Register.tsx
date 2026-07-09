@@ -103,7 +103,6 @@ export default function Register() {
     { value: "teacher", label: "Teacher", icon: Users, color: "amber", description: "Manage classes, assignments, and attendance" },
     { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's academic progress" },
     { value: "hod", label: "HOD", icon: Shield, color: "emerald", description: "Oversee department and faculty" },
-    { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's progress" },
   ];
 
   const getRoleColor = (roleValue: string) => {
