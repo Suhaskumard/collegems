@@ -4,30 +4,12 @@ import dotenv from "dotenv";
 import { initializeApp } from "./src/bootstrap/index.js";
 import compression from "compression";
 
-// ============================================
-// ENVIRONMENT CONFIGURATION
-// ============================================
-
-// Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' 
-    ? '.env.production' 
-    : process.env.NODE_ENV === 'staging' 
-        ? '.env.staging' 
-        : '.env';
-
-dotenv.config({ 
-    path: envFile,
-    debug: process.env.NODE_ENV === 'development'
-});
-
-// Validate required environment variables
-const requiredEnvVars = [
-    'PORT',
-    'NODE_ENV',
-    // Add other required env vars
-];
-
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (process.env.USE_MEMORY_DB !== "true" && !process.env.MONGO_URI) {
+  console.error(
+    "Missing MONGO_URI in .env. Please set MONGO_URI to your MongoDB connection string.",
+  );
+  process.exit(1);
+}
 
 if (missingEnvVars.length > 0) {
     console.error('❌ Missing required environment variables:');
