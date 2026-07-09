@@ -112,8 +112,6 @@ export const createResult = async (req, res) => {
             createdBy: req.user.id,
         });
 
-        res.status(201).json(result);
-
         // Log result creation with rich audit details
         await logAction(req.user.id, "CREATE_RESULT", "Result", result._id, {
             userRole: req.user.role,
@@ -131,6 +129,8 @@ export const createResult = async (req, res) => {
                 status: result.status,
             },
         });
+
+        res.status(201).json(result);
     } catch (err) {
         console.log("Create Result Error:", err);
         if (err.status === 403) return res.status(403).json({ message: err.message });
@@ -149,8 +149,6 @@ export const publishResult = async (req, res) => {
         result.status = "published";
         await result.save();
 
-        res.json(result);
-
         // Log result publish with rich audit details
         await logAction(req.user.id, "PUBLISH_RESULT", "Result", result._id, {
             userRole: req.user.role,
@@ -158,6 +156,8 @@ export const publishResult = async (req, res) => {
             previousValue,
             newValue: { status: "published" },
         });
+
+        res.json(result);
     } catch (error) {
         console.error("Publish Result Error:", error);
         if (error.name === "ValidationError") {
@@ -224,19 +224,18 @@ export const publishAll = async (req, res) => {
             { $set: { status: "published" } }
         );
 
-        res.json({
-            success: true,
-            message: `Published ${publishable.length} result(s)`,
-            count: publishable.length,
-            skipped,
-        });
-
         // Log bulk publish with rich audit details
         await logAction(req.user.id, "PUBLISH_ALL_RESULTS", "Result", null, {
             userRole: req.user.role,
             filter: { courseId: courseId || null, semester: semester || null },
             publishedCount: publishable.length,
             resultIds: publishable.map((r) => r._id),
+        });
+
+        res.json({
+            success: true,
+            message: `Published ${drafts.length} result(s)`,
+            count: drafts.length,
         });
     } catch (error) {
         console.error("Publish All Error:", error);
