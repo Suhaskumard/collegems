@@ -31,20 +31,29 @@ export const SemesterRegistration: React.FC = () => {
       {currentStep === 1 && (
         <div>
           <h3>Step 1: Verify Academic Info</h3>
-          <input type="text" placeholder="Full Name" style={{display:'block', width:'100%', padding:'8px', margin:'10px 0', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.studentName} onChange={(e)=>setFormData({...formData, studentName: e.target.value})} />
-          <input type="text" placeholder="Roll Number" style={{display:'block', width:'100%', padding:'8px', margin:'10px 0', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.rollNumber} onChange={(e)=>setFormData({...formData, rollNumber: e.target.value})} />
+          <div style={{margin:'10px 0'}}>
+            <label htmlFor="sr-student-name" style={{display:'block', marginBottom:'4px', fontWeight:'600'}}>Full Name</label>
+            <input id="sr-student-name" type="text" placeholder="Full Name" style={{display:'block', width:'100%', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.studentName} onChange={(e)=>setFormData({...formData, studentName: e.target.value})} />
+          </div>
+          <div style={{margin:'10px 0'}}>
+            <label htmlFor="sr-roll-number" style={{display:'block', marginBottom:'4px', fontWeight:'600'}}>Roll Number</label>
+            <input id="sr-roll-number" type="text" placeholder="Roll Number" style={{display:'block', width:'100%', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.rollNumber} onChange={(e)=>setFormData({...formData, rollNumber: e.target.value})} />
+          </div>
           <button onClick={() => setCurrentStep(2)} style={{padding:'10px 20px', backgroundColor:'#007bff', color:'#fff', border:'none', borderRadius:'4px', cursor:'pointer'}}>Next Step</button>
         </div>
       )}
       {currentStep === 2 && (
         <div>
-          <h3>Step 2: Select Upcoming Semester & Electives</h3>
-          <select style={{display:'block', width:'100%', padding:'8px', margin:'10px 0', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.nextSemester} onChange={(e)=>setFormData({...formData, nextSemester: e.target.value})}>
-            <option value="">-- Select Next Semester --</option>
-            <option value="Semester 3">Semester 3</option>
-            <option value="Semester 5">Semester 5</option>
-            <option value="Semester 7">Semester 7</option>
-          </select>
+          <h3>Step 2: Select Upcoming Semester &amp; Electives</h3>
+          <div style={{margin:'10px 0'}}>
+            <label htmlFor="sr-next-semester" style={{display:'block', marginBottom:'4px', fontWeight:'600'}}>Next Semester</label>
+            <select id="sr-next-semester" style={{display:'block', width:'100%', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.nextSemester} onChange={(e)=>setFormData({...formData, nextSemester: e.target.value})}>
+              <option value="">-- Select Next Semester --</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 7">Semester 7</option>
+            </select>
+          </div>
           <form onSubmit={handleSubmit}>
             <button type="submit" style={{padding:'10px 20px', backgroundColor:'#28a745', color:'#fff', border:'none', borderRadius:'4px', cursor:'pointer'}}>Submit Application</button>
           </form>

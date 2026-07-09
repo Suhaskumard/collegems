@@ -52,6 +52,9 @@ const feedbackSchema = new mongoose.Schema(
     adminResponse: { type: String, default: "" },
 
     // Sentiment Analysis properties
+   // ... existing fields (status, message, rating, etc.)
+
+    // --- AI Insights Fields ---
     sentiment: {
       type: String,
       enum: ["Positive", "Neutral", "Negative", "Unanalyzed"],
@@ -61,6 +64,13 @@ const feedbackSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    keyPhrases: [{
+      type: String
+    }],
+    isUrgent: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

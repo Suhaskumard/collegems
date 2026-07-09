@@ -27,10 +27,10 @@ export const markAttendance = async (req, res) => {
       );
     }
 
-    res.json({ message: "Attendance saved" });
-
     // Log action
     await logAction(req.user.id, "UPDATE_ATTENDANCE", "Attendance", date, { recordsCount: records.length });
+
+    res.json({ message: "Attendance saved" });
   } catch (err) {
     if (err.status === 403) return res.status(403).json({ message: err.message });
     res.status(500).json({ message: "Attendance failed" });
@@ -111,12 +111,12 @@ export const resolveAttendanceAlert = async (req, res) => {
     alert.status = "resolved";
     await alert.save();
 
-    res.json({ success: true, message: "Alert resolved", data: alert });
-
     await logAction(req.user.id, "RESOLVE_ATTENDANCE_ALERT", "AttendanceAlert", alert._id, {
       userRole: req.user.role,
       student: alert.student,
     });
+
+    res.json({ success: true, message: "Alert resolved", data: alert });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
