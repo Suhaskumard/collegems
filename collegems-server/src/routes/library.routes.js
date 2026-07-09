@@ -28,6 +28,9 @@ router.post("/return/:issueId", protect, allowRoles("hod", "teacher"), returnBoo
 
 // Fine Management Routes
 router.get("/fines", protect, getUserFines);
-router.post("/fines/:fineId/pay", protect, payLibraryFine);
+// Marking a fine paid is a staff action (the librarian collects the fine and
+// records it here) - there's no payment gateway, so a self-service "pay" call
+// from the student themselves can't be trusted as proof of payment.
+router.post("/fines/:fineId/pay", protect, allowRoles("hod", "teacher"), payLibraryFine);
 
 export default router;

@@ -51,6 +51,7 @@ SCMS is structured around role-based modules, ensuring that every user has a tai
 - **Secure JWT Authentication**: Industry-standard access token structure stored in global state.
 - **Role-Based Access Control (RBAC)**: Fine-grained dashboard view filtering for Students, Teachers, and HODs.
 - **Security Protocols**: Password hashing via BcryptJS, secure API middlewares, and cors configuration.
+- **Password Policy**: Minimum 8 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.
 
 ### 👨‍🎓 Student Module
 
@@ -185,6 +186,30 @@ sequenceDiagram
     Note over F: Save JWT in Redux State and Axios Header
     F-->>U: Redirect to Dashboard
 ```
+
+### 🔑 Persistent Session & Refresh Token Lifecycle
+
+With the implementation of persistent refresh token storage and token rotation:
+
+1. **Login/Register**:
+   - Creates a unique `RefreshToken` document in the MongoDB session store.
+   - The document tracks the user, SHA-256 hashed refresh token, device metadata (parsed from `User-Agent`), IP address, and token expiry.
+   - The plain refresh token is sent to the client via an HTTP-Only, Secure, `sameSite: strict` cookie.
+2. **Access Token Refresh (Token Rotation)**:
+   - When the client's short-lived Access Token expires, it calls `POST /api/auth/refresh` sending the cookie.
+   - The backend verifies the JWT, hashes it, checks the session in the DB, and verifies that it is active (not revoked or expired).
+   - If valid, a new Access Token and a new Refresh Token are generated. The old session is marked as revoked/used, and a new session is saved (Token Rotation).
+3. **Token Reuse Detection (Automatic Compromise Recovery)**:
+   - If an attacker intercepts a refresh token and attempts to reuse it, the backend identifies that the token hash matches a revoked/rotated session.
+   - Immediately, **all sessions** for that user are deleted/revoked, forcing a complete logout across all devices to prevent unauthorized access.
+4. **Device Detection**:
+   - A dedicated session middleware extracts device type (Desktop, Mobile, Tablet), browser, and OS from the request's `User-Agent` header and stores this information.
+5. **Session Management APIs**:
+   - `GET /api/auth/sessions`: Returns a list of all active sessions for the current user, flagging which one is the current browser session (`isCurrent: true`).
+   - `POST /api/auth/logout-all`: Revokes all sessions for the user and forces logouts everywhere.
+   - `DELETE /api/auth/sessions/:id`: Revokes a specific session (e.g., log out a specific remote device).
+6. **Password Change Security**:
+   - When a user updates their password, all active sessions and refresh tokens are immediately deleted, forcing a re-login on all devices.
 
 ---
 

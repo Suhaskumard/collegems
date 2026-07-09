@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const LostFoundPortal = () => {
   const [activeTab, setActiveTab] = useState("lost");
@@ -8,6 +8,11 @@ const LostFoundPortal = () => {
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [preview, setPreview] = useState("");
+
+  useEffect(() => {
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
 
   const lostItems = [
     {
