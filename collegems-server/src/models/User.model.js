@@ -108,6 +108,15 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({ name: "text", email: "text", studentId: "text", teacherId: "text" });
 
+// studentId must be unique among students - but not enforced globally, since
+// a parent account also stores their child's studentId on their own document
+// (see auth.controller.js register()), which is expected to match an
+// existing student's ID rather than collide with it.
+userSchema.index(
+  { studentId: 1 },
+  { unique: true, partialFilterExpression: { role: "student", studentId: { $exists: true } } },
+);
+
 userSchema.plugin(timelinePlugin, {
   trackedFields: ["course", "semester", "phone", "email"]
 });
