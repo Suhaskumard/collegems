@@ -27,6 +27,13 @@ import EmptyState from "../components/EmptyState";
 //   studentEmail: string;
 // }
 
+interface Course {
+  _id: string;
+  name: string;
+  code: string;
+  teacher?: string | { _id: string };
+}
+
 export default function TeacherAttendance() {
   const [students, setStudents] = useState<any[]>([]);
   const [date, setDate] = useState(() => {
@@ -37,8 +44,8 @@ export default function TeacherAttendance() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [subject, setSubject] = useState("");
-  const [subjects, setSubjects] = useState<string[]>([]);
+  const [courseId, setCourseId] = useState("");
+  const [courses, setCourses] = useState<Course[]>([]);
   const [activeView, setActiveView] = useState<"mark" | "low">("mark");
   const [lowAttendanceStudents, setLowAttendanceStudents] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
@@ -48,7 +55,7 @@ export default function TeacherAttendance() {
 
   useEffect(() => {
     fetchStudents();
-    fetchSubjects();
+    fetchCourses();
   }, []);
 
   const fetchStudents = async () => {
@@ -71,15 +78,22 @@ export default function TeacherAttendance() {
     }
   };
 
-  const fetchSubjects = async () => {
-    // Mock subjects - replace with actual API call
-    setSubjects([
-      "Mathematics",
-      "Physics",
-      "Chemistry",
-      "Computer Science",
-      "English",
-    ]);
+  const fetchCourses = async () => {
+    try {
+      const res = await api.get("/courses/all");
+      const allCourses = extractArray<Course>(res.data);
+      const teacherId = localStorage.getItem("userId");
+      setCourses(
+        teacherId
+          ? allCourses.filter((c) => {
+              const id = typeof c.teacher === "string" ? c.teacher : c.teacher?._id;
+              return id === teacherId;
+            })
+          : allCourses
+      );
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    }
   };
 
   const fetchLowAttendance = async () => {
@@ -147,7 +161,7 @@ export default function TeacherAttendance() {
       return;
     }
 
-    if (!subject) {
+    if (!courseId) {
       alert("Please select a subject");
       return;
     }
@@ -164,7 +178,7 @@ export default function TeacherAttendance() {
       await api.post("/attendance/mark", {
         date,
         records,
-        subject,
+        course: courseId,
       });
 
       alert("✅ Attendance marked successfully!");
@@ -177,12 +191,13 @@ export default function TeacherAttendance() {
   };
 
   const exportAttendance = () => {
+    const selectedCourse = courses.find((c) => c._id === courseId);
     const data = students.map((s) => ({
       Name: s.name,
       Email: s.email,
       Status: attendance[s._id] || "absent",
       Date: new Date(date).toLocaleDateString(),
-      Subject: subject,
+      Subject: selectedCourse ? `${selectedCourse.name} (${selectedCourse.code})` : "",
     }));
 
     const csv = convertToCSV(data);
@@ -400,13 +415,13 @@ export default function TeacherAttendance() {
               </label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                value={courseId}
+                onChange={(e) => setCourseId(e.target.value)}
               >
                 <option value="">Select Subject</option>
-                {subjects.map((sub) => (
-                  <option key={sub} value={sub}>
-                    {sub}
+                {courses.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name} ({c.code})
                   </option>
                 ))}
               </select>
@@ -617,12 +632,12 @@ export default function TeacherAttendance() {
                     })}
                 </span>
               </div>
-              {subject && (
+              {courseId && (
                 <>
                   <span>•</span>
                   <div className="flex items-center gap-1">
                     <BookOpen className="w-4 h-4" />
-                    <span>{subject}</span>
+                    <span>{courses.find((c) => c._id === courseId)?.name}</span>
                   </div>
                 </>
               )}
@@ -632,7 +647,7 @@ export default function TeacherAttendance() {
           <div className="flex gap-3 w-full md:w-auto">
             <button
               onClick={submitAttendance}
-              disabled={!date || !subject || loading}
+              disabled={!date || !courseId || loading}
               className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
@@ -737,8 +752,8 @@ export default function TeacherAttendance() {
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Subjects</option>
-                {subjects.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                {courses.map((c) => (
+                  <option key={c._id} value={c.name}>{c.name}</option>
                 ))}
               </select>
             </div>
