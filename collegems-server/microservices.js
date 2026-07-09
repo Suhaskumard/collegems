@@ -10,6 +10,7 @@ import { Server } from "socket.io";
 import { connectDB } from "./src/config/db.js";
 import { connectRabbitMQ } from "./src/utils/rabbitmq.js";
 import { startPlagiarismWorker } from "./src/workers/plagiarismWorker.js";
+import { allowedOrigins } from "./src/config/cors.js";
 
 import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
@@ -31,7 +32,16 @@ const startService = async () => {
   const app = express();
   
   // CORS & Body parsing
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }));
   
   if (SERVICE_NAME !== "gateway") {
     app.use(express.json());
@@ -94,7 +104,16 @@ const startService = async () => {
   if (SERVICE_NAME === "academics" || SERVICE_NAME === "gateway") {
     // Academics needs websockets for study groups and chat
     const io = new Server(httpServer, {
-      cors: { origin: true, credentials: true }
+      cors: {
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
+        credentials: true,
+      }
     });
     app.set("io", io);
     if (SERVICE_NAME === "academics") {
