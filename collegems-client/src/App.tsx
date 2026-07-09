@@ -54,6 +54,7 @@ import ToastTest from "./pages/ToastTest";
 import withRoleGuard from "./hocs/withRoleGuard";
 import { UserRole } from "./constants/role.constants";
 import AccessDenied from "./pages/AccessDenied";
+import NotFound from "./pages/NotFound";
 import RoleRoute from "./routes/RoleRoute";
 
 // Define Guarded Components
@@ -208,6 +209,8 @@ export default function App() {
           path="/parent/dashboard"
           element={<ParentDashboardGuarded />}
         />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
