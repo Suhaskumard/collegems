@@ -23,6 +23,8 @@ const FIELD_LABELS: Record<string, string> = {
   course: "Course",
 };
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+
 const StudentTransferHistory = () => {
   const { studentId } = useParams<{ studentId: string }>();
   const [history, setHistory] = useState<TransferEntry[]>([]);
@@ -43,7 +45,7 @@ const StudentTransferHistory = () => {
     setLoading(true);
     const token = localStorage.getItem("token");
     const { data } = await axios.get(
-      `http://localhost:5000/api/transfer/students/${studentId}/transfer-history`,
+      `${BACKEND_URL}/transfer/students/${studentId}/transfer-history`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     setStudent(data.student);
@@ -68,7 +70,7 @@ const StudentTransferHistory = () => {
       );
       const token = localStorage.getItem("token") || "";
       await axios.put(
-        `http://localhost:5000/api/transfer/students/${studentId}/transfer`,
+        `${BACKEND_URL}/transfer/students/${studentId}/transfer`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

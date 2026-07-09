@@ -17,6 +17,8 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api/axios";
+
+const BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
 import AssignmentComments from "../common-components-management/AssignmentComments";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
 import DocumentViewerModal from "../common-components-management/DocumentViewerModal"; // <-- ADDED THIS
@@ -712,31 +714,18 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                                       <p className="text-sm font-medium text-gray-900 truncate" title={sub.file.originalName}>{sub.file.originalName || "Attachment"}</p>
                                       <p className="text-xs text-gray-500">{(sub.file.size / 1024).toFixed(1)} KB</p>
                                     </div>
-                                    
-                                    <div className="flex items-center gap-1.5">
-                                      {/* THE NEW "VIEW" BUTTON */}
-                                      <button 
-                                        onClick={() => setViewerData({
-                                          isOpen: true,
-                                          url: getFileUrl(),
-                                          studentName: sub.student?.name || "Student"
-                                        })}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md text-xs font-semibold transition-colors"
-                                      >
-                                        <Eye className="w-4 h-4" /> View
-                                      </button>
-                                      
-                                      {/* THE EXISTING DOWNLOAD BUTTON */}
-                                      <a 
-                                        href={getFileUrl()} 
-                                        target="_blank" 
-                                        rel="noreferrer" 
-                                        className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
-                                        title="Download securely"
-                                      >
-                                        <Download className="w-4 h-4" />
-                                      </a>
-                                    </div>
+                                    <a 
+                                      href={
+                                        sub.file.url.startsWith("http") 
+                                          ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+                                          : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`
+                                      } 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </a>
                                   </div>
                                 </div>
                               )}

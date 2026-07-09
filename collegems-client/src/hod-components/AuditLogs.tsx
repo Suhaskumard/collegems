@@ -3,6 +3,8 @@ import axios from "axios";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Activity, Shield, Download, Filter } from "lucide-react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+
 interface AuditLog {
   _id: string;
   user: {
@@ -38,7 +40,7 @@ const AuditLogs: React.FC = () => {
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const { data } = await axios.get("http://localhost:5000/api/audit-logs", {
+      const { data } = await axios.get(`${BACKEND_URL}/audit-logs`, {
         params,
         withCredentials: true,
       });
@@ -64,7 +66,7 @@ const AuditLogs: React.FC = () => {
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const response = await axios.get("http://localhost:5000/api/audit-logs/export", {
+      const response = await axios.get(`${BACKEND_URL}/audit-logs/export`, {
         params,
         withCredentials: true,
         responseType: "blob",

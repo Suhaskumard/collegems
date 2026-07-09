@@ -14,7 +14,8 @@ export default function AcademicCalendar() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:5000/api/academic-calendar", {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+      const res = await fetch(`${backendUrl}/academic-calendar`, {
         method: "GET",
         headers: {
           Authorization: token ? `Bearer ${token}` : "",

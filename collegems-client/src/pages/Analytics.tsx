@@ -31,8 +31,9 @@ const Analytics: React.FC = () => {
 
         try {
             const token = localStorage.getItem('token');
+            const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api';
             const response = await axios.get(
-                `http://localhost:5000/api/analytics/page-visits?days=${days}&limit=20`,
+                `${backendUrl}/analytics/page-visits?days=${days}&limit=20`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
