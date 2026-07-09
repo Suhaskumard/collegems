@@ -10,8 +10,8 @@ export const createStudyGroup = async (req, res) => {
       name,
       description,
       course,
-      createdBy: req.user.userId,
-      members: [req.user.userId], // Creator is automatically a member
+      createdBy: req.user.id,
+      members: [req.user.id], // Creator is automatically a member
     });
     await studyGroup.save();
     res.status(201).json(studyGroup);
@@ -41,8 +41,8 @@ export const joinStudyGroup = async (req, res) => {
       return res.status(404).json({ message: "Study group not found" });
     }
     
-    if (!studyGroup.members.includes(req.user.userId)) {
-      studyGroup.members.push(req.user.userId);
+    if (!studyGroup.members.includes(req.user.id)) {
+      studyGroup.members.push(req.user.id);
       await studyGroup.save();
     }
     
@@ -78,7 +78,7 @@ export const saveDocumentVersion = async (req, res) => {
       groupId: id,
       versionName: versionName || `Version ${new Date().toLocaleString()}`,
       documentState: workspace.documentState,
-      savedBy: req.user.userId || req.user._id,
+      savedBy: req.user.id,
     });
     
     await version.save();

@@ -38,7 +38,7 @@ export const assignMentor = async (req, res) => {
 
 export const getMyMentees = async (req, res) => {
   try {
-    const mentorships = await Mentorship.find({ mentor: req.user.userId || req.user.id, status: "active" })
+    const mentorships = await Mentorship.find({ mentor: req.user.id, status: "active" })
       .populate("mentee", "name email studentId course semester");
     res.json(mentorships);
   } catch (error) {
@@ -48,7 +48,7 @@ export const getMyMentees = async (req, res) => {
 
 export const getMyMentors = async (req, res) => {
   try {
-    const mentorships = await Mentorship.find({ mentee: req.user.userId || req.user.id, status: "active" })
+    const mentorships = await Mentorship.find({ mentee: req.user.id, status: "active" })
       .populate("mentor", "name email teacherId department");
     res.json(mentorships);
   } catch (error) {

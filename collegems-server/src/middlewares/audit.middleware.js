@@ -24,7 +24,7 @@ export const auditAction = (actionName, moduleName) => {
           delete safeBody.confirmPassword;
 
           const logEntry = new AuditLog({
-            user: req.user ? (req.user.id || req.user._id) : null,
+            user: req.user ? req.user.id : null,
             action: actionName,
             module: moduleName,
             target: String(target),

@@ -3,7 +3,7 @@ import Notification from "../models/Notification.model.js";
 // Get user's notifications
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user.id || req.user._id })
+    const notifications = await Notification.find({ recipient: req.user.id })
       .sort({ createdAt: -1 })
       .limit(50);
     res.status(200).json(notifications);
@@ -16,7 +16,7 @@ export const getNotifications = async (req, res) => {
 export const markAsRead = async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, recipient: req.user.id || req.user._id },
+      { _id: req.params.id, recipient: req.user.id },
       { isRead: true },
       { new: true }
     );
@@ -33,7 +33,7 @@ export const markAsRead = async (req, res) => {
 export const markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
-      { recipient: req.user.id || req.user._id, isRead: false },
+      { recipient: req.user.id, isRead: false },
       { $set: { isRead: true } }
     );
     res.status(200).json({ message: "All notifications marked as read" });
