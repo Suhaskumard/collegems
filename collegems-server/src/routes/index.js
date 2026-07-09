@@ -43,6 +43,7 @@ import officeHoursRoutes from "./officeHours.routes.js";
 
 // Student Services
 import idCardRoutes from "./idcard.routes.js";
+import transferRoutes from "./transfer.routes.js";
 
 // Community & Engagement
 import eventRoute from "./event.routes.js";
@@ -149,6 +150,7 @@ router.use("/office-hours", officeHoursRoutes);
 // ========================================
 router.use("/student/idcard", idCardRoutes);
 router.get("/verify/student/:studentId", authenticate, verifyStudent);
+router.use("/transfer", authenticate, transferRoutes);
 
 // ========================================
 // COMMUNITY & ENGAGEMENT
