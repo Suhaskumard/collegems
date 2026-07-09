@@ -11,6 +11,8 @@ import authRoutes from "./auth.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
+import searchRoutes from "./search.routes.js";
+import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
 
 // Academic Routes
 import attendanceRoutes from "./attendance.routes.js";
@@ -66,11 +68,11 @@ import busRouteRoutes from "./busRoute.routes.js";
 // Reports & Analytics
 import reportRoutes from "./report.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
+import quizRoutes from "./quiz.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
 import trackingRoutes from "./tracking.routes.js";
-
 
 // Miscellaneous
 import achievementRoutes from "./achievement.routes.js";
@@ -86,12 +88,6 @@ import ownershipRoutes from "./ownership.routes.js";
 import savedFilterRoutes from "./savedFilter.routes.js";
 import abandonmentRoutes from "./abandonment.routes.js";
 import temporaryLinkRoutes from "./temporaryLink.routes.js";
-
-// Faculty Assignment (if needed later)
-import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-
-// import facultyAssignmentRoutes from "./facultyAssignment.routes.js";
-import searchRoutes from './search.routes.js';
 
 // ========================================
 // MIDDLEWARES
@@ -187,10 +183,10 @@ router.use("/bus-routes", authenticate, busRouteRoutes);
 // ========================================
 router.use("/reports", reportRoutes);
 router.use("/analytics", authenticate, analyticsRoutes);
+router.use("/quizzes", authenticate, quizRoutes);
 router.use("/audit-logs", authenticate, auditLogRoutes);
 router.use("/system-health", authenticate, systemHealthRoutes);
 router.use("/restore", restoreRoutes);
-
 
 // ========================================
 // MISCELLANEOUS

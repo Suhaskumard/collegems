@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import mongoose from "mongoose";
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,10 +19,13 @@ import apiRouter from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import tenantResolver from "./middlewares/tenantResolver.js";
 import log from "./utils/logger.js";
+import cookieParser from "cookie-parser";
 import { allowedOrigins } from "./config/cors.js";
 
 const app = express();
 app.set("query parser", "extended");
+
+app.use(cookieParser());
 
 // Middlewares
 app.use(cors({
@@ -34,7 +38,8 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID"]
+  // Just add "x-tenant-id" to the end of this list!
+  allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID", "x-tenant-id"]
 }));
 
 app.use(express.json());
@@ -55,6 +60,8 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 // ========================================
 // MOUNT ALL ROUTES UNDER /api
 // ========================================
+// Fixed ReferenceError: changed 'router.use' to 'app.use'
+app.use('/analytics', analyticsRoutes);
 app.use("/api", apiRouter);
 
 // ========================================
@@ -62,7 +69,7 @@ app.use("/api", apiRouter);
 // ========================================
 app.get("/", (_req, res) => {
   log.request("GET", "/", "health-check");
-  res.send("SCMS Backend Running");
+  res.send("SCMS Backend Running 🚀");
 });
 
 // ========================================
@@ -80,5 +87,27 @@ app.use((_req, res) => {
 
 // Global error handler (must be last)
 app.use(errorHandler);
+
+// ========================================
+// AUTO-SEED DEFAULT TENANT
+// ========================================
+mongoose.connection.once('open', async () => {
+  try {
+    const tenantCount = await Tenant.countDocuments();
+    if (tenantCount === 0) {
+      console.log("⚠️ No tenants found in database. Creating a default one...");
+      const newTenant = await Tenant.create({
+        name: "Local Development College",
+        slug: "collegems",           
+        domain: "collegems",
+        adminEmail: "admin@collegems.local", 
+        status: "active"
+      });
+      console.log(`Default Tenant successfully created! ID: ${newTenant._id}`);
+    }
+  } catch (err) {
+    console.log("Error creating default tenant:", err.message);
+  }
+});
 
 export default app;

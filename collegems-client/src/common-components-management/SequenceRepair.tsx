@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Wrench, Search, AlertCircle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import api from "../api/axios";
+import { toast } from "sonner";
 
 interface RepairPreview {
   recordId: string;
@@ -51,11 +52,11 @@ export const SequenceRepair: React.FC = () => {
       return res.data;
     },
     onSuccess: (data) => {
-      alert(data.message);
+      toast.success(data.message);
       analyzeSequence(); // Re-analyze to confirm success
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || "Repair failed");
+      toast.error(err.response?.data?.message || "Repair failed");
     },
   });
 
