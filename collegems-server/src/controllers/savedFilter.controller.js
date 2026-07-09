@@ -6,7 +6,7 @@ import SavedFilter from "../models/SavedFilter.model.js";
 export const getSavedFilters = async (req, res) => {
   try {
     const filters = await SavedFilter.find({
-      user: req.user._id,
+      user: req.user.id,
       dashboard: req.params.dashboard,
     }).sort({ createdAt: -1 });
 
@@ -28,7 +28,7 @@ export const createSavedFilter = async (req, res) => {
     }
 
     // Check if the user already has a filter with this name on this dashboard
-    const existing = await SavedFilter.findOne({ user: req.user._id, dashboard, name });
+    const existing = await SavedFilter.findOne({ user: req.user.id, dashboard, name });
     
     if (existing) {
       // If it exists, update it rather than throwing an error (acts like an overwrite)
@@ -38,7 +38,7 @@ export const createSavedFilter = async (req, res) => {
     }
 
     const savedFilter = await SavedFilter.create({
-      user: req.user._id,
+      user: req.user.id,
       name,
       dashboard,
       filters,
@@ -66,7 +66,7 @@ export const deleteSavedFilter = async (req, res) => {
     }
 
     // Ensure the user owns this filter
-    if (filter.user.toString() !== req.user._id.toString()) {
+    if (filter.user.toString() !== req.user.id.toString()) {
       return res.status(403).json({ success: false, message: "Not authorized to delete this filter" });
     }
 

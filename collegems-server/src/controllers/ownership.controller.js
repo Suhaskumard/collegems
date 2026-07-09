@@ -75,7 +75,7 @@ export const transferOwnership = async (req, res) => {
     }
 
     // Authorization: User must be admin, hod, or the current owner
-    const isOwner = record.ownerId && record.ownerId.toString() === req.user._id.toString();
+    const isOwner = record.ownerId && record.ownerId.toString() === req.user.id.toString();
     const isAdminOrHod = ["admin", "hod"].includes(req.user.role);
     
     if (!isOwner && !isAdminOrHod) {
@@ -96,7 +96,7 @@ export const transferOwnership = async (req, res) => {
     record.ownershipHistory.push({
       previousOwnerId: previousOwnerId || null,
       newOwnerId: newOwnerId,
-      transferredBy: req.user._id,
+      transferredBy: req.user.id,
       reason: reason || "Ownership transferred via dashboard",
     });
 

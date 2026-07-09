@@ -4,6 +4,13 @@ import Course from "../models/Course.model.js";
 import { logAction } from "../utils/auditService.js";
 import { checkSemesterFrozen } from "../services/semesterService.js";
 
+const MAX_COMPONENT_MARKS = 100;
+
+// A component mark is valid if it's omitted, or a finite number within [0, MAX_COMPONENT_MARKS].
+const isValidComponentMark = (marks) =>
+    marks === undefined || marks === null ||
+    (typeof marks === "number" && Number.isFinite(marks) && marks >= 0 && marks <= MAX_COMPONENT_MARKS);
+
 export const getResults = async (req, res) => {
     try {
         if (!req.user) {
@@ -51,10 +58,17 @@ export const createResult = async (req, res) => {
             internalMarks,
             externalMarks,
             practicalMarks,
-            totalMarks,
             grade,
             status,
         } = req.body;
+
+        if (![internalMarks, externalMarks, practicalMarks].every(isValidComponentMark)) {
+            return res.status(400).json({
+                message: `Marks fields must be numbers between 0 and ${MAX_COMPONENT_MARKS}`,
+            });
+        }
+
+        const totalMarks = (internalMarks || 0) + (externalMarks || 0) + (practicalMarks || 0);
 
         const student = await Student.findById(studentId);
         if (!student) {
@@ -102,8 +116,6 @@ export const createResult = async (req, res) => {
             createdBy: req.user.id,
         });
 
-        res.status(201).json(result);
-
         // Log result creation with rich audit details
         await logAction(req.user.id, "CREATE_RESULT", "Result", result._id, {
             userRole: req.user.role,
@@ -121,6 +133,8 @@ export const createResult = async (req, res) => {
                 status: result.status,
             },
         });
+
+        res.status(201).json(result);
     } catch (err) {
         console.log("Create Result Error:", err);
         if (err.status === 403) return res.status(403).json({ message: err.message });
@@ -141,8 +155,6 @@ export const publishResult = async (req, res) => {
         result.status = "published";
         await result.save();
 
-        res.json(result);
-
         // Log result publish with rich audit details
         await logAction(req.user.id, "PUBLISH_RESULT", "Result", result._id, {
             userRole: req.user.role,
@@ -150,9 +162,14 @@ export const publishResult = async (req, res) => {
             previousValue,
             newValue: { status: "published" },
         });
+
+        res.json(result);
     } catch (error) {
         if (error.status === 403) return res.status(403).json({ message: error.message });
         console.error("Publish Result Error:", error);
+        if (error.name === "ValidationError") {
+            return res.status(400).json({ message: "Cannot publish a result with invalid marks", error: error.message });
+        }
         res.status(500).json({ message: "Publish failed" });
     }
 };
@@ -205,18 +222,27 @@ export const publishAll = async (req, res) => {
 
         await Results.updateMany(filter, { $set: { status: "published" } });
 
-        res.json({
-            success: true,
-            message: `Published ${drafts.length} result(s)`,
-            count: drafts.length,
-        });
+        if (publishable.length === 0) {
+            return res.json({ success: true, message: "No draft results with valid marks to publish", count: 0, skipped });
+        }
+
+        await Results.updateMany(
+            { _id: { $in: publishable.map((d) => d._id) } },
+            { $set: { status: "published" } }
+        );
 
         // Log bulk publish with rich audit details
         await logAction(req.user.id, "PUBLISH_ALL_RESULTS", "Result", null, {
             userRole: req.user.role,
             filter: { courseId: courseId || null, semester: semester || null },
-            publishedCount: drafts.length,
-            resultIds: drafts.map((r) => r._id),
+            publishedCount: publishable.length,
+            resultIds: publishable.map((r) => r._id),
+        });
+
+        res.json({
+            success: true,
+            message: `Published ${drafts.length} result(s)`,
+            count: drafts.length,
         });
     } catch (error) {
         if (error.status === 403) return res.status(403).json({ message: error.message });

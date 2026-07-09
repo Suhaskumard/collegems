@@ -4,7 +4,7 @@ const HISTORY_LIMIT = 20;
 
 export const getHistory = async (req, res) => {
   try {
-    const history = await RecentHistory.find({ user: req.user._id })
+    const history = await RecentHistory.find({ user: req.user.id })
       .sort({ viewedAt: -1 })
       .limit(HISTORY_LIMIT);
     res.status(200).json({ success: true, data: history });
@@ -19,13 +19,13 @@ export const addHistoryEntry = async (req, res) => {
     
     // Upsert the entry (update viewedAt if it exists)
     await RecentHistory.findOneAndUpdate(
-      { user: req.user._id, entityType, entityId },
+      { user: req.user.id, entityType, entityId },
       { displayName, url, viewedAt: Date.now() },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
     // Enforce limit: find the 20th item and delete anything older
-    const excessEntries = await RecentHistory.find({ user: req.user._id })
+    const excessEntries = await RecentHistory.find({ user: req.user.id })
       .sort({ viewedAt: -1 })
       .skip(HISTORY_LIMIT)
       .select('_id');

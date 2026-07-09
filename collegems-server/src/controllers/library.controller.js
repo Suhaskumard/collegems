@@ -3,6 +3,7 @@ import BookIssue from "../models/BookIssue.model.js";
 import User from "../models/User.model.js";
 import LibraryFine from "../models/LibraryFine.model.js";
 import Notification from "../models/Notification.model.js";
+import { logAction } from "../utils/auditService.js";
 
 // GET ALL BOOKS
 export const getAllBooks = async (req, res) => {
@@ -223,23 +224,24 @@ export const getIssueRecords = async (req, res) => {
       }
     }
 
-    // Update overdue statuses dynamically
-    const activeIssues = await BookIssue.find({
-      status: "issued",
-      dueDate: { $lt: new Date() },
-    });
-
-    for (let issue of activeIssues) {
-      issue.status = "overdue";
-      await issue.save();
-    }
-
+    // GET must be side-effect free, so we do not persist status changes here.
+    // The "issued" -> "overdue" transition (and its fines/notifications) is
+    // owned by the daily processLibraryFines cron job. We only derive the
+    // overdue status at read time so the response stays accurate between runs.
+    const now = new Date();
     const issues = await BookIssue.find(query)
       .populate("book", "title author category")
       .populate("user", "name email role studentId teacherId")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ success: true, issues });
+    const issuesWithDerivedStatus = issues.map((issue) =>
+      issue.status === "issued" && issue.dueDate < now
+        ? { ...issue, status: "overdue" }
+        : issue
+    );
+
+    res.json({ success: true, issues: issuesWithDerivedStatus });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -269,7 +271,11 @@ export const getUserFines = async (req, res) => {
   }
 };
 
-// PAY LIBRARY FINE (MOCK PAYMENT)
+// RECORD A LIBRARY FINE AS PAID
+// Restricted to hod/teacher (see library.routes.js) - the librarian collects
+// the fine in person and records it here. There's no payment gateway, so this
+// must stay a staff-confirmed action rather than something the paying student
+// can trigger themselves.
 export const payLibraryFine = async (req, res) => {
   try {
     const { fineId } = req.params;
@@ -283,10 +289,14 @@ export const payLibraryFine = async (req, res) => {
       return res.status(400).json({ success: false, message: "Fine is already paid" });
     }
 
-    // Mocking successful payment
     fine.status = "Paid";
     fine.paidOn = new Date();
     await fine.save();
+
+    await logAction(req.user.id, "PAY_LIBRARY_FINE", "LibraryFine", fine._id, {
+      studentId: fine.student._id,
+      amount: fine.amount,
+    });
 
     // Create Notification for successful payment
     const notification = new Notification({

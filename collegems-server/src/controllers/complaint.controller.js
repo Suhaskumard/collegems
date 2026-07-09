@@ -6,7 +6,7 @@ export const createComplaint = async (req, res) => {
     const { title, description, category, priority, evidenceUrl } = req.body;
     
     const newComplaint = new Complaint({
-      student: req.user._id,
+      student: req.user.id,
       title,
       description,
       category,
@@ -24,7 +24,7 @@ export const createComplaint = async (req, res) => {
 // Get all complaints for the logged-in student
 export const getMyComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find({ student: req.user._id })
+    const complaints = await Complaint.find({ student: req.user.id })
       .populate("assignedTo", "name email department")
       .populate("comments.sender", "name role")
       .sort({ createdAt: -1 });
@@ -69,7 +69,7 @@ export const getComplaintById = async (req, res) => {
     }
 
     // Ensure student can only view their own complaint unless they are admin
-    if (req.user.role === "student" && complaint.student._id.toString() !== req.user._id.toString()) {
+    if (req.user.role === "student" && complaint.student._id.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -127,12 +127,12 @@ export const addComment = async (req, res) => {
     }
 
     // Ensure student can only comment on their own complaint
-    if (req.user.role === "student" && complaint.student.toString() !== req.user._id.toString()) {
+    if (req.user.role === "student" && complaint.student.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     complaint.comments.push({
-      sender: req.user._id,
+      sender: req.user.id,
       message,
       timestamp: new Date()
     });
