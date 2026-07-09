@@ -23,6 +23,14 @@ export const saveAssessmentConfig = async (req, res) => {
         const { courseId } = req.params;
         const { components } = req.body;
 
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+        if (req.user.role === "teacher" && course.teacher.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Not authorized to manage assessments for this course" });
+        }
+
         const totalWeightage = components.reduce((sum, comp) => sum + Number(comp.weightage), 0);
         if (totalWeightage !== 100) {
             return res.status(400).json({ message: "Total weightage must be exactly 100%" });
@@ -60,20 +68,39 @@ export const saveInternalAssessment = async (req, res) => {
         const { courseId, studentId } = req.params;
         const { scores } = req.body; // Array of { componentName, score }
 
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+        if (req.user.role === "teacher" && course.teacher.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Not authorized to manage assessments for this course" });
+        }
+
         const config = await AssessmentConfig.findOne({ courseId });
         if (!config) {
             return res.status(400).json({ message: "Assessment configuration not set for this course." });
+        }
+
+        // Validate scores against configured components before computing totals
+        for (const s of scores) {
+            const compConfig = config.components.find(c => c.name === s.componentName);
+            if (!compConfig) {
+                return res.status(400).json({ message: `Unknown assessment component: ${s.componentName}` });
+            }
+            if (s.score < 0 || s.score > compConfig.maxMarks) {
+                return res.status(400).json({
+                    message: `Score for ${s.componentName} must be between 0 and ${compConfig.maxMarks}`
+                });
+            }
         }
 
         // Calculate total internal marks
         let totalInternalMarks = 0;
         for (const s of scores) {
             const compConfig = config.components.find(c => c.name === s.componentName);
-            if (compConfig) {
-                // Formula: (score / maxMarks) * weightage
-                const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
-                totalInternalMarks += computedMark;
-            }
+            // Formula: (score / maxMarks) * weightage
+            const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
+            totalInternalMarks += computedMark;
         }
 
         let assessment = await InternalAssessment.findOne({ courseId, studentId });

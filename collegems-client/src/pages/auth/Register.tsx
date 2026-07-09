@@ -1,8 +1,5 @@
-
-//import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-//import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import {
   User, Mail, Lock, GraduationCap, Users, Shield, Building2,
@@ -103,7 +100,6 @@ export default function Register() {
     { value: "teacher", label: "Teacher", icon: Users, color: "amber", description: "Manage classes, assignments, and attendance" },
     { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's academic progress" },
     { value: "hod", label: "HOD", icon: Shield, color: "emerald", description: "Oversee department and faculty" },
-    { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's progress" },
   ];
 
   const getRoleColor = (roleValue: string) => {

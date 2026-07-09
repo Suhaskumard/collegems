@@ -18,11 +18,11 @@ const ResultsSchema = new mongoose.Schema({
         type: String,
     },
 
-    internalMarks: Number,
-    externalMarks: Number,
-    practicalMarks: Number,
+    internalMarks: { type: Number, min: 0, max: 100 },
+    externalMarks: { type: Number, min: 0, max: 100 },
+    practicalMarks: { type: Number, min: 0, max: 100 },
 
-    totalMarks: Number,
+    totalMarks: { type: Number, min: 0, max: 300 },
 
     grade: {
         type: String,

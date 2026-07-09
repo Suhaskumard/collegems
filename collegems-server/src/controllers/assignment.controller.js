@@ -365,7 +365,10 @@ export const downloadAssignmentFile = async (req, res) => {
     res.setHeader("Content-Security-Policy", "default-src 'none'");
 
     // Serve the file as a download/attachment with the original filename
-    res.download(filePath, submission.file.originalName);
+  res.set({
+    'Content-Disposition': `inline; filename="${submission.file.originalName}"`
+});
+res.sendFile(filePath);
   } catch (error) {
     console.error("Download Assignment Error:", error);
     res.status(500).json({ message: "Failed to download file" });
