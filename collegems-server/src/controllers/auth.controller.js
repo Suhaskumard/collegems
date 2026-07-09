@@ -83,6 +83,13 @@ export const register = async (req, res) => {
           .json({ message: "Course required for student" });
       }
 
+      // Hard check, independent of overrideDuplicates/checkPotentialDuplicates
+      // below - a Student ID collision must never be bypassable.
+      const existingStudent = await User.findOne({ studentId, role: "student" });
+      if (existingStudent) {
+        return res.status(409).json({ message: "A student with this Student ID already exists" });
+      }
+
       userData = { ...userData, studentId, semester, course};
       if (department) {
         userData.department = department;
