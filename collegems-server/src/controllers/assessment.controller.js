@@ -65,15 +65,26 @@ export const saveInternalAssessment = async (req, res) => {
             return res.status(400).json({ message: "Assessment configuration not set for this course." });
         }
 
+        // Validate scores against configured components before computing totals
+        for (const s of scores) {
+            const compConfig = config.components.find(c => c.name === s.componentName);
+            if (!compConfig) {
+                return res.status(400).json({ message: `Unknown assessment component: ${s.componentName}` });
+            }
+            if (s.score < 0 || s.score > compConfig.maxMarks) {
+                return res.status(400).json({
+                    message: `Score for ${s.componentName} must be between 0 and ${compConfig.maxMarks}`
+                });
+            }
+        }
+
         // Calculate total internal marks
         let totalInternalMarks = 0;
         for (const s of scores) {
             const compConfig = config.components.find(c => c.name === s.componentName);
-            if (compConfig) {
-                // Formula: (score / maxMarks) * weightage
-                const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
-                totalInternalMarks += computedMark;
-            }
+            // Formula: (score / maxMarks) * weightage
+            const computedMark = (s.score / compConfig.maxMarks) * compConfig.weightage;
+            totalInternalMarks += computedMark;
         }
 
         let assessment = await InternalAssessment.findOne({ courseId, studentId });
