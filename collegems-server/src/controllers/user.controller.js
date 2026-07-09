@@ -7,7 +7,10 @@ import calculateProfileCompletion from "../utils/profileCompletion.js";
 import Attendance from "../models/Attendance.model.js";
 import Results from "../models/Results.model.js";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { checkPotentialDuplicates } from "../services/duplicateDetection.service.js";
+import { secureResumesDir } from "../middlewares/upload.middleware.js";
 const normalizeSettings = (settings) => {
   const safeSettings = settings || {};
   return {
@@ -232,20 +235,39 @@ export const uploadResumeFile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Save relative path
-    const resumePath = `/uploads/resumes/${req.file.filename}`;
-    user.resumeUrl = resumePath;
+    // Resumes are stored outside the public/static file tree and are only
+    // ever retrieved through the authenticated GET /me/resume route below,
+    // so we only need to remember the on-disk filename, not a public URL.
+    user.resumeUrl = req.file.filename;
     user._updatedBy = req.user.id;
     await user.save();
 
     res.json({
       success: true,
       message: "Resume uploaded successfully",
-      resumeUrl: resumePath,
     });
   } catch (error) {
     console.error("Error uploading resume:", error);
     res.status(500).json({ message: "Server error uploading resume" });
+  }
+};
+
+export const downloadResumeFile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.resumeUrl) {
+      return res.status(404).json({ message: "No resume on file" });
+    }
+
+    const filePath = path.join(secureResumesDir, user.resumeUrl);
+    if (!filePath.startsWith(secureResumesDir) || !fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Resume file not found" });
+    }
+
+    res.download(filePath, "resume.pdf");
+  } catch (error) {
+    console.error("Error downloading resume:", error);
+    res.status(500).json({ message: "Server error downloading resume" });
   }
 };
 
