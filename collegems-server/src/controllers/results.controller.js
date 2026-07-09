@@ -3,6 +3,13 @@ import Student from "../models/User.model.js";
 import Course from "../models/Course.model.js";
 import { logAction } from "../utils/auditService.js";
 
+const MAX_COMPONENT_MARKS = 100;
+
+// A component mark is valid if it's omitted, or a finite number within [0, MAX_COMPONENT_MARKS].
+const isValidComponentMark = (marks) =>
+    marks === undefined || marks === null ||
+    (typeof marks === "number" && Number.isFinite(marks) && marks >= 0 && marks <= MAX_COMPONENT_MARKS);
+
 export const getResults = async (req, res) => {
     try {
         if (!req.user) {
@@ -50,10 +57,17 @@ export const createResult = async (req, res) => {
             internalMarks,
             externalMarks,
             practicalMarks,
-            totalMarks,
             grade,
             status,
         } = req.body;
+
+        if (![internalMarks, externalMarks, practicalMarks].every(isValidComponentMark)) {
+            return res.status(400).json({
+                message: `Marks fields must be numbers between 0 and ${MAX_COMPONENT_MARKS}`,
+            });
+        }
+
+        const totalMarks = (internalMarks || 0) + (externalMarks || 0) + (practicalMarks || 0);
 
         const student = await Student.findById(studentId);
         if (!student) {
@@ -146,6 +160,9 @@ export const publishResult = async (req, res) => {
         });
     } catch (error) {
         console.error("Publish Result Error:", error);
+        if (error.name === "ValidationError") {
+            return res.status(400).json({ message: "Cannot publish a result with invalid marks", error: error.message });
+        }
         res.status(500).json({ message: "Publish failed" });
     }
 };
@@ -191,20 +208,35 @@ export const publishAll = async (req, res) => {
             return res.json({ success: true, message: "No draft results to publish", count: 0 });
         }
 
-        await Results.updateMany(filter, { $set: { status: "published" } });
+        const publishable = drafts.filter((d) =>
+            isValidComponentMark(d.internalMarks) &&
+            isValidComponentMark(d.externalMarks) &&
+            isValidComponentMark(d.practicalMarks)
+        );
+        const skipped = drafts.length - publishable.length;
+
+        if (publishable.length === 0) {
+            return res.json({ success: true, message: "No draft results with valid marks to publish", count: 0, skipped });
+        }
+
+        await Results.updateMany(
+            { _id: { $in: publishable.map((d) => d._id) } },
+            { $set: { status: "published" } }
+        );
 
         res.json({
             success: true,
-            message: `Published ${drafts.length} result(s)`,
-            count: drafts.length,
+            message: `Published ${publishable.length} result(s)`,
+            count: publishable.length,
+            skipped,
         });
 
         // Log bulk publish with rich audit details
         await logAction(req.user.id, "PUBLISH_ALL_RESULTS", "Result", null, {
             userRole: req.user.role,
             filter: { courseId: courseId || null, semester: semester || null },
-            publishedCount: drafts.length,
-            resultIds: drafts.map((r) => r._id),
+            publishedCount: publishable.length,
+            resultIds: publishable.map((r) => r._id),
         });
     } catch (error) {
         console.error("Publish All Error:", error);
