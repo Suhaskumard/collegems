@@ -13,6 +13,10 @@ import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "../socket/studyGroupSocket.js";
 import { allowedOrigins } from "../config/cors.js";
+import { registerProcessErrorHandlers } from "../utils/processErrorHandlers.js";
+import helmet from "helmet";
+registerProcessErrorHandlers();
+
 
 // ✅ IMPORT PROCESS ERROR HANDLERS
 import { registerProcessErrorHandlers } from "../utils/processErrorHandlers.js";
